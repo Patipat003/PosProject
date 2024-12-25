@@ -3,12 +3,12 @@ import React from "react";
 const SalesPage = () => {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-4">Sales Product</h1>
+      <h1 className="text-3xl text-black font-bold mb-4">Sales Product</h1>
       <p>Manage your sales here. This page will display products available for sale.</p>
       
       {/* ตัวอย่างฟอร์มหรือข้อมูลการขาย */}
       <div className="mt-6">
-        <h2 className="text-xl font-semibold">Product List</h2>
+        <h2 className="text-xl text-black font-semibold">Product List</h2>
         <ul className="space-y-4 mt-4">
           <li className="p-4 border rounded-lg bg-white shadow-sm">
             <div className="flex justify-between">
