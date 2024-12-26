@@ -6,7 +6,8 @@
     "react-csv": "^2.2.2",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "daisyui": "^10.8.2"
   },
   "name": "frontend",
   "version": "1.0.0",
