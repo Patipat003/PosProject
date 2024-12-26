@@ -66,7 +66,7 @@ const MainLayout = ({ children }) => {
             <Link to="/reports">Reports</Link>
             <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
             <li>
-                  <Link to="/datailReport">Datail Report</Link>
+                  <Link to="/detailReport">Datail Report</Link>
                 </li>
                 <li>
                   <Link to="/salesHistory">Sales History</Link>
