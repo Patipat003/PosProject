@@ -10,14 +10,14 @@ import (
 //Employee struct
 
 type Employees struct {
-	EmployeeID string     `gorm:"type:uuid;primaryKey" json:"employeeid"`
-	Username   string     `json:"username"`
-	Password   string     `json:"password"`
-	Name       string     `json:"name"`
-	Role       string     `json:"role"`
-	BrancheID  []Branches `gorm:"type:uuid;foreignKey:BrancheID" json:"brancheid"`
-	Salary     float64    `json:"salary"`
-	CreatedAt  time.Time  `json:"createdat"`
+	EmployeeID string    `gorm:"type:uuid;primaryKey" json:"employeeid"`
+	Username   string    `json:"username"`
+	Password   string    `json:"password"`
+	Name       string    `json:"name"`
+	Role       string    `json:"role"`
+	BranchID   string    `gorm:"foreignKey:BranchID" json:"branchid"` // ใช้ *Branches
+	Salary     float64   `json:"salary"`
+	CreatedAt  time.Time `json:"createdat"`
 }
 
 func (Employees) TableName() string {
@@ -32,7 +32,7 @@ func (s *Employees) BeforeCreate(tx *gorm.DB) (err error) {
 //Branches struct
 
 type Branches struct {
-	BrancheID string    `gorm:"type:uuid;primaryKey" json:"brancheid"`
+	BranchID  string    `gorm:"type:uuid;primaryKey" json:"branchid"`
 	BName     string    `json:"bname"`
 	Location  string    `json:"location"`
 	CreatedAt time.Time `json:"createdat"`
@@ -43,7 +43,7 @@ func (Branches) TableName() string {
 }
 
 func (s *Branches) BeforeCreate(tx *gorm.DB) (err error) {
-	s.BrancheID = uuid.New().String()
+	s.BranchID = uuid.New().String()
 	return
 }
 
@@ -68,10 +68,10 @@ func (s *Product) BeforeCreate(tx *gorm.DB) (err error) {
 //ProductUnit struct
 
 type ProductUnit struct {
-	ProductUnitID string    `gorm:"type:uuid;primaryKey" json:"productunitid"`
-	ProductID     []Product `gorm:"foreignKey:ProductID" json:"productid"`
-	Type          string    `json:"type"`
-	ConversRate   int       `json:"conversrate"`
+	ProductUnitID string `gorm:"type:uuid;primaryKey" json:"productunitid"`
+	ProductID     string `gorm:"foreignKey:ProductID" json:"productid"`
+	Type          string `json:"type"`
+	ConversRate   int    `json:"conversrate"`
 }
 
 func (ProductUnit) TableName() string {
@@ -86,12 +86,12 @@ func (s *ProductUnit) BeforeCreate(tx *gorm.DB) (err error) {
 //Inventory struct
 
 type Inventory struct {
-	InventoryID   string        `gorm:"type:uuid;primaryKey" json:"inventoryid"`
-	ProductUnitID []ProductUnit `gorm:"foreignKey:ProductUnitID" json:"productunitid"`
-	BrancheID     []Branches    `gorm:"type:uuid;foreignKey:BrancheID" json:"brancheid"`
-	Quantity      int           `json:"quantity"`
-	Price         float64       `json:"price"`
-	UpdateAt      time.Time     `json:"updateat"`
+	InventoryID   string    `gorm:"type:uuid;primaryKey" json:"inventoryid"`
+	ProductUnitID string    `gorm:"foreignKey:ProductUnitID" json:"productunitid"`
+	BranchID      string    `gorm:"type:uuid;foreignKey:BranchID" json:"branchid"`
+	Quantity      int       `json:"quantity"`
+	Price         float64   `json:"price"`
+	UpdateAt      time.Time `json:"updateat"`
 }
 
 func (Inventory) TableName() string {
@@ -106,15 +106,15 @@ func (s *Inventory) BeforeCreate(tx *gorm.DB) (err error) {
 //Receipt struct
 
 type Receipt struct {
-	ReceiptID     string      `gorm:"type:uuid;primaryKey" json:"receiptid"`
-	ReceiptNumber string      `json:"receiptname"`
-	EmployeeID    []Employees `gorm:"foreignKey:EmployeeID" json:"employeeid"`
-	BrancheID     []Branches  `gorm:"type:uuid;foreignKey:BrancheID" json:"brancheid"`
-	ReceiptDate   time.Time   `json:"receiptdate"`
-	TotalAmount   float64     `json:"totalamount"`
-	Status        string      `json:"status"`
-	CreatedAt     time.Time   `json:"createdat"`
-	Update        time.Time   `json:"updateat"`
+	ReceiptID     string    `gorm:"type:uuid;primaryKey" json:"receiptid"`
+	ReceiptNumber string    `json:"receiptname"`
+	EmployeeID    string    `gorm:"foreignKey:EmployeeID" json:"employeeid"`
+	BranchID      string    `gorm:"type:uuid;foreignKey:BranchID" json:"branchid"`
+	ReceiptDate   time.Time `json:"receiptdate"`
+	TotalAmount   float64   `json:"totalamount"`
+	Status        string    `json:"status"`
+	CreatedAt     time.Time `json:"createdat"`
+	Update        time.Time `json:"updateat"`
 }
 
 func (Receipt) TableName() string {
@@ -129,13 +129,13 @@ func (s *Receipt) BeforeCreate(tx *gorm.DB) (err error) {
 //Receipt Item struct
 
 type ReceiptItem struct {
-	ReceiptItemID string        `gorm:"type:uuid;primaryKey" json:"receiptitemid"`
-	ReceiptID     []Receipt     `gorm:"type:uuid;foreignKey:ReceiptID" json:"receiptid"`
-	ProductUnitID []ProductUnit `gorm:"type:uuid;foreignKey:ProductUnitID" json:"productunitid"`
-	Quantity      int           `json:"quantity"`
-	UnitPrice     float64       `json:"unitprice"`
-	CreatedAt     time.Time     `json:"createdat"`
-	UpdateAt      time.Time     `json:"updateat"`
+	ReceiptItemID string    `gorm:"type:uuid;primaryKey" json:"receiptitemid"`
+	ReceiptID     string    `gorm:"type:uuid;foreignKey:ReceiptID" json:"receiptid"`
+	ProductUnitID string    `gorm:"type:uuid;foreignKey:ProductUnitID" json:"productunitid"`
+	Quantity      int       `json:"quantity"`
+	UnitPrice     float64   `json:"unitprice"`
+	CreatedAt     time.Time `json:"createdat"`
+	UpdateAt      time.Time `json:"updateat"`
 }
 
 func (ReceiptItem) TableName() string {
@@ -150,14 +150,14 @@ func (s *ReceiptItem) BeforeCreate(tx *gorm.DB) (err error) {
 //Transfer Product struct
 
 type TransferProduct struct {
-	TransferProductID string     `gorm:"type:uuid;primaryKey" json:"transferproductid"`
-	TransferNumber    string     `json:"transfernumber"`
-	FromBranchID      []Branches `gorm:"type:uuid;foreignKey:BrancheID" json:"frombranchid"`
-	ToBranchID        []Branches `gorm:"type:uuid;foreignKey:BrancheID" json:"tobranchid"`
-	RequestDate       time.Time  `json:"requestdate"`
-	Status            string     `json:"status"`
-	CreatedAt         time.Time  `json:"createdat"`
-	UpdateAt          time.Time  `json:"updateat"`
+	TransferProductID string    `gorm:"type:uuid;primaryKey" json:"transferproductid"`
+	TransferNumber    string    `json:"transfernumber"`
+	FromBranchID      string    `gorm:"type:uuid;foreignKey:BranchID" json:"frombranchid"` // ใช้ *Branches แทน []Branches
+	ToBranchID        string    `gorm:"type:uuid;foreignKey:BranchID" json:"tobranchid"`   // ใช้ *Branches แทน []Branches
+	RequestDate       time.Time `json:"requestdate"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"createdat"`
+	UpdateAt          time.Time `json:"updateat"`
 }
 
 func (TransferProduct) TableName() string {
@@ -172,12 +172,12 @@ func (s *TransferProduct) BeforeCreate(tx *gorm.DB) (err error) {
 //Transfer Product List struct
 
 type TransferProductList struct {
-	TransferListID string            `gorm:"type:uuid;primaryKey" json:"transferlistid"`
-	TransferID     []TransferProduct `gorm:"type:uuid;foreignKey:TransferID" json:"transferid"`
-	ProductUnitID  []ProductUnit     `gorm:"type:uuid;foreignKey:ProductUnitID" json:"productunitid"`
-	Quantity       int               `json:"quantity"`
-	CreatedAt      time.Time         `json:"createdat"`
-	UpdateAt       time.Time         `json:"updateat"`
+	TransferListID string    `gorm:"type:uuid;primaryKey" json:"transferlistid"`
+	TransferID     string    `gorm:"type:uuid;foreignKey:TransferID" json:"transferid"`       // ใช้ *TransferProduct แทน []TransferProduct
+	ProductUnitID  string    `gorm:"type:uuid;foreignKey:ProductUnitID" json:"productunitid"` // ใช้ *ProductUnit แทน []ProductUnit
+	Quantity       int       `json:"quantity"`
+	CreatedAt      time.Time `json:"createdat"`
+	UpdateAt       time.Time `json:"updateat"`
 }
 
 func (TransferProductList) TableName() string {

@@ -35,17 +35,17 @@ func main() {
 		panic("failed to connect to database")
 	}
 
-	db.Migrator().DropTable(
-		&Models.Employees{},
-		&Models.Branches{},
-		&Models.Product{},
-		&Models.ProductUnit{},
-		&Models.Inventory{},
-		&Models.Receipt{},
-		&Models.ReceiptItem{},
-		&Models.TransferProduct{},
-		&Models.TransferProductList{},
-	)
+	// db.Migrator().DropTable(
+	// 	&Models.Employees{},
+	// 	&Models.Branches{},
+	// 	&Models.Product{},
+	// 	&Models.ProductUnit{},
+	// 	&Models.Inventory{},
+	// 	&Models.Receipt{},
+	// 	&Models.ReceiptItem{},
+	// 	&Models.TransferProduct{},
+	// 	&Models.TransferProductList{},
+	// )
 
 	db.AutoMigrate(
 		&Models.Employees{},
@@ -62,7 +62,14 @@ func main() {
 	app := fiber.New()
 
 	Database.EmployeesRoutes(app, db)
-	// Func.BranchesRoutes(app, db)
+	Database.BranchRoutes(app, db)
+	Database.ProductRoutes(app, db)
+	Database.ProductUnitRoutes(app, db)
+	Database.InventoryRoutes(app, db)
+	Database.ReceiptRoutes(app, db)
+	Database.ReceiptItemRoutes(app, db)
+	Database.TransferProductRoutes(app, db)
+	Database.TransferProductListRoutes(app, db)
 
 	log.Fatal(app.Listen(":5050"))
 }
