@@ -19,7 +19,7 @@ const MainLayout = ({ children }) => {
       {/* Sidebar and Main Content */}
       <div className="flex flex-1">
         {/* Sidebar */}
-        <ul className="menu bg-base-200 w-56">
+        <ul className="menu bg-bla-200 w-56">
 
 
           <li>
@@ -62,10 +62,23 @@ const MainLayout = ({ children }) => {
           <li className="menu-item m-1">
             <Link to="/product">Product management</Link>
           </li>
-          <li className="menu-item m-1 mt-4">
+          <li className="dropdown dropdown-right m-1">
             <Link to="/reports">Reports</Link>
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <li>
+                  <Link to="/datailReport">Datail Report</Link>
+                </li>
+                <li>
+                  <Link to="/salesHistory">Sales History</Link>
+                </li>
+                <li>
+                  <Link to="/#">3</Link>
+                </li>
+            </ul>
+
+
           </li>
-          <li className="menu-item m-1 mt-4">
+          <li className="menu-item m-1 mt-0">
             <Link to="/userManagement">User management</Link>
           </li>
 

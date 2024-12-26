@@ -7,6 +7,7 @@ import SalesHistoryPage from "./pages/SalesHistoryPage";
 import ProductPage from "./pages/ProductPage";
 import ReportsPage from "./pages/ReportsPage";
 import UserManagementPage from "./pages/UserManagementPage";
+import DetailReportPage from "./pages/DetailReportPage";
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/product" element={<ProductPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/userManagement" element={<UserManagementPage />} />
+          <Route path="/detailReport" element={<DetailReportPage />} />
         </Routes>
       </MainLayout>
     </Router>
