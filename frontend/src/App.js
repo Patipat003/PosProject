@@ -8,7 +8,10 @@ import ProductPage from "./pages/ProductPage";
 import ReportsPage from "./pages/ReportsPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import DetailReportPage from "./pages/DetailReportPage";
-
+import CustomerRankPage from "./pages/CustomerRankPage";
+import CashFlowPage from "./pages/CashFlowPage";
+import AccessRightsPage from "./pages/AccessRightsPage";
+import EmployeeTransferPage from "./pages/EmployeeTransferPage";
 
 function App() {
   return (
@@ -22,6 +25,10 @@ function App() {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/userManagement" element={<UserManagementPage />} />
           <Route path="/detailReport" element={<DetailReportPage />} />
+          <Route path="/customerRank" element={<CustomerRankPage />} />
+          <Route path="/cashFlow" element={<CashFlowPage />} />
+          <Route path="/accessRights" element={<AccessRightsPage />} />
+          <Route path="/employeeTransfer" element={<EmployeeTransferPage />} />
         </Routes>
       </MainLayout>
     </Router>

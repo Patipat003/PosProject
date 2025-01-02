@@ -69,17 +69,23 @@ const MainLayout = ({ children }) => {
                   <Link to="/detailReport">Datail Report</Link>
                 </li>
                 <li>
-                  <Link to="/salesHistory">Sales History</Link>
+                  <Link to="/customerRank">Customer Rank</Link>
                 </li>
                 <li>
-                  <Link to="/#">3</Link>
+                  <Link to="/cashFlow">Cash Flow</Link>
                 </li>
             </ul>
-
-
           </li>
-          <li className="menu-item m-1 mt-0">
-            <Link to="/userManagement">User management</Link>
+          <li className="dropdown dropdown-right m-1">
+          <Link to="/userManagement">User management</Link>
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <li>
+                  <Link to="/accessRights">Access Rights</Link>
+                </li>
+                <li>
+                  <Link to="/employeeTransfer">Employee Transfer</Link>
+                </li>
+            </ul>
           </li>
 
           
