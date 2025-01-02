@@ -11,7 +11,6 @@ const UserManagementPage = () => {
           + Add Employee
         </button>
       </div>
-
       {/* Info Bar */}
       <div className="bg-white p-4 rounded-lg shadow-lg mb-6 flex justify-between items-center">
         <span className="text-lg font-semibold text-gray-700">Name</span>
