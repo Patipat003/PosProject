@@ -8,6 +8,8 @@ import ProductPage from "./pages/ProductPage";
 import ReportsPage from "./pages/ReportsPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import DetailReportPage from "./pages/DetailReportPage";
+import CustomerRankPage from "./pages/CustomerRankPage";
+import CashFlowPage from "./pages/CashFlowPage";
 
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/userManagement" element={<UserManagementPage />} />
           <Route path="/detailReport" element={<DetailReportPage />} />
+          <Route path="/customerRank" element={<CustomerRankPage />} />
+          <Route path="/cashFlow" element={<CashFlowPage />} />
         </Routes>
       </MainLayout>
     </Router>

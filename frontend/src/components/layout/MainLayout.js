@@ -69,10 +69,10 @@ const MainLayout = ({ children }) => {
                   <Link to="/detailReport">Datail Report</Link>
                 </li>
                 <li>
-                  <Link to="/salesHistory">Sales History</Link>
+                  <Link to="/customerRank">Customer Rank</Link>
                 </li>
                 <li>
-                  <Link to="/#">3</Link>
+                  <Link to="/cashFlow">Cash Flow</Link>
                 </li>
             </ul>
 
