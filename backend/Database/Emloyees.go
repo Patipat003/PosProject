@@ -3,11 +3,11 @@ package Database
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/posproject/Models"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func AddEmployees(db *gorm.DB, c *fiber.Ctx) error {
-	// รับข้อมูล JSON จาก request body
 	type UserRequest struct {
 		Username string  `json:"username"`
 		Password string  `json:"password"`
@@ -24,6 +24,14 @@ func AddEmployees(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// แฮชรหัสผ่าน
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error hashing password: " + err.Error(),
+		})
+	}
+
 	// ตรวจสอบว่า BranchID ที่ส่งมามีในฐานข้อมูลหรือไม่
 	var branch Models.Branches
 	if err := db.Where("branch_id = ?", req.BranchID).First(&branch).Error; err != nil {
@@ -35,7 +43,7 @@ func AddEmployees(db *gorm.DB, c *fiber.Ctx) error {
 	// สร้าง object `user` จากข้อมูลที่รับมาจาก request
 	user := Models.Employees{
 		Username: req.Username,
-		Password: req.Password,
+		Password: string(hashedPassword), // ใช้รหัสผ่านที่ถูกแฮช
 		Name:     req.Name,
 		Role:     req.Role,
 		BranchID: branch.BranchID, // เชื่อมโยงกับ Branch object
@@ -125,11 +133,21 @@ func UpdateEmployees(db *gorm.DB, c *fiber.Ctx) error {
 
 	// อัปเดตข้อมูลผู้ใช้
 	user.Username = req.Username
-	user.Password = req.Password
 	user.Name = req.Name
 	user.Role = req.Role
 	user.BranchID = branch.BranchID // เชื่อมโยงกับ Branch ที่ค้นหามา
 	user.Salary = req.Salary
+
+	// ถ้าผู้ใช้ได้เปลี่ยนรหัสผ่าน, ให้ทำการแฮชรหัสผ่านใหม่
+	if req.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error hashing password: " + err.Error(),
+			})
+		}
+		user.Password = string(hashedPassword) // ใช้รหัสผ่านที่ถูกแฮช
+	}
 
 	// บันทึกการอัปเดตลงฐานข้อมูล
 	if err := db.Save(&user).Error; err != nil {

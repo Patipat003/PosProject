@@ -14,8 +14,8 @@ type Employees struct {
 	Username   string    `json:"username"`
 	Password   string    `json:"password"`
 	Name       string    `json:"name"`
-	Role       string    `json:"role"`
-	BranchID   string    `gorm:"foreignKey:BranchID" json:"branchid"` // ใช้ *Branches
+	Role       string    `gorm:"default:null" json:"role"` // ทำให้ Role สามารถเป็น null ได้
+	BranchID   string    `gorm:"foreignKey:BranchID" json:"branchid"`
 	Salary     float64   `json:"salary"`
 	CreatedAt  time.Time `json:"createdat"`
 }
@@ -26,6 +26,9 @@ func (Employees) TableName() string {
 
 func (s *Employees) BeforeCreate(tx *gorm.DB) (err error) {
 	s.EmployeeID = uuid.New().String()
+	if s.Role == "" { // ถ้า Role เป็น null จะตั้งค่า default
+		s.Role = "user" // หรือค่าที่คุณต้องการให้เป็นค่าเริ่มต้น
+	}
 	return
 }
 

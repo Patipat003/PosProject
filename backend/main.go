@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/posproject/Database"
+	"github.com/posproject/Middleware" // import middleware package   // import routes package
 	"github.com/posproject/Models"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,21 +33,10 @@ func main() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect to database")
+		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	// db.Migrator().DropTable(
-	// 	&Models.Employees{},
-	// 	&Models.Branches{},
-	// 	&Models.Product{},
-	// 	&Models.ProductUnit{},
-	// 	&Models.Inventory{},
-	// 	&Models.Receipt{},
-	// 	&Models.ReceiptItem{},
-	// 	&Models.TransferProduct{},
-	// 	&Models.TransferProductList{},
-	// )
-
+	// Automatically migrate models
 	db.AutoMigrate(
 		&Models.Employees{},
 		&Models.Branches{},
@@ -59,7 +49,14 @@ func main() {
 		&Models.TransferProductList{},
 	)
 
+	// Set up Fiber app
 	app := fiber.New()
+
+	// Define routes
+	app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
+
+	// ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
+	app.Use(Middleware.IsAuthenticated())
 
 	Database.EmployeesRoutes(app, db)
 	Database.BranchRoutes(app, db)
@@ -70,6 +67,6 @@ func main() {
 	Database.ReceiptItemRoutes(app, db)
 	Database.TransferProductRoutes(app, db)
 	Database.TransferProductListRoutes(app, db)
-
+	// Gracefully handle shutdown
 	log.Fatal(app.Listen(":5050"))
 }
