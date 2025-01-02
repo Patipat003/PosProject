@@ -10,9 +10,8 @@ import (
 func AddProductUnit(db *gorm.DB, c *fiber.Ctx) error {
 	// Define a struct to receive request data
 	type ProductUnitRequest struct {
-		ProductID   string `json:"productid"`
-		Type        string `json:"type"`
-		ConversRate int    `json:"conversrate"`
+		ProductID string `json:"productid"`
+		Type      string `json:"type"`
 	}
 
 	// Parse request body into the ProductUnitRequest struct
@@ -31,11 +30,26 @@ func AddProductUnit(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// Initialize ConversRate based on Type
+	var conversRate int
+	switch req.Type {
+	case "Pallet":
+		conversRate = 12
+	case "Box":
+		conversRate = 30
+	case "Pieces":
+		conversRate = 1 // Or set to 0 if Pieces is treated as a singular unit
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid type. Valid types are 'Pallet', 'Box', 'Pieces'.",
+		})
+	}
+
 	// Create a new ProductUnit object
 	productUnit := Models.ProductUnit{
 		ProductID:   req.ProductID,
 		Type:        req.Type,
-		ConversRate: req.ConversRate,
+		ConversRate: conversRate,
 	}
 
 	// Insert the new product unit into the database
