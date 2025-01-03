@@ -76,6 +76,17 @@ func IsAuthenticated() fiber.Handler {
 			return c.Next()
 		}
 
+		// Audit สามารถเข้าถึงข้อมูลทุกอย่าง แต่เฉพาะ GET method เท่านั้น
+		if role == "audit" {
+			// ตรวจสอบว่าเป็นการกระทำแบบ GET หรือไม่
+			if c.Method() != "GET" {
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"error": "Audit role can only perform GET requests",
+				})
+			}
+			return c.Next()
+		}
+
 		// ถ้า role ไม่มีสิทธิ์เข้าถึง
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": "You do not have permission",

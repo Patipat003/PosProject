@@ -40,11 +40,14 @@ func AddInventory(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// แปลง Quantity เป็นหน่วย "ชิ้น (Piece)" โดยใช้ ConversRate
+	convertedQuantity := req.Quantity * productUnit.ConversRate
+
 	// Create a new Inventory object
 	inventory := Models.Inventory{
 		ProductUnitID: req.ProductUnitID,
-		BranchID:      req.BranchID, // Associate BranchID with Branch model
-		Quantity:      req.Quantity,
+		BranchID:      req.BranchID,      // Associate BranchID with Branch model
+		Quantity:      convertedQuantity, // เก็บเป็นจำนวนชิ้น
 		Price:         req.Price,
 	}
 
