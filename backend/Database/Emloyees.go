@@ -1,23 +1,18 @@
 package Database
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/posproject/Models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
+// เพิ่ม Employee
 func AddEmployees(db *gorm.DB, c *fiber.Ctx) error {
-	type UserRequest struct {
-		Username string  `json:"username"`
-		Password string  `json:"password"`
-		Name     string  `json:"name"`
-		Role     string  `json:"role"`
-		BranchID string  `json:"branchid"`
-		Salary   float64 `json:"salary"`
-	}
-
-	var req UserRequest
+	var req Models.Employees
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
@@ -31,114 +26,64 @@ func AddEmployees(db *gorm.DB, c *fiber.Ctx) error {
 			"error": "Error hashing password: " + err.Error(),
 		})
 	}
+	req.Password = string(hashedPassword)
+	req.EmployeeID = uuid.New().String()
+	req.CreatedAt = time.Now()
 
-	// ตรวจสอบว่า BranchID ที่ส่งมามีในฐานข้อมูลหรือไม่
-	var branch Models.Branches
-	if err := db.Where("branch_id = ?", req.BranchID).First(&branch).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Branch not found",
-		})
-	}
-
-	// สร้าง object `user` จากข้อมูลที่รับมาจาก request
-	user := Models.Employees{
-		Username: req.Username,
-		Password: string(hashedPassword), // ใช้รหัสผ่านที่ถูกแฮช
-		Name:     req.Name,
-		Role:     req.Role,
-		BranchID: branch.BranchID, // เชื่อมโยงกับ Branch object
-		Salary:   req.Salary,
-	}
-
-	// สร้าง employee ใหม่ในฐานข้อมูล
-	if err := db.Create(&user).Error; err != nil {
+	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create user: " + err.Error(),
+			"error": "Failed to create employee: " + err.Error(),
 		})
 	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": user})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
 }
 
+// ดู Employees ทั้งหมด
 func LookEmployees(db *gorm.DB, c *fiber.Ctx) error {
-	var users []Models.Employees
-	if err := db.Find(&users).Error; err != nil {
+	var employees []Models.Employees
+	if err := db.Find(&employees).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to find users: " + err.Error(),
+			"error": "Failed to find employees: " + err.Error(),
 		})
 	}
-	return c.JSON(fiber.Map{"This": "User", "Data": users})
+	return c.JSON(fiber.Map{"Data": employees})
 }
 
-func FindEmployees(db *gorm.DB, c *fiber.Ctx) error {
+// หา Employee ตาม ID
+func FindEmployee(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
-	var user Models.Employees
-	if err := db.Where("employee_id = ?", id).First(&user).Error; err != nil {
+	var employee Models.Employees
+	if err := db.Where("employee_id = ?", id).First(&employee).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
+			"error": "Employee not found",
 		})
 	}
-	return c.JSON(fiber.Map{"This": "User", "Data": user})
+	return c.JSON(fiber.Map{"Data": employee})
 }
 
-func DeleteEmployees(db *gorm.DB, c *fiber.Ctx) error {
+// อัปเดต Employee
+func UpdateEmployee(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
-	var user Models.Employees
-	if err := db.Where("employee_id = ?", id).First(&user).Error; err != nil {
+	var employee Models.Employees
+	if err := db.Where("employee_id = ?", id).First(&employee).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
-		})
-	}
-	if err := db.Delete(&user).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete user: " + err.Error(),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
-}
-
-func UpdateEmployees(db *gorm.DB, c *fiber.Ctx) error {
-	id := c.Params("id")
-	var user Models.Employees
-	if err := db.Where("employee_id = ?", id).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
+			"error": "Employee not found",
 		})
 	}
 
-	// รับข้อมูล JSON ที่จะอัปเดตจาก BodyParser
-	type UserRequest struct {
-		Username string  `json:"username"`
-		Password string  `json:"password"`
-		Name     string  `json:"name"`
-		Role     string  `json:"role"`
-		BranchID string  `json:"branchid"`
-		Salary   float64 `json:"salary"`
-	}
-
-	var req UserRequest
+	var req Models.Employees
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	// ค้นหา Branch ที่ตรงกับ BranchID
-	var branch Models.Branches
-	if err := db.First(&branch, "branch_id = ?", req.BranchID).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Branch not found",
-		})
-	}
+	employee.Email = req.Email
+	employee.Name = req.Name
+	employee.Role = req.Role
+	employee.BranchID = req.BranchID
 
-	// อัปเดตข้อมูลผู้ใช้
-	user.Username = req.Username
-	user.Name = req.Name
-	user.Role = req.Role
-	user.BranchID = branch.BranchID // เชื่อมโยงกับ Branch ที่ค้นหามา
-	user.Salary = req.Salary
-
-	// ถ้าผู้ใช้ได้เปลี่ยนรหัสผ่าน, ให้ทำการแฮชรหัสผ่านใหม่
+	// แฮชรหัสผ่านใหม่ถ้ามีการเปลี่ยนแปลง
 	if req.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -146,32 +91,49 @@ func UpdateEmployees(db *gorm.DB, c *fiber.Ctx) error {
 				"error": "Error hashing password: " + err.Error(),
 			})
 		}
-		user.Password = string(hashedPassword) // ใช้รหัสผ่านที่ถูกแฮช
+		employee.Password = string(hashedPassword)
 	}
 
-	// บันทึกการอัปเดตลงฐานข้อมูล
-	if err := db.Save(&user).Error; err != nil {
+	if err := db.Save(&employee).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update user: " + err.Error(),
+			"error": "Failed to update employee: " + err.Error(),
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
+// ลบ Employee
+func DeleteEmployee(db *gorm.DB, c *fiber.Ctx) error {
+	id := c.Params("id")
+	var employee Models.Employees
+	if err := db.Where("employee_id = ?", id).First(&employee).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Employee not found",
+		})
+	}
+	if err := db.Delete(&employee).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete employee: " + err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
+}
+
+// Route สำหรับ Employees
 func EmployeesRoutes(app *fiber.App, db *gorm.DB) {
-	app.Get("/Employees", func(c *fiber.Ctx) error {
+	app.Get("/employees", func(c *fiber.Ctx) error {
 		return LookEmployees(db, c)
 	})
-	app.Get("/Employees/:id", func(c *fiber.Ctx) error {
-		return FindEmployees(db, c)
+	app.Get("/employees/:id", func(c *fiber.Ctx) error {
+		return FindEmployee(db, c)
 	})
-	app.Post("/Employees", func(c *fiber.Ctx) error {
+	app.Post("/employees", func(c *fiber.Ctx) error {
 		return AddEmployees(db, c)
 	})
-	app.Put("/Employees/:id", func(c *fiber.Ctx) error {
-		return UpdateEmployees(db, c)
+	app.Put("/employees/:id", func(c *fiber.Ctx) error {
+		return UpdateEmployee(db, c)
 	})
-	app.Delete("/Employees/:id", func(c *fiber.Ctx) error {
-		return DeleteEmployees(db, c)
+	app.Delete("/employees/:id", func(c *fiber.Ctx) error {
+		return DeleteEmployee(db, c)
 	})
 }

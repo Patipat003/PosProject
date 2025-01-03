@@ -68,7 +68,7 @@ func IsAuthenticated() fiber.Handler {
 		// Cashier สามารถเข้าถึงเฉพาะ routes ที่เกี่ยวข้องกับ product
 		if role == "cashier" {
 			// ตรวจสอบว่า route ที่เข้าถึงเกี่ยวข้องกับการเพิ่ม, ลบ, แก้ไข product หรือไม่
-			if !strings.HasPrefix(c.Path(), "/products") {
+			if !strings.HasPrefix(c.Path(), "/product") {
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 					"error": "Cashiers can only manage products",
 				})

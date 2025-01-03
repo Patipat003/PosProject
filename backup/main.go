@@ -6,7 +6,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/posproject/Database" // import middleware package   // import routes package
+	"github.com/posproject/Database"
+	"github.com/posproject/Middleware" // import middleware package   // import routes package
 	"github.com/posproject/Models"
 
 	"github.com/gofiber/fiber/v2"
@@ -40,34 +41,32 @@ func main() {
 		&Models.Employees{},
 		&Models.Branches{},
 		&Models.Product{},
+		&Models.ProductUnit{},
 		&Models.Inventory{},
-		&Models.Sales{},
-		&Models.SaleItems{},
-		&Models.Receipts{},
-		&Models.ReceiptItems{},
-		&Models.Requests{},
-		&Models.Shipments{},
+		&Models.Receipt{},
+		&Models.ReceiptItem{},
+		&Models.TransferProduct{},
+		&Models.TransferProductList{},
 	)
 
 	// Set up Fiber app
 	app := fiber.New()
 
-	// // Define routes
-	// app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
+	// Define routes
+	app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
 
-	// // ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
-	// app.Use(Middleware.IsAuthenticated())
+	// ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
+	app.Use(Middleware.IsAuthenticated())
 
-	Database.BranchRoutes(app, db)
 	Database.EmployeesRoutes(app, db)
+	Database.BranchRoutes(app, db)
 	Database.ProductRoutes(app, db)
+	Database.ProductUnitRoutes(app, db)
 	Database.InventoryRoutes(app, db)
-	Database.SaleRoutes(app, db)
-	Database.SaleItemRoutes(app, db)
 	Database.ReceiptRoutes(app, db)
 	Database.ReceiptItemRoutes(app, db)
-	Database.RequestRoutes(app, db)
-	Database.ShipmentRoutes(app, db)
-
+	Database.TransferProductRoutes(app, db)
+	Database.TransferProductListRoutes(app, db)
+	// Gracefully handle shutdown
 	log.Fatal(app.Listen(":5050"))
 }

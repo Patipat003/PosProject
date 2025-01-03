@@ -1,10 +1,7 @@
 package Database
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/posproject/Models"
 	"gorm.io/gorm"
 )
@@ -17,9 +14,6 @@ func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
-
-	req.BranchID = uuid.New().String()
-	req.CreatedAt = time.Now()
 
 	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
