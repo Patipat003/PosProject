@@ -12,6 +12,7 @@ import CustomerRankPage from "./pages/CustomerRankPage";
 import CashFlowPage from "./pages/CashFlowPage";
 import AccessRightsPage from "./pages/AccessRightsPage";
 import EmployeeTransferPage from "./pages/EmployeeTransferPage";
+import PaymentPage from "./pages/PaymentPage";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/cashFlow" element={<CashFlowPage />} />
           <Route path="/accessRights" element={<AccessRightsPage />} />
           <Route path="/employeeTransfer" element={<EmployeeTransferPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
         </Routes>
       </MainLayout>
     </Router>

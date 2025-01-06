@@ -53,7 +53,7 @@ const MainLayout = ({ children }) => {
                   <Link to="/salesHistory">Sales History</Link>
                 </li>
                 <li>
-                  <Link to="/#">3</Link>
+                  <Link to="/payment">Payment</Link>
                 </li>
               </ul>
 
