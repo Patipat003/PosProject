@@ -1,43 +1,78 @@
 package Database
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/posproject/Models"
 	"gorm.io/gorm"
 )
 
 // เพิ่ม Inventory
 func AddInventory(db *gorm.DB, c *fiber.Ctx) error {
-	var req Models.Inventory
+	// Define a struct to receive request data
+	type InventoryRequest struct {
+		ProductUnitID string  `json:"productunitid"`
+		BranchID      string  `json:"branchid"`
+		Quantity      int     `json:"quantity"`
+		Price         float64 `json:"price"`
+	}
+
+	// Parse request body into the InventoryRequest struct
+	var req InventoryRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	req.InventoryID = uuid.New().String()
-	req.UpdatedAt = time.Now()
+	// Validate that the ProductUnitID exists in the ProductUnit table
+	var productUnit Models.ProductUnit
+	if err := db.Where("product_unit_id = ?", req.ProductUnitID).First(&productUnit).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "ProductUnit not found",
+		})
+	}
 
-	if err := db.Create(&req).Error; err != nil {
+	// Validate that the BranchID exists in the Branches table
+	var branch Models.Branches
+	if err := db.Where("branch_id = ?", req.BranchID).First(&branch).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Branch not found",
+		})
+	}
+
+	// แปลง Quantity เป็นหน่วย "ชิ้น (Piece)" โดยใช้ ConversRate
+	convertedQuantity := req.Quantity * productUnit.ConversRate
+
+	// Create a new Inventory object
+	inventory := Models.Inventory{
+		ProductUnitID: req.ProductUnitID,
+		BranchID:      req.BranchID,      // Associate BranchID with Branch model
+		Quantity:      convertedQuantity, // เก็บเป็นจำนวนชิ้น
+		Price:         req.Price,
+	}
+
+	// Insert the new inventory record into the database
+	if err := db.Create(&inventory).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create inventory: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+
+	// Return success response with the created inventory
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"NewInventory": inventory,
+	})
 }
 
 // ดู Inventory ทั้งหมด
 func LookInventory(db *gorm.DB, c *fiber.Ctx) error {
-	var inventory []Models.Inventory
-	if err := db.Find(&inventory).Error; err != nil {
+	var inventories []Models.Inventory
+	if err := db.Find(&inventories).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to find inventory: " + err.Error(),
+			"error": "Failed to find inventories: " + err.Error(),
 		})
 	}
-	return c.JSON(fiber.Map{"Data": inventory})
+	return c.JSON(fiber.Map{"Data": inventories})
 }
 
 // หา Inventory ตาม ID
@@ -69,10 +104,8 @@ func UpdateInventory(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	inventory.ProductID = req.ProductID
-	inventory.BranchID = req.BranchID
 	inventory.Quantity = req.Quantity
-	inventory.UpdatedAt = time.Now()
+	inventory.Price = req.Price
 
 	if err := db.Save(&inventory).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

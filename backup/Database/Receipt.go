@@ -4,34 +4,62 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/posproject/Models"
 	"gorm.io/gorm"
 )
 
 // เพิ่ม Receipt
 func AddReceipt(db *gorm.DB, c *fiber.Ctx) error {
-	var req Models.Receipts
+	// Define a struct to receive request data
+	type ReceiptRequest struct {
+		ReceiptNumber string  `json:"receiptnumber"`
+		EmployeeID    string  `json:"employeeid"`
+		BranchID      string  `json:"branchid"`
+		ReceiptDate   string  `json:"receiptdate"` // รับค่าจาก JSON เป็น string
+		TotalAmount   float64 `json:"totalamount"`
+		Status        string  `json:"status"`
+	}
+
+	// Parse request body into the ReceiptRequest struct
+	var req ReceiptRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	req.ReceiptID = uuid.New().String()
-	req.ReceiptDate = time.Now()
+	// Convert ReceiptDate from string to time.Time
+	receiptDate, err := time.Parse("2006-01-02", req.ReceiptDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid date format, please use yyyy-mm-dd",
+		})
+	}
 
-	if err := db.Create(&req).Error; err != nil {
+	// Create a new Receipt object
+	receipt := Models.Receipt{
+		ReceiptNumber: req.ReceiptNumber,
+		EmployeeID:    req.EmployeeID,
+		BranchID:      req.BranchID,
+		ReceiptDate:   receiptDate, // Assign the parsed date
+		TotalAmount:   req.TotalAmount,
+		Status:        req.Status,
+	}
+
+	// Insert the new receipt into the database
+	if err := db.Create(&receipt).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create receipt: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+
+	// Return success response with the created receipt
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": receipt})
 }
 
-// ดู Receipts ทั้งหมด
-func LookReceipts(db *gorm.DB, c *fiber.Ctx) error {
-	var receipts []Models.Receipts
+// ดู Receipt ทั้งหมด
+func LookReceipt(db *gorm.DB, c *fiber.Ctx) error {
+	var receipts []Models.Receipt
 	if err := db.Find(&receipts).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to find receipts: " + err.Error(),
@@ -43,7 +71,7 @@ func LookReceipts(db *gorm.DB, c *fiber.Ctx) error {
 // หา Receipt ตาม ID
 func FindReceipt(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
-	var receipt Models.Receipts
+	var receipt Models.Receipt
 	if err := db.Where("receipt_id = ?", id).First(&receipt).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Receipt not found",
@@ -55,14 +83,14 @@ func FindReceipt(db *gorm.DB, c *fiber.Ctx) error {
 // อัปเดต Receipt
 func UpdateReceipt(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
-	var receipt Models.Receipts
+	var receipt Models.Receipt
 	if err := db.Where("receipt_id = ?", id).First(&receipt).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Receipt not found",
 		})
 	}
 
-	var req Models.Receipts
+	var req Models.Receipt
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
@@ -70,10 +98,12 @@ func UpdateReceipt(db *gorm.DB, c *fiber.Ctx) error {
 	}
 
 	receipt.ReceiptNumber = req.ReceiptNumber
-	receipt.SaleID = req.SaleID
+	receipt.EmployeeID = req.EmployeeID
 	receipt.BranchID = req.BranchID
+	receipt.ReceiptDate = req.ReceiptDate
 	receipt.TotalAmount = req.TotalAmount
-	receipt.ReceiptDate = time.Now()
+	receipt.Status = req.Status
+	receipt.Update = req.Update
 
 	if err := db.Save(&receipt).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -86,7 +116,7 @@ func UpdateReceipt(db *gorm.DB, c *fiber.Ctx) error {
 // ลบ Receipt
 func DeleteReceipt(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
-	var receipt Models.Receipts
+	var receipt Models.Receipt
 	if err := db.Where("receipt_id = ?", id).First(&receipt).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Receipt not found",
@@ -100,10 +130,10 @@ func DeleteReceipt(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
-// Route สำหรับ Receipts
+// Route สำหรับ Receipt
 func ReceiptRoutes(app *fiber.App, db *gorm.DB) {
 	app.Get("/receipts", func(c *fiber.Ctx) error {
-		return LookReceipts(db, c)
+		return LookReceipt(db, c)
 	})
 	app.Get("/receipts/:id", func(c *fiber.Ctx) error {
 		return FindReceipt(db, c)

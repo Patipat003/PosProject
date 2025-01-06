@@ -1,36 +1,46 @@
 package Database
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/posproject/Models"
 	"gorm.io/gorm"
 )
 
 // เพิ่ม Product
 func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
-	var req Models.Product
+	// Define a struct to receive request data
+	type ProductRequest struct {
+		ProductName string `json:"productname"`
+		Description string `json:"description"`
+	}
+
+	// Parse request body into the ProductRequest struct
+	var req ProductRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	req.ProductID = uuid.New().String()
-	req.CreatedAt = time.Now()
+	// Create a new Product object
+	product := Models.Product{
+		ProductName: req.ProductName,
+		Description: req.Description,
+	}
 
-	if err := db.Create(&req).Error; err != nil {
+	// Insert the new product into the database
+	if err := db.Create(&product).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create product: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+
+	// Return success response with the created product
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": product})
 }
 
-// ดู Products ทั้งหมด
-func LookProducts(db *gorm.DB, c *fiber.Ctx) error {
+// ดู Product ทั้งหมด
+func LookProduct(db *gorm.DB, c *fiber.Ctx) error {
 	var products []Models.Product
 	if err := db.Find(&products).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -71,8 +81,6 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 
 	product.ProductName = req.ProductName
 	product.Description = req.Description
-	product.Price = req.Price
-	product.CreatedAt = time.Now()
 
 	if err := db.Save(&product).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -99,10 +107,10 @@ func DeleteProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
-// Route สำหรับ Products
+// Route สำหรับ Product
 func ProductRoutes(app *fiber.App, db *gorm.DB) {
 	app.Get("/products", func(c *fiber.Ctx) error {
-		return LookProducts(db, c)
+		return LookProduct(db, c)
 	})
 	app.Get("/products/:id", func(c *fiber.Ctx) error {
 		return FindProduct(db, c)
