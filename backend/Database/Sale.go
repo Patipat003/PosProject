@@ -9,24 +9,120 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Sale
+// เพิ่ม Sale พร้อม SaleItems, สร้างใบเสร็จและอัปเดต Inventory
 func AddSale(db *gorm.DB, c *fiber.Ctx) error {
-	var req Models.Sales
+	type SaleRequest struct {
+		EmployeeID string             `json:"employeeid"`
+		BranchID   string             `json:"branchid"`
+		SaleItems  []Models.SaleItems `json:"saleitems"`
+	}
+
+	var req SaleRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	req.SaleID = uuid.New().String()
-	req.CreatedAt = time.Now()
+	// คำนวณยอดขายรวม
+	var totalAmount float64
+	for _, item := range req.SaleItems {
+		totalAmount += item.TotalPrice
+	}
 
-	if err := db.Create(&req).Error; err != nil {
+	// สร้าง Sales
+	sale := Models.Sales{
+		SaleID:      uuid.New().String(),
+		EmployeeID:  req.EmployeeID,
+		BranchID:    req.BranchID,
+		TotalAmount: totalAmount,
+		CreatedAt:   time.Now(),
+	}
+
+	// ใช้ Transaction เพื่อความปลอดภัย
+	tx := db.Begin()
+
+	if err := tx.Create(&sale).Error; err != nil {
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create sale: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+
+	// เพิ่ม SaleItems และอัปเดต Inventory
+	for _, item := range req.SaleItems {
+		item.SaleID = sale.SaleID
+		if err := tx.Create(&item).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create sale item: " + err.Error(),
+			})
+		}
+
+		// อัปเดต Inventory
+		var inventory Models.Inventory
+		if err := tx.Where("product_id = ? AND branch_id = ?", item.ProductID, sale.BranchID).First(&inventory).Error; err == nil {
+			if inventory.Quantity < item.Quantity {
+				tx.Rollback()
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Not enough inventory for product: " + item.ProductID,
+				})
+			}
+			inventory.Quantity -= item.Quantity
+			inventory.UpdatedAt = time.Now()
+			if err := tx.Save(&inventory).Error; err != nil {
+				tx.Rollback()
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Failed to update inventory: " + err.Error(),
+				})
+			}
+		} else {
+			tx.Rollback()
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Inventory not found for product: " + item.ProductID,
+			})
+		}
+	}
+
+	// สร้าง Receipt
+	receipt := Models.Receipts{
+		SaleID:        sale.SaleID,
+		BranchID:      sale.BranchID,
+		ReceiptNumber: uuid.New().String(),
+		TotalAmount:   totalAmount,
+		ReceiptDate:   time.Now(),
+	}
+
+	if err := tx.Create(&receipt).Error; err != nil {
+		tx.Rollback()
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create receipt: " + err.Error(),
+		})
+	}
+
+	// สร้าง ReceiptItems
+	for _, item := range req.SaleItems {
+		receiptItem := Models.ReceiptItems{
+			ReceiptID:  receipt.ReceiptID,
+			ProductID:  item.ProductID,
+			Quantity:   item.Quantity,
+			UnitPrice:  item.Price, // ใช้ราคาจาก SaleItems
+			TotalPrice: item.TotalPrice,
+		}
+		if err := tx.Create(&receiptItem).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create receipt item: " + err.Error(),
+			})
+		}
+	}
+
+	tx.Commit()
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Sale and receipt created successfully",
+		"sale":    sale,
+		"receipt": receipt,
+	})
 }
 
 // ดู Sales ทั้งหมด

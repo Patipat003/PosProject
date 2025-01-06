@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/posproject/Database" // import middleware package   // import routes package
+	"github.com/posproject/Middleware"
 	"github.com/posproject/Models"
 
 	"github.com/gofiber/fiber/v2"
@@ -53,10 +54,10 @@ func main() {
 	app := fiber.New()
 
 	// // Define routes
-	// app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
+	app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
 
 	// // ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
-	// app.Use(Middleware.IsAuthenticated())
+	app.Use(Middleware.IsAuthenticated())
 
 	Database.BranchRoutes(app, db)
 	Database.EmployeesRoutes(app, db)

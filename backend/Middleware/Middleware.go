@@ -50,12 +50,12 @@ func IsAuthenticated() fiber.Handler {
 
 		// ตรวจสอบ role และกำหนดการเข้าถึง route
 		// Admin สามารถเข้าถึงทุกอย่าง
-		if role == "admin" {
+		if role == "Admin" {
 			return c.Next()
 		}
 
 		// Manager สามารถเข้าถึงทุกอย่าง ยกเว้น สำหรับ branches
-		if role == "manager" {
+		if role == "Manager" {
 			// ตรวจสอบว่า route ที่เข้าถึงเกี่ยวข้องกับ branches และไม่ใช่ GET method
 			if strings.HasPrefix(c.Path(), "/branches") && c.Method() != "GET" {
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -66,7 +66,7 @@ func IsAuthenticated() fiber.Handler {
 		}
 
 		// Cashier สามารถเข้าถึงเฉพาะ routes ที่เกี่ยวข้องกับ product
-		if role == "cashier" {
+		if role == "Cashier" {
 			// ตรวจสอบว่า route ที่เข้าถึงเกี่ยวข้องกับการเพิ่ม, ลบ, แก้ไข product หรือไม่
 			if !strings.HasPrefix(c.Path(), "/products") {
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -77,7 +77,7 @@ func IsAuthenticated() fiber.Handler {
 		}
 
 		// Audit สามารถเข้าถึงข้อมูลทุกอย่าง แต่เฉพาะ GET method เท่านั้น
-		if role == "audit" {
+		if role == "Audit" {
 			// ตรวจสอบว่าเป็นการกระทำแบบ GET หรือไม่
 			if c.Method() != "GET" {
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{

@@ -17,7 +17,7 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// รับข้อมูลจาก body (เช่น username และ password)
 		var body struct {
-			Username string `json:"username"`
+			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
 		if err := c.BodyParser(&body); err != nil {
@@ -28,7 +28,7 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 
 		// ค้นหาผู้ใช้จากฐานข้อมูล
 		var employee Models.Employees
-		if err := db.Where("username = ?", body.Username).First(&employee).Error; err != nil {
+		if err := db.Where("email = ?", body.Email).First(&employee).Error; err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid credentials",
 			})
@@ -44,9 +44,9 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 
 		// สร้าง JWT token
 		claims := jwt.MapClaims{
-			"username": body.Username,
-			"role":     employee.Role,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(), // กำหนดวันหมดอายุเป็น 1 วัน
+			"email": body.Email,
+			"role":  employee.Role,
+			"exp":   time.Now().Add(time.Hour * 24).Unix(), // กำหนดวันหมดอายุเป็น 1 วัน
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
