@@ -37,7 +37,7 @@ const MainLayout = ({ children }) => {
             <div
               tabIndex={0}
               role="button"
-              className="menu-item bg-base-200 rounded-box m-5"
+              className="menu-item rounded-box m-5"
             >
               Sales Management
             </div>
@@ -61,6 +61,9 @@ const MainLayout = ({ children }) => {
 
           <li className="menu-item m-1">
             <Link to="/product">Product management</Link>
+          </li>
+          <li className="menu-item m-1">
+            <Link to="/inventory">Inventory</Link>
           </li>
           <li className="dropdown dropdown-right m-1">
             <Link to="/reports">Reports</Link>
