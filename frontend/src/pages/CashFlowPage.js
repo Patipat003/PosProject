@@ -7,7 +7,7 @@ const CashFlowPage = () => {
       <h1 className="text-4xl font-bold text-gray-800 mb-6">Cash Flow</h1>
 
       {/* Filter Section */}
-      <div className="grid grid-cols-2 gap-4 bg-gray-300 p-4 rounded-lg mb-6">
+      <div className="grid grid-cols-2 gap-1 bg-gray-300 p-4 rounded-lg mb-6">
         <div className="flex flex-col space-y-2">
           <label className="font-semibold">Filters</label>
           <div className="flex space-x-4">
