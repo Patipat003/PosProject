@@ -1,53 +1,47 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // นำเข้า axios สำหรับดึงข้อมูลจาก API
+import axios from "axios";
 import ProductForm from "../components/layout/ui/ProductForm";
-import ExportButtons from "../components/layout/ui/ExportButtons"; // นำเข้า ExportButtons
+import ExportButtons from "../components/layout/ui/ExportButtons";
 
 const ProductPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortType, setSortType] = useState("name");
-  const [products, setProducts] = useState([]); // เริ่มต้นเป็น array ว่างๆ
-  const [loading, setLoading] = useState(true); // สถานะการโหลดข้อมูล
-  const [error, setError] = useState(null); // เก็บข้อมูล error หากเกิดข้อผิดพลาด
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ฟังก์ชันที่ใช้ดึงข้อมูลจาก API
+  // ฟังก์ชันดึงข้อมูลสินค้า
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:5050/products");
+      setProducts(response.data.Data); // ตั้งค่าข้อมูลที่ได้จาก API
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load products");
+      setLoading(false);
+    }
+  };
+
+  // ฟังก์ชันลบสินค้า
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const response = await axios.delete(`http://localhost:5050/products/${productId}`);
+      if (response.status === 200) {
+        // หากการลบสำเร็จ รีเฟรชข้อมูลสินค้า
+        fetchProducts();
+      }
+    } catch (err) {
+      console.error("Error deleting product:", err);
+    }
+  };
+
+  // รีเฟรชข้อมูลสินค้าเมื่อมีการเพิ่มสินค้าใหม่
+  const handleProductAdded = () => {
+    fetchProducts();
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        // ดึงข้อมูลจาก API
-        const response = await axios.get("https://676baf94bc36a202bb854850.mockapi.io/products"); // แทนที่ด้วย API ของคุณ
-        setProducts(response.data); // ตั้งค่าข้อมูลที่ได้จาก API
-        setLoading(false); // เปลี่ยนสถานะการโหลดข้อมูลเป็น false
-      } catch (err) {
-        setError("Failed to load products");
-        setLoading(false); // เปลี่ยนสถานะการโหลดข้อมูลเป็น false
-      }
-    };
+    fetchProducts();
+  }, []);
 
-    fetchProducts(); // เรียกฟังก์ชันดึงข้อมูล
-  }, []); // ดึงข้อมูลเมื่อเพจโหลด
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleSort = (event) => {
-    setSortType(event.target.value);
-  };
-
-  const filteredProducts = products
-    .filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortType === "name") {
-        return a.name.localeCompare(b.name);
-      } else {
-        return a.category.localeCompare(b.category);
-      }
-    });
-
-  // ตรวจสอบสถานะการโหลดข้อมูล
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -61,54 +55,36 @@ const ProductPage = () => {
       <h1 className="text-3xl font-bold text-black mb-4">Product</h1>
       <p className="text-black mb-4">Manage your Product here.</p>
 
-      {/* ปุ่ม Add Product และ Export PDF, Export CSV อยู่ข้างกันในแถวเดียว */}
       <div className="flex space-x-4 mb-4">
-        <ProductForm />
-        <ExportButtons filteredProducts={filteredProducts} />
+        <ProductForm onProductAdded={handleProductAdded} />
+        <ExportButtons filteredProducts={products} />
       </div>
 
-      {/* ช่องค้นหา และเลือกการจัดเรียง */}
-      <div className="flex space-x-4 mb-4">
-        <div className="flex items-center">
-          <label htmlFor="search" className="mr-2 text-black">Search: </label>
-          <input
-            id="search"
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            className="input input-bordered bg-white text-black w-64"
-            placeholder="Search by product name"
-          />
-        </div>
-
-        <div className="flex items-center">
-          <label htmlFor="sort" className="mr-2 text-black">Sort by: </label>
-          <select
-            id="sort"
-            value={sortType}
-            onChange={handleSort}
-            className="select select-bordered bg-white text-black w-64"
-          >
-            <option value="name">Name</option>
-            <option value="category">Category</option>
-          </select>
-        </div>
-      </div>
-
-      {/* แสดงข้อมูลสินค้าในรูปแบบตาราง */}
       <div className="overflow-x-auto">
         <table className="table w-full table-striped">
           <thead>
             <tr>
               <th className="text-black">Name</th>
-              <th className="text-black">Category</th>
+              <th className="text-black">Description</th>
+              <th className="text-black">Price</th>
+              <th className="text-black">Actions</th> {/* เพิ่มคอลัมน์ Actions สำหรับปุ่มลบ */}
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
-              <tr key={product.id}>
-                <td className="text-black">{product.name}</td>
-                <td className="text-black">{product.category}</td>
+            {products.map((product) => (
+              <tr key={product.productid}>
+                <td className="text-black">{product.productname}</td>
+                <td className="text-black">{product.description}</td>
+                <td className="text-black">{product.price}</td>
+                <td className="text-black">
+                  {/* ปุ่มลบ */}
+                  <button
+                    onClick={() => handleDeleteProduct(product.productid)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

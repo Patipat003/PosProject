@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import axios from "axios";
 
-const ProductForm = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // State สำหรับการเปิด/ปิด modal
+const ProductForm = ({ onProductAdded }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [productName, setProductName] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState(""); // ใช้ string สำหรับราคา แต่จะต้องแปลงเป็น number ก่อนส่งไปเซิร์ฟเวอร์
 
   const handleAddProduct = () => {
     setIsModalOpen(true); // เปิด modal เมื่อกด "Add Product"
@@ -13,12 +15,45 @@ const ProductForm = () => {
     setIsModalOpen(false); // ปิด modal
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // คุณสามารถทำการส่งข้อมูลที่กรอกไปยัง backend หรือจัดการข้อมูลต่อได้ที่นี่
-    console.log("Product Name:", productName);
-    console.log("Quantity:", quantity);
-    handleCloseModal(); // ปิด modal หลังจากบันทึกข้อมูล
+
+    // แปลงราคาเป็นตัวเลข (หากผู้ใช้กรอกเป็น string)
+    const numericPrice = parseFloat(price);
+
+    if (isNaN(numericPrice)) {
+      console.error("Price must be a valid number");
+      return;
+    }
+
+    try {
+      // ส่งข้อมูลสินค้าไปยัง backend
+      const response = await axios.post("http://localhost:5050/products", {
+        productname: productName,
+        description: description,
+        price: numericPrice, // ส่งราคาเป็นตัวเลข
+        unitsperbox: 30, // เพิ่ม unitsperbox โดยค่า default เป็น 30
+      });
+
+      if (response.data) {
+        // หากการเพิ่มสินค้าสำเร็จ เรียก onProductAdded เพื่อรีเฟรชข้อมูล
+        onProductAdded();
+      }
+
+      handleCloseModal(); // ปิด modal หลังจากบันทึกข้อมูล
+    } catch (err) {
+      console.error("Error adding product:", err);
+      if (err.response) {
+        // คำตอบจากเซิร์ฟเวอร์
+        console.error("Server responded with error:", err.response.data);
+      } else if (err.request) {
+        // คำขอที่ส่งไปไม่ถูกตอบกลับ
+        console.error("No response received:", err.request);
+      } else {
+        // ปัญหาจากการตั้งค่าของ axios
+        console.error("Error with axios setup:", err.message);
+      }
+    }
   };
 
   return (
@@ -53,17 +88,31 @@ const ProductForm = () => {
                 />
               </div>
 
-              {/* Quantity Input */}
+              {/* Description Input */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">
-                  Quantity
+                  Description
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter quantity"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="Enter description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              {/* Price Input */}
+              <div className="mb-4">
+                <label className="block text-gray-600 font-medium mb-2">
+                  Price
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
+                  placeholder="Enter price"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
 
