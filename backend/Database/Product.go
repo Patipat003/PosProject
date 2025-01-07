@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Product
+// เพิ่ม Product พร้อมสร้าง Inventory สำหรับทุกสาขา
 func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Product
 	if err := c.BodyParser(&req); err != nil {
@@ -21,11 +21,36 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	req.ProductID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
+	// สร้าง Product
 	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create product: " + err.Error(),
 		})
 	}
+
+	// ดึงข้อมูลสาขาทั้งหมด
+	var branches []Models.Branches
+	if err := db.Find(&branches).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve branches: " + err.Error(),
+		})
+	}
+
+	// สร้าง Inventory สำหรับทุกสาขา
+	for _, branch := range branches {
+		inventory := Models.Inventory{
+			ProductID: req.ProductID,
+			BranchID:  branch.BranchID,
+			Quantity:  0,
+			UpdatedAt: time.Now(),
+		}
+		if err := db.Create(&inventory).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create inventory for branch: " + err.Error(),
+			})
+		}
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
 }
 

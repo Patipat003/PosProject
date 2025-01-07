@@ -61,7 +61,7 @@ const ProductForm = ({ onProductAdded }) => {
       {/* ปุ่ม Add Product */}
       <button
         onClick={handleAddProduct}
-        className="bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
+        className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition duration-300 mt-4"
       >
         Add Product
       </button>
@@ -70,18 +70,18 @@ const ProductForm = ({ onProductAdded }) => {
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative z-60">
-            <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
+            <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
               Add Product
             </h2>
             <form onSubmit={handleSubmit}>
               {/* Product Name Input */}
               <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+                <label className="block text-gray-700 font-medium mb-2">
                   Product Name
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter product name"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
@@ -90,12 +90,12 @@ const ProductForm = ({ onProductAdded }) => {
 
               {/* Description Input */}
               <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+                <label className="block text-gray-700 font-medium mb-2">
                   Description
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -104,12 +104,12 @@ const ProductForm = ({ onProductAdded }) => {
 
               {/* Price Input */}
               <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+                <label className="block text-gray-700 font-medium mb-2">
                   Price
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -119,7 +119,7 @@ const ProductForm = ({ onProductAdded }) => {
               {/* ปุ่ม Save */}
               <button
                 type="submit"
-                className="w-full bg-base-200 text-white font-medium py-3 rounded hover:bg-gray-700 transition duration-300"
+                className="w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
               >
                 Add Product
               </button>
