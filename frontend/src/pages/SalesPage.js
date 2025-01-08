@@ -31,29 +31,31 @@ const SalesPage = () => {
 
   const handleBranchChange = (event) => {
     setSelectedBranch(event.target.value);
-    setCart([]);  // Reset the cart when switching branches
+    setCart([]); // Clear the cart when branch is changed
+    setTotalAmount(0); // Reset the total amount
   };
 
   const handleAddToCart = (product, quantity) => {
-    if (!selectedBranch) {
+    if (!selectedBranch || selectedBranch === "all") {
       alert("โปรดเลือกสาขาก่อน");
       return;
     }
 
-    const productInCart = cart.find((item) => item.productid === product.productid);
-
-    // Check if the product belongs to the selected branch
-    const inventoryItem = inventory.find((item) => item.productid === product.productid && item.branchid === selectedBranch);
+    const inventoryItem = inventory.find(
+      (item) => item.productid === product.productid && item.branchid === selectedBranch
+    );
     if (!inventoryItem) {
-      alert("สินค้าจากสาขานี้ไม่มีในตะกร้า");
+      alert("Product not available in the selected branch");
       return;
     }
 
+    if (!inventoryItem || inventoryItem.quantity === 0) {
+      alert("Out of stock");
+      return;
+    }
+
+    const productInCart = cart.find((item) => item.productid === product.productid);
     if (productInCart) {
-      if (productInCart.branchid !== selectedBranch) {
-        alert("ไม่สามารถเพิ่มสินค้าจากสาขาที่ต่างกัน");
-        return;
-      }
       productInCart.quantity += quantity;
     } else {
       cart.push({ ...product, quantity, branchid: selectedBranch });
@@ -69,7 +71,7 @@ const SalesPage = () => {
   };
 
   const handleQuantityChange = (productid, newQuantity) => {
-    const updatedCart = cart.map(item =>
+    const updatedCart = cart.map((item) =>
       item.productid === productid ? { ...item, quantity: newQuantity } : item
     );
     setCart(updatedCart);
@@ -78,7 +80,7 @@ const SalesPage = () => {
 
   const updateTotalAmount = () => {
     let total = 0;
-    cart.forEach(item => {
+    cart.forEach((item) => {
       total += item.price * item.quantity;
     });
     setTotalAmount(total);
@@ -89,14 +91,14 @@ const SalesPage = () => {
       alert("โปรดเลือกสาขาก่อน");
       return;
     }
-    const saleItems = cart.map(item => ({
+    const saleItems = cart.map((item) => ({
       productid: item.productid,
       quantity: item.quantity,
       price: item.price,
       totalprice: item.price * item.quantity,
     }));
     const saleData = {
-      employeeid: "8a714024-471a-420f-8abb-46509d0cd74e",  // Fixed employee ID
+      employeeid: "8a714024-471a-420f-8abb-46509d0cd74e",
       branchid: selectedBranch,
       saleitems: saleItems,
     };
@@ -111,93 +113,127 @@ const SalesPage = () => {
     }
   };
 
-  const filterInventoryByBranch = () => {
-    return inventory.filter(item => item.branchid === selectedBranch);
+  const getInventoryByBranch = (branchId) => {
+    if (branchId === "all") {
+      return inventory;
+    } else {
+      return inventory.filter((item) => item.branchid === branchId);
+    }
+  };
+
+  const filterInventoryByProduct = () => {
+    return getInventoryByBranch(selectedBranch).reduce((acc, item) => {
+      const product = products.find((p) => p.productid === item.productid);
+      if (product) {
+        const existingProduct = acc.find((p) => p.productid === item.productid);
+        if (existingProduct) {
+          existingProduct.totalQuantity += item.quantity;
+        } else {
+          acc.push({ ...product, totalQuantity: item.quantity });
+        }
+      }
+      return acc;
+    }, []);
   };
 
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-black mb-4">Sales Product</h1>
 
-      {/* Select branch dropdown */}
-      {!selectedBranch && (
-        <div className="mb-4">
-          <select
-            value={selectedBranch}
-            onChange={handleBranchChange}
-            className="border p-2 rounded"
-          >
-            <option value="" disabled>Select Branch</option>
-            {branches.map(branch => (
-              <option key={branch.branchid} value={branch.branchid}>
-                {branch.bname}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <div className="mb-4">
+        <select
+          value={selectedBranch}
+          onChange={handleBranchChange}
+          className="border p-2 rounded"
+        >
+          <option value="all">Select Branch</option>
+          {branches.map((branch) => (
+            <option key={branch.branchid} value={branch.branchid}>
+              {branch.bname}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* Show products only after selecting a branch */}
-      {selectedBranch && (
-        <div className="flex">
-          <div className="w-4/5">
-            <h2 className="text-xl font-bold mb-4">Products</h2>
-            <div className="grid grid-cols-4 gap-4">
-              {products.map((product) => {
-                const inventoryItem = inventory.find(item => item.productid === product.productid && item.branchid === selectedBranch);
+      <div className="flex">
+        <div className="w-4/5">
+          <h2 className="text-xl font-bold mb-4">Products</h2>
+          <div className="grid grid-cols-4 gap-4">
+            {selectedBranch && selectedBranch !== "all" ? (
+              filterInventoryByProduct().map((product) => {
+                const stock =
+                  getInventoryByBranch(selectedBranch).find(
+                    (item) => item.productid === product.productid
+                  )?.quantity || 0;
                 return (
-                  <div key={product.productid} className="border p-4 rounded flex flex-col items-center">
-                    <img src="https://via.placeholder.com/150" alt="Product" className="w-24 h-24 mb-2" />
-                    <div className="font-bold">{product.productname}</div>
-                    <div className="text-sm">Price: ${product.price}</div>
-                    <button
-                      onClick={() => handleAddToCart(product, 1)}
-                      className="mt-2 text-white bg-teal-500 p-2 rounded"
-                      disabled={!inventoryItem}
-                    >
-                      {inventoryItem ? "Add to Cart" : "Out of Stock"}
-                    </button>
-                  </div>
+                  <button
+                    key={product.productid}
+                    onClick={() => handleAddToCart(product, 1)}
+                    className={`card bg-teal-600 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:scale-105 ${
+                      stock === 0 ? "opacity-50" : ""
+                    }`}
+                    disabled={stock === 0}
+                    style={{ width: "150px", height: "150px" }}
+                  >
+                    <figure className="flex justify-center items-center h-2/3 w-full">
+                      <img
+                        src="https://via.placeholder.com/100"
+                        alt="Product"
+                        className="max-h-full max-w-full"
+                      />
+                    </figure>
+                    <div className="text-center mt-2">
+                      <h2 className="text-white font-bold text-sm">{product.productname}</h2>
+                      <p className="text-xs text-white">Qty: {stock}</p>
+                      <p className="text-xs text-white">Price: ${product.price}</p>
+                    </div>
+                  </button>
                 );
-              })}
-            </div>
-          </div>
-
-          <div className="w-2/5">
-            <h2 className="text-xl font-bold mb-4">Your Cart</h2>
-            <div className="border p-6 rounded h-96 overflow-y-auto">
-              {cart.map((item) => (
-                <div key={item.productid} className="flex justify-between mb-2">
-                  <div>{item.productname}</div>
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item.productid, parseInt(e.target.value))}
-                      className="w-16 border p-1 rounded"
-                      min="1"
-                    />
-                    <span className="ml-2">{item.quantity} x ${item.price} = ${item.price * item.quantity}</span>
-                    <button
-                      onClick={() => handleRemoveFromCart(item.productid)}
-                      className="ml-2 text-red-600"
-                    >
-                      <HiTrash size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4 font-bold">Total: ${totalAmount}</div>
-              <button
-                onClick={handleCheckout}
-                className="mt-4 w-full bg-teal-500 text-white p-2 rounded"
-              >
-                Checkout
-              </button>
-            </div>
+              })
+            ) : (
+              <p className="text-center col-span-4">Please select a branch to view products.</p>
+            )}
           </div>
         </div>
-      )}
+
+        <div className="w-2/5">
+          <h2 className="text-xl font-bold mb-4">Your Cart</h2>
+          <div className="border p-6 rounded h-96 overflow-y-auto">
+            {cart.map((item) => (
+              <div key={item.productid} className="flex justify-between mb-2">
+                <div>{item.productname}</div>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      handleQuantityChange(item.productid, parseInt(e.target.value))
+                    }
+                    className="w-16 border p-1 rounded"
+                    min="1"
+                  />
+                  <span className="ml-2">
+                    {item.quantity} x ${item.price} = ${item.price * item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveFromCart(item.productid)}
+                    className="ml-2 text-red-600"
+                  >
+                    <HiTrash size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="mt-4 font-bold">Total: ${totalAmount}</div>
+            <button
+              onClick={handleCheckout}
+              className="mt-4 w-full bg-teal-500 text-white p-2 rounded"
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
