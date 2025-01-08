@@ -60,14 +60,14 @@ const ExportButtons = ({ filteredTables, columns, filename = "file.pdf" }) => {
     <div className="flex items-center space-x-4 mb-4">
       <button
         onClick={() => handleExportToPDF(filteredTables, columns, filename)}
-        className="bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
+        className="btn bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
       >
         Export to PDF
       </button>
       <CSVLink
         data={filteredTables}
         filename={filename.replace(".pdf", ".csv")} // Dynamically set the CSV filename
-        className="bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
+        className="btn bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
       >
         Export to CSV
       </CSVLink>

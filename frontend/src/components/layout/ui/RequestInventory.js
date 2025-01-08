@@ -92,7 +92,7 @@ const RequestInventory = () => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
       >
         Request Inventory
       </button>
@@ -192,8 +192,7 @@ const RequestInventory = () => {
                   </div>
                 </div>
                 <button
-                  type="button"
-                  className="bg-teal-500 text-white font-medium py-3 px-6 rounded-lg hover:bg-teal-600 transition duration-300"
+                  className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
                   onClick={handleAddRequest}
                 >
                   Add Request

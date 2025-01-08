@@ -4,6 +4,8 @@ import ExportButtons from "../components/layout/ui/ExportButtons";
 import RequestInventory from "../components/layout/ui/RequestInventory";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
+import { HiEye } from "react-icons/hi";
+
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -128,7 +130,6 @@ const InventoryPage = () => {
               <th className="text-black">Branch Name</th>
               <th className="text-black">Quantity</th>
               <th className="text-black">Updated At</th>
-              <th className="text-black">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -141,9 +142,9 @@ const InventoryPage = () => {
                 <td className="text-black">
                   <button
                     onClick={() => handleViewDetails(item)}
-                    className="bg-base-200 text-white font-medium px-4 py-3 rounded hover:bg-gray-700 transition duration-300"
+                    className="hover:border-b-2 border-gray-400 transition duration-30"
                   >
-                    View
+                    <HiEye className="text-blue-600 h-6 w-6" />
                   </button>
                 </td>
               </tr>
