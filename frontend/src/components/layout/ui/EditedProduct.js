@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { PencilIcon } from "@heroicons/react/outline"; // Import icon
 
 const EditedProduct = ({ productId, onProductUpdated }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,15 +46,16 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     <div>
       <button
         onClick={handleOpenModal}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="hover:border-b-2 border-gray-400 transition duration-300"
       >
-        Edit
+        <PencilIcon className="text-blue-600 h-6 w-6" />
+        {/* <span>Edit</span> */}
       </button>
 
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative z-60">
-            <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
+            <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
               Edit Product
             </h2>
             <form onSubmit={handleSubmit}>
@@ -92,9 +94,9 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-base-200 text-white font-medium py-3 rounded hover:bg-gray-700 transition duration-300"
+                className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
               >
-                Update
+                Update Product
               </button>
             </form>
             <button

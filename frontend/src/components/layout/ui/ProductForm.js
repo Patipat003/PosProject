@@ -61,7 +61,7 @@ const ProductForm = ({ onProductAdded }) => {
       {/* ปุ่ม Add Product */}
       <button
         onClick={handleAddProduct}
-        className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn bg-teal-500 text-white px-6 py-3 border-none rounded hover:bg-teal-600 transition duration-300 mt-4"
       >
         Add Product
       </button>
@@ -119,7 +119,7 @@ const ProductForm = ({ onProductAdded }) => {
               {/* ปุ่ม Save */}
               <button
                 type="submit"
-                className="w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
+                className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
               >
                 Add Product
               </button>

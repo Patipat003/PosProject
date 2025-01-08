@@ -5,6 +5,8 @@ import EditedProduct from "../components/layout/ui/EditedProduct";
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import SortByDropdown from "../components/layout/ui/SortByDropdown"; // Import SortByDropdown
 import { format } from "date-fns";
+import { TrashIcon, PencilIcon } from "@heroicons/react/outline"; // Import icons
+
 
 // ฟังก์ชันสำหรับแปลงวันที่ให้เป็นรูปแบบที่อ่านง่าย (ไม่มีวินาที)
 const formatDate = (dateString) => {
@@ -13,20 +15,32 @@ const formatDate = (dateString) => {
 };
 
 const ProductPage = () => {
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
+  const [inventory, setInventory] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortKey, setSortKey] = useState("productname");
   const [sortDirection, setSortDirection] = useState("asc");
 
-  // ฟังก์ชันดึงข้อมูลสินค้า
+  // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("http://localhost:5050/products");
-      setProducts(response.data.Data); // ตั้งค่าข้อมูลที่ได้จาก API
+      const [productResponse, inventoryResponse] = await Promise.all([
+        axios.get("http://localhost:5050/products"),
+        axios.get("http://localhost:5050/inventory"),
+      ]);
+
+      const inventoryMap = {};
+      inventoryResponse.data.Data.forEach((item) => {
+        inventoryMap[item.productid] = item.quantity; // เก็บข้อมูล quantity ตาม product
+      });
+
+      setProducts(productResponse.data.Data);
+      setInventory(inventoryMap);
       setLoading(false);
     } catch (err) {
-      setError("Failed to load products");
+      setError("Failed to load products or inventory data");
       setLoading(false);
     }
   };
@@ -93,23 +107,65 @@ const ProductPage = () => {
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-black mb-4">Product</h1>
+      <h1 className="text-3xl font-bold text-black mb-4">Product Management</h1>
       <p className="text-black mb-4">Manage your Product here.</p>
 
-      <div className="flex space-x-4 mb-4">
-        <ProductForm onProductAdded={handleProductAdded} />
-        <ExportButtons filteredTables={products} columns={columns} filename="products.pdf" />
+      {/* Product List */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl text-black font-bold">Product List</h1>
+        </div>
+
+        <div className="flex items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search for products"
+            className="border bg-white border-gray-300 p-2 rounded w-full mr-2"
+          />
+          <button className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
+            Search
+          </button>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="border border-gray-300 p-4 rounded flex flex-col items-center cursor-pointer"
+              onClick={() => setSelectedProduct(product)}
+            >
+              <div className="w-24 h-24 bg-gray-200 mb-2 rounded">
+                <img
+                  src={product.imageUrl || "https://via.placeholder.com/150"}
+                  alt={product.name}
+                  className="w-full h-full object-cover rounded"
+                />
+              </div>
+              <div className="text-black text-lg font-bold">{product.code}</div>
+              <div className="text-black text-sm mb-2">{product.productname}</div>
+              <div className="text-black text-sm">Price : {product.price}</div>
+              {/* <div className="text-black text-sm">Quantity : {inventory[product.productid]}</div> Show quantity from inventory */}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Add SortByDropdown for sorting */}
-      <SortByDropdown
-        onSortChange={handleSortChange}
-        currentSortKey={sortKey}
-        currentSortDirection={sortDirection}
-        sortOptions={sortOptions}
-      />
-
+      {/* Product Table */}
       <div className="overflow-x-auto">
+        <h2 className="text-2xl font-bold text-black mb-4">Product Table</h2>
+        <div className="flex space-x-4 mb-4">
+          <ProductForm onProductAdded={handleProductAdded} />
+          <ExportButtons filteredTables={products} columns={columns} filename="products.pdf" />
+        </div>
+
+        {/* Add SortByDropdown for sorting */}
+        <SortByDropdown
+          onSortChange={handleSortChange}
+          currentSortKey={sortKey}
+          currentSortDirection={sortDirection}
+          sortOptions={sortOptions}
+        />
+
         <table className="table w-full table-striped">
           <thead>
             <tr>
@@ -117,28 +173,28 @@ const ProductPage = () => {
               <th className="text-black">Description</th>
               <th className="text-black">Price</th>
               <th className="text-black">Create Date</th>
-              {/* <th className="text-black">Actions</th> */}
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.productid}>
+              <tr key={product.id}>
                 <td className="text-black">{product.productname}</td>
                 <td className="text-black">{product.description}</td>
                 <td className="text-black">{product.price}</td>
                 <td className="text-black">{formatDate(product.createdat)}</td>
-                <td className="text-black flex space-x-2">
-                  <button
-                    onClick={() => handleDeleteProduct(product.productid)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
-                </td>
-                <td className="text-black">
+                <td>
+                    <button
+                      onClick={() => handleDeleteProduct(product.productid)}
+                      className="hover:border-b-2 border-gray-400 transition duration-30"
+                    >
+                      <TrashIcon className="text-red-600 h-6 w-6" />
+                      {/* <span>Delete</span> */}
+                    </button>
+                  </td>
+                <td>
                   <EditedProduct
-                    productId={product.productid} // ส่ง ID ของสินค้า
-                    onProductUpdated={fetchProducts} // ฟังก์ชันสำหรับรีเฟรชข้อมูล
+                    productId={product.id}
+                    onProductUpdated={fetchProducts} // Function to refresh products after editing
                   />
                 </td>
               </tr>

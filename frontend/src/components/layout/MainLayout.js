@@ -1,109 +1,113 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom"; // ใช้ Link สำหรับการนำทาง
-import Header from "./ui/Header";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { HiChevronDown, HiHome, HiShoppingCart, HiDocumentText, HiUser } from "react-icons/hi"; // ไอคอนจาก react-icons
 
-const MainLayout = ({ children }) => {
- 
+const SidebarDropdown = ({ label, children, icon }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
-  const user = {
-    name: "John Doe",
-    role: "administrator",
-    profilePicture: "https://static.vecteezy.com/system/resources/thumbnails/005/544/718/small_2x/profile-icon-design-free-vector.jpg",
-  };
+  useEffect(() => {
+    const isActive = children.some(child => child.link === location.pathname);
+    setIsOpen(isActive); 
+  }, [location.pathname, children]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      
+    <li className="my-2">
+      <div
+        className="flex justify-between items-center w-full p-3 bg-teal-600 hover:bg-teal-700 rounded-lg text-white cursor-pointer text-sm"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {/* เพิ่มไอคอนข้างหน้า */}
+        <div className="flex items-center space-x-2">
+          {icon && <span className="text-lg">{icon}</span>}
+          <span>{label}</span>
+        </div>
+        <HiChevronDown
+          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""} text-lg`}
+        />
+      </div>
 
-      {/* Sidebar and Main Content */}
+      <div
+        className={`transition-all duration-200 overflow-hidden ${isOpen ? "max-h-96" : "max-h-0"}`}
+      >
+        <ul className="bg-teal-600 rounded-lg p-2 list-none ml-4">
+          {children.map((child, index) => (
+            <li key={index}>
+              <Link
+                to={child.link}
+                className="block w-full p-3 hover:bg-teal-700 text-white rounded-lg text-sm"
+              >
+                {child.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </li>
+  );
+};
+
+const SidebarItem = ({ label, link, icon }) => {
+  const location = useLocation();
+
+  const isActive = location.pathname === link;
+
+  return (
+    <li className="my-2">
+      <Link
+        to={link}
+        className={`block w-full p-3 rounded-lg text-sm ${isActive ? "bg-teal-700" : "bg-teal-600"} hover:bg-teal-700 text-white`}
+      >
+        <div className="flex items-center space-x-2">
+          {icon && <span className="text-lg">{icon}</span>}
+          <span>{label}</span>
+        </div>
+      </Link>
+    </li>
+  );
+};
+
+const MainLayout = ({ children }) => {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <div className="flex flex-1">
         {/* Sidebar */}
-        <ul className="menu bg-bla-200 w-56">
-
-
-          <li>
-          <h1 className="my-5 text-2xl font-bold text-center">
-            POS SYSTEM
-          </h1>
-
-          </li>
-          <li className="menu-item m-1">
-            <Link to="/">Dashboard</Link>
-          </li>
-          <li className="dropdown dropdown-right m-1">
-            <Link to="/sellProduct">Sell product</Link>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                <li>
-                  <Link to="/productList">Product List</Link>
-                </li>
-            </ul>
-          </li>
-          {/* Sales Dropdown */}
-          <div className="dropdown dropdown-right">
-            <div
-              tabIndex={0}
-              role="button"
-              className="menu-item rounded-box m-5"
-            >
-              Sales Management
-            </div>
-          
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu bg-base-200 z-[1] w-52 p-2 shadow mt-4"
-              >
-                <li>
-                  <Link to="/sales">Sales Product</Link>
-                </li>
-                <li>
-                  <Link to="/salesHistory">Sales History</Link>
-                </li>
-                <li>
-                  <Link to="/payment">Payment</Link>
-                </li>
-              </ul>
-
+        <aside className="w-64 bg-teal-600 shadow-md fixed top-0 left-0 h-full">
+          <div className="py-6 text-center px-6">
+            <h1 className="text-2xl font-bold text-white">
+              <Link to="/">POS SYSTEM</Link>
+            </h1>
           </div>
-
-          <li className="menu-item m-1">
-            <Link to="/product">Product management</Link>
-          </li>
-          <li className="menu-item m-1">
-            <Link to="/inventory">Inventory</Link>
-          </li>
-          <li className="dropdown dropdown-right m-1">
-            <Link to="/reports">Reports</Link>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-            <li>
-                  <Link to="/detailReport">Datail Report</Link>
-                </li>
-                <li>
-                  <Link to="/customerRank">Customer Rank</Link>
-                </li>
-                <li>
-                  <Link to="/cashFlow">Cash Flow</Link>
-                </li>
-            </ul>
-          </li>
-          <li className="dropdown dropdown-right m-1">
-          <Link to="/userManagement">User management</Link>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-            <li>
-                  <Link to="/accessRights">Access Rights</Link>
-                </li>
-                <li>
-                  <Link to="/employeeTransfer">Employee Transfer</Link>
-                </li>
-            </ul>
-          </li>
-
-          
-        </ul>
-        
+          {/* เพิ่มการเลื่อนเฉพาะในเมนู */}
+          <nav className="p-5 list-none overflow-y-auto h-full">
+            <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
+            <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
+              {[ 
+                { label: "Sales Product", link: "/sales" },
+                { label: "Sales History", link: "/salesHistory" },
+                { label: "Payment", link: "/payment" },
+              ]}
+            </SidebarDropdown>
+            <SidebarItem label="Product Management" link="/product" icon={<HiDocumentText />} />
+            <SidebarItem label="Inventory" link="/inventory" icon={<HiDocumentText />} />
+            <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
+              {[ 
+                { label: "Detail Report", link: "/detailReport" },
+                { label: "Customer Rank", link: "/customerRank" },
+                { label: "Cash Flow", link: "/cashFlow" },
+              ]}
+            </SidebarDropdown>
+            <SidebarDropdown label="User Management" icon={<HiUser />}>
+              {[ 
+                { label: "Access Rights", link: "/accessRights" },
+                { label: "Employee Transfer", link: "/employeeTransfer" },
+              ]}
+            </SidebarDropdown>
+          </nav>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-gray-100 p-6">{children}</div>
+        <main className="flex-1 p-6 bg-white ml-64">{children}</main>
       </div>
     </div>
   );
