@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PencilIcon } from "@heroicons/react/outline"; // Import icon
 
@@ -7,13 +7,41 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [imageUrl, setImageUrl] = useState(""); // State for Image URL
+
+  // Fetch product data from API to populate the inputs
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        console.error("Product ID is not available.");
+        return; // หยุดการทำงานหากไม่มี productId
+      }
+    
+      try {
+        // ตรวจสอบว่าใช้เส้นทางที่ถูกต้อง
+        const response = await axios.get(`http://localhost:5050/Products/${productId}`);
+        const product = response.data.Data;
+        setProductName(product.productname);
+        setDescription(product.description);
+        setPrice(product.price);
+        setImageUrl(product.imageurl);
+      } catch (err) {
+        console.error("Error fetching product data:", err);
+      }
+    };
+    
+
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
 
   const handleOpenModal = () => {
-    setIsModalOpen(true); // เปิด modal
+    setIsModalOpen(true); // Open modal
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false); // ปิด modal
+    setIsModalOpen(false); // Close modal
   };
 
   const handleSubmit = async (e) => {
@@ -30,13 +58,14 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
         productname: productName,
         description: description,
         price: numericPrice,
+        imageurl: imageUrl, // Send the image URL
       });
 
       if (response.status === 200) {
-        onProductUpdated(); // รีเฟรชข้อมูลหลังจากแก้ไขสำเร็จ
+        onProductUpdated(); // Refresh data after successful update
       }
 
-      handleCloseModal(); // ปิด modal
+      handleCloseModal(); // Close modal after updating
     } catch (err) {
       console.error("Error updating product:", err);
     }
@@ -49,7 +78,6 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
         className="hover:border-b-2 border-gray-400 transition duration-300"
       >
         <PencilIcon className="text-blue-600 h-6 w-6" />
-        {/* <span>Edit</span> */}
       </button>
 
       {isModalOpen && (
@@ -66,7 +94,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={productName}
+                  value={productName} // Use productName state as initial value
                   onChange={(e) => setProductName(e.target.value)}
                 />
               </div>
@@ -77,7 +105,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={description}
+                  value={description} // Use description state as initial value
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
@@ -88,8 +116,19 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={price}
+                  value={price} // Use price state as initial value
                   onChange={(e) => setPrice(e.target.value)}
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-600 font-medium mb-2">
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
+                  value={imageUrl} // Use imageUrl state as initial value
+                  onChange={(e) => setImageUrl(e.target.value)}
                 />
               </div>
               <button

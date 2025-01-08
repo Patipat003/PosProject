@@ -3,10 +3,9 @@ import axios from "axios";
 import ProductForm from "../components/layout/ui/ProductForm";
 import EditedProduct from "../components/layout/ui/EditedProduct";
 import ExportButtons from "../components/layout/ui/ExportButtons";
-import SortByDropdown from "../components/layout/ui/SortByDropdown"; // Import SortByDropdown
+import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
-import { TrashIcon, PencilIcon } from "@heroicons/react/outline"; // Import icons
-
+import { TrashIcon, PencilIcon } from "@heroicons/react/outline";
 
 // ฟังก์ชันสำหรับแปลงวันที่ให้เป็นรูปแบบที่อ่านง่าย (ไม่มีวินาที)
 const formatDate = (dateString) => {
@@ -47,14 +46,16 @@ const ProductPage = () => {
 
   // ฟังก์ชันลบสินค้า
   const handleDeleteProduct = async (productId) => {
-    try {
-      const response = await axios.delete(`http://localhost:5050/products/${productId}`);
-      if (response.status === 200) {
-        // หากการลบสำเร็จ รีเฟรชข้อมูลสินค้า
-        fetchProducts();
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        const response = await axios.delete(`http://localhost:5050/products/${productId}`);
+        if (response.status === 200) {
+          // หากการลบสำเร็จ รีเฟรชข้อมูลสินค้า
+          fetchProducts();
+        }
+      } catch (err) {
+        console.error("Error deleting product:", err);
       }
-    } catch (err) {
-      console.error("Error deleting product:", err);
     }
   };
 
@@ -130,21 +131,20 @@ const ProductPage = () => {
         <div className="grid grid-cols-4 gap-4">
           {products.map((product) => (
             <div
-              key={product.id}
+              key={product.productid} // ใช้ product.productid แทน
               className="border border-gray-300 p-4 rounded flex flex-col items-center cursor-pointer"
               onClick={() => setSelectedProduct(product)}
             >
               <div className="w-24 h-24 bg-gray-200 mb-2 rounded">
                 <img
-                  src={product.imageUrl || "https://via.placeholder.com/150"}
-                  alt={product.name}
+                  src={product.imageurl} // ดึงจากฐานข้อมูล
+                  alt={product.productname}  // ใช้ productname แทน name
                   className="w-full h-full object-cover rounded"
                 />
               </div>
               <div className="text-black text-lg font-bold">{product.code}</div>
               <div className="text-black text-sm mb-2">{product.productname}</div>
               <div className="text-black text-sm">Price : {product.price}</div>
-              {/* <div className="text-black text-sm">Quantity : {inventory[product.productid]}</div> Show quantity from inventory */}
             </div>
           ))}
         </div>
@@ -177,23 +177,22 @@ const ProductPage = () => {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id}>
+              <tr key={product.productid}> {/* ใช้ product.productid แทน */}
                 <td className="text-black">{product.productname}</td>
                 <td className="text-black">{product.description}</td>
                 <td className="text-black">{product.price}</td>
                 <td className="text-black">{formatDate(product.createdat)}</td>
                 <td>
-                    <button
-                      onClick={() => handleDeleteProduct(product.productid)}
-                      className="hover:border-b-2 border-gray-400 transition duration-30"
-                    >
-                      <TrashIcon className="text-red-600 h-6 w-6" />
-                      {/* <span>Delete</span> */}
-                    </button>
-                  </td>
+                  <button
+                    onClick={() => handleDeleteProduct(product.productid)} // ใช้ product.productid
+                    className="hover:border-b-2 border-gray-400 transition duration-30"
+                  >
+                    <TrashIcon className="text-red-600 h-6 w-6" />
+                  </button>
+                </td>
                 <td>
                   <EditedProduct
-                    productId={product.id}
+                    productId={product.productid} // ใช้ product.productid
                     onProductUpdated={fetchProducts} // Function to refresh products after editing
                   />
                 </td>

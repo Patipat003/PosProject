@@ -18,6 +18,13 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// ตรวจสอบ URL ของรูปภาพ
+	if req.ImageURL == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "ImageURL is required",
+		})
+	}
+
 	req.ProductID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
@@ -94,9 +101,12 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// อัปเดตฟิลด์ที่ต้องการ
 	product.ProductName = req.ProductName
 	product.Description = req.Description
 	product.Price = req.Price
+	product.UnitsPerBox = req.UnitsPerBox
+	product.ImageURL = req.ImageURL // อัปเดต URL ของภาพ
 	product.CreatedAt = time.Now()
 
 	if err := db.Save(&product).Error; err != nil {
