@@ -14,6 +14,8 @@ import AccessRightsPage from "./pages/AccessRightsPage";
 import EmployeeTransferPage from "./pages/EmployeeTransferPage";
 import PaymentPage from "./pages/PaymentPage";
 import InventoryPage from "./pages/InventoryPage";
+import SellProductPage from "./pages/SellProductPage";
+import ProductListPage from "./pages/ProductListPage";
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="/employeeTransfer" element={<EmployeeTransferPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/sellProduct" element={<SellProductPage />} />
+          <Route path="/productList" element={<ProductListPage />} />
         </Routes>
       </MainLayout>
     </Router>

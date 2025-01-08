@@ -31,7 +31,14 @@ const MainLayout = ({ children }) => {
           <li className="menu-item m-1">
             <Link to="/">Dashboard</Link>
           </li>
-
+          <li className="dropdown dropdown-right m-1">
+            <Link to="/sellProduct">Sell product</Link>
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                <li>
+                  <Link to="/productList">Product List</Link>
+                </li>
+            </ul>
+          </li>
           {/* Sales Dropdown */}
           <div className="dropdown dropdown-right">
             <div
