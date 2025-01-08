@@ -92,7 +92,7 @@ const MainLayout = ({ children }) => {
             <SidebarItem label="Inventory" link="/inventory" icon={<HiDocumentText />} />
             <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
               {[ 
-                { label: "Report", link: "/reports" },
+                { label: "New Item", link: "/reports" },
                 { label: "Detail Report", link: "/detailReport" },
                 { label: "Customer Rank", link: "/customerRank" },
                 { label: "Cash Flow", link: "/cashFlow" },

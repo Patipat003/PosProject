@@ -6,6 +6,7 @@ const UserManagementPage = () => {
   const [Email, setEmail] = useState("");
   const [Phone, setPhone] = useState("");
   const [AccessRights, setAccessRights] = useState("");
+  const [employees, setEmployees] = useState([]); // State for storing employee list
 
   const handleAddEmployee = () => {
     setIsModalOpen(true); // Open modal
@@ -13,13 +14,25 @@ const UserManagementPage = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); // Close modal
+    // Clear input fields
+    setName("");
+    setEmail("");
+    setPhone("");
+    setAccessRights("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Process the form data here (e.g., send to backend)
-    console.log("Name:", Name);
-    console.log("Email:", Email);
+
+    // Add new employee to the employee list
+    const newEmployee = {
+      name: Name,
+      email: Email,
+      phone: Phone,
+      rights: AccessRights,
+    };
+
+    setEmployees([...employees, newEmployee]); // Update the employee list
     handleCloseModal(); // Close modal after submission
   };
 
@@ -42,7 +55,9 @@ const UserManagementPage = () => {
         <span className="text-lg font-semibold text-gray-700">Name</span>
         <span className="text-lg font-semibold text-gray-700">Email</span>
         <span className="text-lg font-semibold text-gray-700">Phone</span>
-        <span className="text-lg font-semibold text-gray-700">Access Rights</span>
+        <span className="text-lg font-semibold text-gray-700">
+          Access Rights
+        </span>
       </div>
 
       {/* Table */}
@@ -57,13 +72,12 @@ const UserManagementPage = () => {
             </tr>
           </thead>
           <tbody>
-            {/* Example Data */}
-            {[
-              { name: "John Doe", email: "john@example.com", phone: "123-456-7890", rights: "Admin" },
-              { name: "Jane Smith", email: "jane@example.com", phone: "987-654-3210", rights: "User" },
-              { name: "Mike Johnson", email: "mike@example.com", phone: "555-123-4567", rights: "Editor" },
-            ].map((user, index) => (
-              <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+            {/* Render employee data dynamically */}
+            {employees.map((user, index) => (
+              <tr
+                key={index}
+                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+              >
                 <td className="border border-gray-300 px-4 py-2">{user.name}</td>
                 <td className="border border-gray-300 px-4 py-2">{user.email}</td>
                 <td className="border border-gray-300 px-4 py-2">{user.phone}</td>
@@ -96,19 +110,21 @@ const UserManagementPage = () => {
                 />
               </div>
 
-              {/* Position Input */}
+              {/* Email Input */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">
                   Email
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
                   placeholder="Enter email"
                   value={Email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+
+              {/* Phone Input */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">
                   Phone
@@ -121,6 +137,8 @@ const UserManagementPage = () => {
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
+
+              {/* Access Rights Input */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">
                   Access Rights
@@ -128,11 +146,12 @@ const UserManagementPage = () => {
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter Access Rights"
+                  placeholder="Enter access rights"
                   value={AccessRights}
                   onChange={(e) => setAccessRights(e.target.value)}
                 />
               </div>
+
               {/* Save Button */}
               <button
                 type="submit"

@@ -5,7 +5,8 @@ const ProductForm = ({ onProductAdded }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(""); // ใช้ string สำหรับราคา แต่จะต้องแปลงเป็น number ก่อนส่งไปเซิร์ฟเวอร์
+  const [price, setPrice] = useState(""); // ใช้ string สำหรับราคา
+  const [image, setImage] = useState(null); // state สำหรับเก็บไฟล์รูปภาพ
 
   const handleAddProduct = () => {
     setIsModalOpen(true); // เปิด modal เมื่อกด "Add Product"
@@ -15,10 +16,14 @@ const ProductForm = ({ onProductAdded }) => {
     setIsModalOpen(false); // ปิด modal
   };
 
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]); // เก็บไฟล์รูปภาพที่ผู้ใช้อัปโหลด
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // แปลงราคาเป็นตัวเลข (หากผู้ใช้กรอกเป็น string)
+    // แปลงราคาเป็นตัวเลข
     const numericPrice = parseFloat(price);
 
     if (isNaN(numericPrice)) {
@@ -27,30 +32,36 @@ const ProductForm = ({ onProductAdded }) => {
     }
 
     try {
-      // ส่งข้อมูลสินค้าไปยัง backend
-      const response = await axios.post("http://localhost:5050/products", {
-        productname: productName,
-        description: description,
-        price: numericPrice, // ส่งราคาเป็นตัวเลข
-        unitsperbox: 30, // เพิ่ม unitsperbox โดยค่า default เป็น 30
+      // สร้าง form data สำหรับส่งข้อมูลพร้อมไฟล์รูปภาพ
+      const formData = new FormData();
+      formData.append("productname", productName);
+      formData.append("description", description);
+      formData.append("price", numericPrice);
+      formData.append("unitsperbox", 30); // ค่า default
+      if (image) {
+        formData.append("image", image); // เพิ่มไฟล์รูปภาพ
+      }
+
+      // ส่งข้อมูลไปยัง backend
+      const response = await axios.post("http://localhost:5050/products", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // บอกว่าเป็น multipart/form-data
+        },
       });
 
       if (response.data) {
-        // หากการเพิ่มสินค้าสำเร็จ เรียก onProductAdded เพื่อรีเฟรชข้อมูล
+        // หากเพิ่มสินค้าสำเร็จ
         onProductAdded();
       }
 
-      handleCloseModal(); // ปิด modal หลังจากบันทึกข้อมูล
+      handleCloseModal(); // ปิด modal
     } catch (err) {
       console.error("Error adding product:", err);
       if (err.response) {
-        // คำตอบจากเซิร์ฟเวอร์
         console.error("Server responded with error:", err.response.data);
       } else if (err.request) {
-        // คำขอที่ส่งไปไม่ถูกตอบกลับ
         console.error("No response received:", err.request);
       } else {
-        // ปัญหาจากการตั้งค่าของ axios
         console.error("Error with axios setup:", err.message);
       }
     }
@@ -116,6 +127,19 @@ const ProductForm = ({ onProductAdded }) => {
                 />
               </div>
 
+              {/* Image Upload */}
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Product Image
+                </label>
+                <input
+                  type="file"
+                  className="w-full p-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                />
+              </div>
+
               {/* ปุ่ม Save */}
               <button
                 type="submit"
@@ -124,12 +148,12 @@ const ProductForm = ({ onProductAdded }) => {
                 Add Product
               </button>
             </form>
-            {/* ปุ่ม Close (กากบาท) */}
+            {/* ปุ่ม Close */}
             <button
               onClick={handleCloseModal}
               className="absolute top-2 right-2 text-gray-500 text-2xl"
             >
-              &times; {/* เครื่องหมาย X */}
+              &times;
             </button>
           </div>
         </div>
