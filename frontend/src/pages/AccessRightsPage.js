@@ -8,12 +8,12 @@ const AccessRightsPage = () => {
     { role: "Viewer", description: "Read-only access", permissions: "View" },
   ]);
 
-  const [currentRole, setCurrentRole] = useState({ role: "", description: "", permissions: "" });
+  const [currentRole, setCurrentRole] = useState({ role: "", description: "", permissions: [] });
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
   const handleOpenModal = () => {
-    setCurrentRole({ role: "", description: "", permissions: "" });
+    setCurrentRole({ role: "", description: "", permissions: [] });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -24,20 +24,36 @@ const AccessRightsPage = () => {
 
   const handleSaveRole = (e) => {
     e.preventDefault();
+    const permissionsString = currentRole.permissions.join(", ");
     if (isEditing) {
-      const updatedRoles = roles.map((r, index) => (index === editIndex ? currentRole : r));
+      const updatedRoles = roles.map((r, index) =>
+        index === editIndex ? { ...currentRole, permissions: permissionsString } : r
+      );
       setRoles(updatedRoles);
     } else {
-      setRoles([...roles, currentRole]);
+      setRoles([...roles, { ...currentRole, permissions: permissionsString }]);
     }
     handleCloseModal();
   };
 
   const handleEditRole = (index) => {
-    setCurrentRole(roles[index]);
+    const role = roles[index];
+    setCurrentRole({ ...role, permissions: role.permissions.split(", ") });
     setEditIndex(index);
     setIsEditing(true);
     setIsModalOpen(true);
+  };
+
+  const handlePermissionChange = (permission) => {
+    setCurrentRole((prevRole) => {
+      const isSelected = prevRole.permissions.includes(permission);
+      return {
+        ...prevRole,
+        permissions: isSelected
+          ? prevRole.permissions.filter((p) => p !== permission)
+          : [...prevRole.permissions, permission],
+      };
+    });
   };
 
   return (
@@ -92,7 +108,13 @@ const AccessRightsPage = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-3 text-gray-500 text-2xl font-bold hover:text-gray-800 transition"
+            >
+              &times;
+            </button>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
               {isEditing ? "Edit Role" : "Add New Role"}
             </h2>
@@ -119,13 +141,20 @@ const AccessRightsPage = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">Permissions</label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded focus:outline-none"
-                  value={currentRole.permissions}
-                  onChange={(e) => setCurrentRole({ ...currentRole, permissions: e.target.value })}
-                  required
-                />
+                <div className="space-y-2">
+                  {["View", "Edit", "Delete", "Manage Users"].map((permission) => (
+                    <div key={permission} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={permission}
+                        className="mr-2"
+                        checked={currentRole.permissions.includes(permission)}
+                        onChange={() => handlePermissionChange(permission)}
+                      />
+                      <label htmlFor={permission} className="text-gray-600">{permission}</label>
+                    </div>
+                  ))}
+                </div>
               </div>
               <button
                 type="submit"
@@ -134,12 +163,6 @@ const AccessRightsPage = () => {
                 {isEditing ? "Save Changes" : "Add Role"}
               </button>
             </form>
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 text-2xl"
-            >
-              &times;
-            </button>
           </div>
         </div>
       )}

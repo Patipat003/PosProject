@@ -3,7 +3,7 @@ import React from "react";
 const ReportsPage = () => {
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">Reports</h1>
+      <h1 className="text-4xl font-bold text-gray-800 mb-6">New Itme</h1>
       <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
         <div className="flex justify-between items-center gap-4">
           <h2 className="text-2xl font-semibold text-gray-700">#Stock</h2>
