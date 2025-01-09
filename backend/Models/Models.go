@@ -52,6 +52,7 @@ type Product struct {
 	Price       float64   `gorm:"type:numeric(10,2);not null" json:"price"`
 	UnitsPerBox int       `gorm:"type:int;not null;default:1" json:"unitsperbox"` // จำนวนชิ้นต่อกล่อง
 	CreatedAt   time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
+	ImageURL    string    `gorm:"type:varchar(255)" json:"imageurl"` // ฟิลด์สำหรับเก็บ URL ของภาพ
 }
 
 func (Product) TableName() string {

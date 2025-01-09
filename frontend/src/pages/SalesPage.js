@@ -31,75 +31,114 @@ const SalesPage = () => {
 
   const handleBranchChange = (event) => {
     setSelectedBranch(event.target.value);
-    setCart([]);  // Reset the cart when switching branches
+    setCart([]); // Clear the cart when branch is changed
+    setTotalAmount(0); // Reset the total amount
   };
 
   const handleAddToCart = (product, quantity) => {
-    if (!selectedBranch) {
+    if (!selectedBranch || selectedBranch === "all") {
       alert("โปรดเลือกสาขาก่อน");
       return;
     }
-
-    const productInCart = cart.find((item) => item.productid === product.productid);
-
-    // Check if the product belongs to the selected branch
-    const inventoryItem = inventory.find((item) => item.productid === product.productid && item.branchid === selectedBranch);
+  
+    const inventoryItem = inventory.find(
+      (item) => item.productid === product.productid && item.branchid === selectedBranch
+    );
     if (!inventoryItem) {
-      alert("สินค้าจากสาขานี้ไม่มีในตะกร้า");
+      alert("Product not available in the selected branch");
       return;
     }
-
-    if (productInCart) {
-      if (productInCart.branchid !== selectedBranch) {
-        alert("ไม่สามารถเพิ่มสินค้าจากสาขาที่ต่างกัน");
-        return;
-      }
-      productInCart.quantity += quantity;
-    } else {
-      cart.push({ ...product, quantity, branchid: selectedBranch });
+  
+    if (inventoryItem.quantity === 0) {
+      alert("Out of stock");
+      return;
     }
-    setCart([...cart]);
+  
+    // Add or update product in the cart with quantity of 1 per click
+    setCart((prevCart) => {
+      const updatedCart = [...prevCart];
+      const existingProduct = updatedCart.find((item) => item.productid === product.productid);
+      if (existingProduct) {
+        existingProduct.quantity += 1;  // Add 1 quantity per click
+      } else {
+        updatedCart.push({ ...product, quantity: 1, branchid: selectedBranch }); // Always add 1 quantity initially
+      }
+      return updatedCart;
+    });
+  
     updateTotalAmount();
   };
+  
 
   const handleRemoveFromCart = (productid) => {
-    const newCart = cart.filter((item) => item.productid !== productid);
-    setCart(newCart);
+    setCart((prevCart) => {
+      const newCart = prevCart.filter((item) => item.productid !== productid);
+      return newCart;
+    });
     updateTotalAmount();
   };
 
   const handleQuantityChange = (productid, newQuantity) => {
-    const updatedCart = cart.map(item =>
-      item.productid === productid ? { ...item, quantity: newQuantity } : item
-    );
-    setCart(updatedCart);
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
+        item.productid === productid ? { ...item, quantity: newQuantity > 0 ? newQuantity : 1 } : item
+      );
+      return updatedCart.filter(item => item.quantity > 0); // Remove item if quantity is 0
+    });
+    updateTotalAmount();
+  };
+
+  const handleIncreaseQuantity = (productid) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
+        item.productid === productid ? { ...item, quantity: item.quantity ++ } : item
+      );
+      return updatedCart;
+    });
+    updateTotalAmount();
+  };
+
+  const handleDecreaseQuantity = (productid) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
+        item.productid === productid && item.quantity > 1
+          ? { ...item, quantity: item.quantity -- }
+          : item
+      );
+      return updatedCart.filter(item => item.quantity > 0); // Remove item if quantity is 0
+    });
     updateTotalAmount();
   };
 
   const updateTotalAmount = () => {
-    let total = 0;
-    cart.forEach(item => {
-      total += item.price * item.quantity;
-    });
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     setTotalAmount(total);
   };
 
   const handleCheckout = async () => {
     if (!selectedBranch) {
-      alert("โปรดเลือกสาขาก่อน");
+      alert("Select branch before checkout");
       return;
     }
-    const saleItems = cart.map(item => ({
+  
+    if (cart.length === 0) {
+      alert("Your cart is empty select some products to checkout");
+      return;
+    }
+  
+    const saleItems = cart.map((item) => ({
       productid: item.productid,
       quantity: item.quantity,
       price: item.price,
       totalprice: item.price * item.quantity,
     }));
+  
     const saleData = {
-      employeeid: "8a714024-471a-420f-8abb-46509d0cd74e",  // Fixed employee ID
+      employeeid: "8a714024-471a-420f-8abb-46509d0cd74e",
       branchid: selectedBranch,
       saleitems: saleItems,
     };
+  
     try {
       await axios.post("http://localhost:5050/sales", saleData);
       alert("Sale completed successfully!");
@@ -111,93 +150,132 @@ const SalesPage = () => {
     }
   };
 
-  const filterInventoryByBranch = () => {
-    return inventory.filter(item => item.branchid === selectedBranch);
+  const getInventoryByBranch = (branchId) => {
+    if (branchId === "all") {
+      return inventory;
+    } else {
+      return inventory.filter((item) => item.branchid === branchId);
+    }
+  };
+
+  const filterInventoryByProduct = () => {
+    return getInventoryByBranch(selectedBranch).reduce((acc, item) => {
+      const product = products.find((p) => p.productid === item.productid);
+      if (product) {
+        const existingProduct = acc.find((p) => p.productid === item.productid);
+        if (existingProduct) {
+          existingProduct.totalQuantity += item.quantity;
+        } else {
+          acc.push({ ...product, totalQuantity: item.quantity });
+        }
+      }
+      return acc;
+    }, []);
   };
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-black mb-4">Sales Product</h1>
-
-      {/* Select branch dropdown */}
-      {!selectedBranch && (
-        <div className="mb-4">
-          <select
-            value={selectedBranch}
-            onChange={handleBranchChange}
-            className="border p-2 rounded"
-          >
-            <option value="" disabled>Select Branch</option>
-            {branches.map(branch => (
-              <option key={branch.branchid} value={branch.branchid}>
-                {branch.bname}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Show products only after selecting a branch */}
-      {selectedBranch && (
-        <div className="flex">
-          <div className="w-4/5">
-            <h2 className="text-xl font-bold mb-4">Products</h2>
-            <div className="grid grid-cols-4 gap-4">
-              {products.map((product) => {
-                const inventoryItem = inventory.find(item => item.productid === product.productid && item.branchid === selectedBranch);
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Product</h1>
+      <div className="flex">
+        <div className="w-4/5 mr-6">
+          <p className="text-black mb-4">Product Lists</p>
+          <div className="grid grid-cols-4 gap-4">
+            {selectedBranch && selectedBranch !== "all" ? (
+              filterInventoryByProduct().map((product) => {
+                const stock =
+                  getInventoryByBranch(selectedBranch).find(
+                    (item) => item.productid === product.productid
+                  )?.quantity || 0;
                 return (
-                  <div key={product.productid} className="border p-4 rounded flex flex-col items-center">
-                    <img src="https://via.placeholder.com/150" alt="Product" className="w-24 h-24 mb-2" />
-                    <div className="font-bold">{product.productname}</div>
-                    <div className="text-sm">Price: ${product.price}</div>
-                    <button
-                      onClick={() => handleAddToCart(product, 1)}
-                      className="mt-2 text-white bg-teal-500 p-2 rounded"
-                      disabled={!inventoryItem}
-                    >
-                      {inventoryItem ? "Add to Cart" : "Out of Stock"}
-                    </button>
-                  </div>
+                  <button
+                    key={product.productid}
+                    onClick={() => handleAddToCart(product, 1)}
+                    className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
+                  >
+                    <figure className="flex justify-center items-center h-2/3 w-full">
+                      <img
+                        src={product.imageurl}
+                        alt={product.productname}
+                        className="max-h-full max-w-full"
+                      />
+                    </figure>
+                    <div className="text-center my-2">
+                      <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
+                      <p className="text-sm font-semibold text-black">฿{product.price}</p>
+                    </div>
+                  </button>
                 );
-              })}
-            </div>
+              })
+            ) : (
+              <p className="text-center col-span-4">Please select a branch to view products.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="w-2/5">
+          <div div className="flex justify-end mb-6">
+            <select
+              id="branch-select"
+              value={selectedBranch}
+              onChange={handleBranchChange}
+              className="w-2/3 bg-white border border-gray-300 text-gray-500 font-semibold p-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 ease-in-out"
+            >
+              <option value="all" className="text-gray-500">Select Branch</option>
+              {branches.map((branch) => (
+                <option key={branch.branchid} value={branch.branchid} className="text-gray-500">
+                  {branch.bname}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="w-2/5">
-            <h2 className="text-xl font-bold mb-4">Your Cart</h2>
-            <div className="border p-6 rounded h-96 overflow-y-auto">
-              {cart.map((item) => (
-                <div key={item.productid} className="flex justify-between mb-2">
-                  <div>{item.productname}</div>
+          <h3 className="text-xl text-black font-bold mb-4">Your Cart</h3>
+          <div className="border p-6 rounded h-96 overflow-y-auto">
+            {cart.map((item) => (
+              <div key={item.productid} className="text-black mb-6">
+                <div className="mb-2 font-semibold text-teal-600">{item.productname}</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-black justify-end mr-2">
+                    ฿{item.price}
+                  </span>
                   <div className="flex items-center">
+                    <button
+                      onClick={() => handleDecreaseQuantity(item.productid)}
+                      className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
+                    >
+                      -
+                    </button>
                     <input
-                      type="number"
                       value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item.productid, parseInt(e.target.value))}
-                      className="w-16 border p-1 rounded"
+                      onChange={(e) =>
+                        handleQuantityChange(item.productid, parseInt(e.target.value))
+                      }
+                      className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
                       min="1"
                     />
-                    <span className="ml-2">{item.quantity} x ${item.price} = ${item.price * item.quantity}</span>
                     <button
-                      onClick={() => handleRemoveFromCart(item.productid)}
-                      className="ml-2 text-red-600"
+                      onClick={() => handleIncreaseQuantity(item.productid)}
+                      className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
                     >
-                      <HiTrash size={20} />
+                      +
                     </button>
                   </div>
+                  <span className="text-teal-600 justify-end ml-2">
+                    ฿{item.price * item.quantity}
+                  </span>
                 </div>
-              ))}
-              <div className="mt-4 font-bold">Total: ${totalAmount}</div>
-              <button
-                onClick={handleCheckout}
-                className="mt-4 w-full bg-teal-500 text-white p-2 rounded"
-              >
-                Checkout
-              </button>
-            </div>
+              </div>
+            ))}
+            <div className="mt-4 text-black text-base font-bold">Total: ฿{totalAmount}</div>
+            <button
+              onClick={handleCheckout}
+              className="btn border-none mt-4 w-full bg-teal-500 text-white p-2 rounded hover:bg-teal-600 transition duration-300 mt-4"
+            >
+              Checkout
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
