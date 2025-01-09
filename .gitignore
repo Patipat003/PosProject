@@ -56,3 +56,4 @@ Thumbs.db
 frontend/node_modules/.cache/default-development/48.pack
 frontend/node_modules/.cache/default-development/index.pack
 frontend/node_modules/.cache/default-development/index.pack.old
+/frontend/node_modules/.cache
