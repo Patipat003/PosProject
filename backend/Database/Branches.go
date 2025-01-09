@@ -9,7 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Branch
+// เพิ่ม Branch และสร้าง Inventory สำหรับทุก Product
+// เพิ่ม Branch และสร้าง Inventory สำหรับทุก Product
 func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Branches
 	if err := c.BodyParser(&req); err != nil {
@@ -21,12 +22,41 @@ func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	req.BranchID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
+	// สร้าง Branch
 	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create branch: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+
+	// ดึงรายการ Products ทั้งหมด
+	var products []Models.Product
+	if err := db.Find(&products).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch products: " + err.Error(),
+		})
+	}
+
+	// เพิ่ม Inventory สำหรับแต่ละ Product
+	for _, product := range products {
+		inventory := Models.Inventory{
+			InventoryID: uuid.New().String(),
+			ProductID:   product.ProductID,
+			BranchID:    req.BranchID,
+			Quantity:    0, // ค่าเริ่มต้น
+			UpdatedAt:   time.Now(),
+		}
+		if err := db.Create(&inventory).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create inventory for product ID " + product.ProductID + ": " + err.Error(),
+			})
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"NewBranch": req,
+		"Message":   "Branch and Inventory created successfully",
+	})
 }
 
 // ดู Branch ทั้งหมด

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HiChevronDown, HiHome, HiShoppingCart, HiDocumentText, HiUser } from "react-icons/hi"; // ไอคอนจาก react-icons
+import Header from "./ui/Header"; // นำเข้า Header ที่จะมีข้อมูลของผู้ใช้
 
+// SidebarDropdown สำหรับเมนูย่อย
 const SidebarDropdown = ({ label, children, icon }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -17,7 +19,6 @@ const SidebarDropdown = ({ label, children, icon }) => {
         className="flex justify-between items-center w-full p-3 bg-teal-600 hover:bg-teal-700 rounded-lg text-white cursor-pointer text-sm"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {/* เพิ่มไอคอนข้างหน้า */}
         <div className="flex items-center space-x-2">
           {icon && <span className="text-lg">{icon}</span>}
           <span>{label}</span>
@@ -47,6 +48,7 @@ const SidebarDropdown = ({ label, children, icon }) => {
   );
 };
 
+// SidebarItem สำหรับเมนูเดี่ยว
 const SidebarItem = ({ label, link, icon }) => {
   const location = useLocation();
 
@@ -67,24 +69,28 @@ const SidebarItem = ({ label, link, icon }) => {
   );
 };
 
+// MainLayout สำหรับการจัดการ layout หลัก
 const MainLayout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <Header />
+
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-64 bg-teal-600 shadow-md fixed top-0 left-0 h-full">
           <div className="py-6 text-center px-6">
-          <h1 className="text-4xl font-bold text-yellow-200">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg" 
-                alt="Lotus's Icon" 
-                className="h-30 w-30 object-contain mx-auto mt-6" 
-              />
-            </Link>
-          </h1>
+            <h1 className="text-4xl font-bold text-yellow-200">
+              <Link to="/" className="flex items-center">
+                <img 
+                  src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg" 
+                  alt="Lotus's Icon" 
+                  className="h-30 w-30 object-contain mx-auto mt-6" 
+                />
+              </Link>
+            </h1>
           </div>
-          {/* เพิ่มการเลื่อนเฉพาะในเมนู */}
+
           <nav className="p-5 list-none overflow-y-auto h-full">
             <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
             <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>

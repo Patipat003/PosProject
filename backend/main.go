@@ -7,10 +7,11 @@ import (
 	"strconv"
 
 	"github.com/posproject/Database"
+	"github.com/posproject/Middleware"
 	"github.com/posproject/Models"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors" // เพิ่มการใช้งาน CORS middleware
+	"github.com/gofiber/fiber/v2/middleware/cors" // ใช้ CORS middleware
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -59,21 +60,21 @@ func main() {
 	// สร้าง Fiber app
 	app := fiber.New()
 
-	// // Define routes
-	//app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
-
-	// // ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
-	//app.Use(Middleware.IsAuthenticated())
-
 	// กำหนด CORS middleware
-	// ตั้งค่า CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://127.0.0.1:3000", // อนุญาตให้เข้าถึงจาก React ที่รันบน localhost:3000
-		AllowMethods: "GET,POST,PUT,DELETE",   // อนุญาตเฉพาะ HTTP Methods ที่ต้องการ
-		AllowHeaders: "Content-Type",          // อนุญาตแค่ Content-Type, ไม่อนุญาต Authorization
+		AllowOrigins:     "http://127.0.0.1:3000",                       // อนุญาตให้ React app ที่รันที่ localhost:3000 เข้าถึง
+		AllowMethods:     "GET,POST,PUT,DELETE",                         // อนุญาต HTTP methods
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization", // อนุญาต headers
+		AllowCredentials: true,                                          // อนุญาตการใช้ credentials เช่น cookies, authorization headers
 	}))
 
 	// กำหนด routes สำหรับการจัดการต่างๆ
+	app.Post("/login", Database.LoginHandler(db)) // route สำหรับ login
+
+	// ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
+	app.Use(Middleware.IsAuthenticated())
+
+	// กำหนด routes อื่นๆ
 	Database.BranchRoutes(app, db)
 	Database.EmployeesRoutes(app, db)
 	Database.ProductRoutes(app, db)

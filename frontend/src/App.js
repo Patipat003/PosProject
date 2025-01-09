@@ -14,28 +14,153 @@ import AccessRightsPage from "./pages/AccessRightsPage";
 import EmployeeTransferPage from "./pages/EmployeeTransferPage";
 import PaymentPage from "./pages/PaymentPage";
 import InventoryPage from "./pages/InventoryPage";
+import LoginPage from "./pages/LoginPage";
+import { AuthProvider } from "./Contexts/AuthContext";
+import ProtectedRoute from "./components/routes/ProtectedRoute";
+
 
 function App() {
   return (
-    <Router>
-      <MainLayout>
+    <AuthProvider>
+      <Router>
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/sales" element={<SalesPage />} />
-          <Route path="/salesHistory" element={<SalesHistoryPage />} />
-          <Route path="/product" element={<ProductPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/userManagement" element={<UserManagementPage />} />
-          <Route path="/detailReport" element={<DetailReportPage />} />
-          <Route path="/customerRank" element={<CustomerRankPage />} />
-          <Route path="/cashFlow" element={<CashFlowPage />} />
-          <Route path="/accessRights" element={<AccessRightsPage />} />
-          <Route path="/employeeTransfer" element={<EmployeeTransferPage />} />
-          <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
+          {/* Public Route */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <DashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sales"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <SalesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/salesHistory"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <SalesHistoryPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/product"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ProductPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ReportsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userManagement"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <UserManagementPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/detailReport"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <DetailReportPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customerRank"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CustomerRankPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashFlow"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CashFlowPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accessRights"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AccessRightsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employeeTransfer"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <EmployeeTransferPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <PaymentPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <InventoryPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-      </MainLayout>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 
