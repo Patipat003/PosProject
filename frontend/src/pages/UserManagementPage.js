@@ -138,18 +138,21 @@ const UserManagementPage = () => {
                 />
               </div>
 
-              {/* Access Rights Input */}
+              {/* Access Rights Dropdown */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-2">
                   Access Rights
                 </label>
-                <input
-                  type="text"
+                <select
                   className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter access rights"
                   value={AccessRights}
                   onChange={(e) => setAccessRights(e.target.value)}
-                />
+                >
+                  <option value="">Select Access Rights</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Cashier">Cashier</option>
+                  <option value="Audit">Audit</option>
+                </select>
               </div>
 
               {/* Save Button */}
