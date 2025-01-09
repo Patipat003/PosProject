@@ -3,7 +3,7 @@ import React from "react";
 const PaymentPage = () => {
   return (
     <div className="p-4">
-      <h1 className="text-3xl text-black font-bold mb-4">Payment</h1>
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Payment</h1>
 
       {/* Search Bar */}
       <div className="flex items-center mb-4">

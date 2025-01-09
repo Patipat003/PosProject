@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { HiTrash } from "react-icons/hi";
+import { FaTrash } from "react-icons/fa"; // นำเข้าไอคอนลบ
 
 const SalesPage = () => {
   const [products, setProducts] = useState([]);
@@ -31,11 +31,11 @@ const SalesPage = () => {
 
   const handleBranchChange = (event) => {
     setSelectedBranch(event.target.value);
-    setCart([]); // Clear the cart when branch is changed
-    setTotalAmount(0); // Reset the total amount
+    setCart([]);
+    setTotalAmount(0);
   };
 
-  const handleAddToCart = (product, quantity) => {
+  const handleAddToCart = (product) => {
     if (!selectedBranch || selectedBranch === "all") {
       alert("โปรดเลือกสาขาก่อน");
       return;
@@ -54,21 +54,28 @@ const SalesPage = () => {
       return;
     }
   
-    // Add or update product in the cart with quantity of 1 per click
+    // อัปเดต cart
     setCart((prevCart) => {
-      const updatedCart = [...prevCart];
-      const existingProduct = updatedCart.find((item) => item.productid === product.productid);
+      const existingProduct = prevCart.find(
+        (item) => item.productid === product.productid
+      );
+  
       if (existingProduct) {
-        existingProduct.quantity += 1;  // Add 1 quantity per click
+        return prevCart.map((item) =>
+          item.productid === product.productid
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
       } else {
-        updatedCart.push({ ...product, quantity: 1, branchid: selectedBranch }); // Always add 1 quantity initially
+        return [...prevCart, { ...product, quantity: 1, branchid: selectedBranch }];
       }
-      return updatedCart;
     });
-  
-    updateTotalAmount();
   };
-  
+
+  useEffect(() => {
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    setTotalAmount(total);
+  }, [cart]);
 
   const handleRemoveFromCart = (productid) => {
     setCart((prevCart) => {
@@ -81,9 +88,11 @@ const SalesPage = () => {
   const handleQuantityChange = (productid, newQuantity) => {
     setCart((prevCart) => {
       const updatedCart = prevCart.map((item) =>
-        item.productid === productid ? { ...item, quantity: newQuantity > 0 ? newQuantity : 1 } : item
+        item.productid === productid
+          ? { ...item, quantity: newQuantity > 0 ? newQuantity : 1 }
+          : item
       );
-      return updatedCart.filter(item => item.quantity > 0); // Remove item if quantity is 0
+      return updatedCart.filter(item => item.quantity > 0);
     });
     updateTotalAmount();
   };
@@ -91,7 +100,7 @@ const SalesPage = () => {
   const handleIncreaseQuantity = (productid) => {
     setCart((prevCart) => {
       const updatedCart = prevCart.map((item) =>
-        item.productid === productid ? { ...item, quantity: item.quantity ++ } : item
+        item.productid === productid ? { ...item, quantity: item.quantity + 1 } : item
       );
       return updatedCart;
     });
@@ -102,10 +111,10 @@ const SalesPage = () => {
     setCart((prevCart) => {
       const updatedCart = prevCart.map((item) =>
         item.productid === productid && item.quantity > 1
-          ? { ...item, quantity: item.quantity -- }
+          ? { ...item, quantity: item.quantity - 1 }
           : item
       );
-      return updatedCart.filter(item => item.quantity > 0); // Remove item if quantity is 0
+      return updatedCart.filter(item => item.quantity > 0);
     });
     updateTotalAmount();
   };
@@ -120,25 +129,25 @@ const SalesPage = () => {
       alert("Select branch before checkout");
       return;
     }
-  
+
     if (cart.length === 0) {
-      alert("Your cart is empty select some products to checkout");
+      alert("Your cart is empty, select some products to checkout");
       return;
     }
-  
+
     const saleItems = cart.map((item) => ({
       productid: item.productid,
       quantity: item.quantity,
       price: item.price,
       totalprice: item.price * item.quantity,
     }));
-  
+
     const saleData = {
       employeeid: "8a714024-471a-420f-8abb-46509d0cd74e",
       branchid: selectedBranch,
       saleitems: saleItems,
     };
-  
+
     try {
       await axios.post("http://localhost:5050/sales", saleData);
       alert("Sale completed successfully!");
@@ -189,8 +198,10 @@ const SalesPage = () => {
                 return (
                   <button
                     key={product.productid}
-                    onClick={() => handleAddToCart(product, 1)}
-                    className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
+                    onClick={() => handleAddToCart(product)}
+                    className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${
+                      stock === 0 ? "opacity-50" : ""
+                    }`}
                   >
                     <figure className="flex justify-center items-center h-2/3 w-full">
                       <img
@@ -200,8 +211,12 @@ const SalesPage = () => {
                       />
                     </figure>
                     <div className="text-center my-2">
-                      <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
-                      <p className="text-sm font-semibold text-black">฿{product.price}</p>
+                      <h2 className="text-black font-semibold text-sm">
+                        {product.productname}
+                      </h2>
+                      <p className="text-sm font-semibold text-black">
+                        ฿{product.price}
+                      </p>
                     </div>
                   </button>
                 );
@@ -213,7 +228,7 @@ const SalesPage = () => {
         </div>
 
         <div className="w-2/5">
-          <div div className="flex justify-end mb-6">
+          <div className="flex justify-end mb-6">
             <select
               id="branch-select"
               value={selectedBranch}
@@ -230,10 +245,12 @@ const SalesPage = () => {
           </div>
 
           <h3 className="text-xl text-black font-bold mb-4">Your Cart</h3>
-          <div className="border p-6 rounded h-96 overflow-y-auto">
+          <div div className="border p-6 rounded h-96 overflow-y-auto">
             {cart.map((item) => (
               <div key={item.productid} className="text-black mb-6">
-                <div className="mb-2 font-semibold text-teal-600">{item.productname}</div>
+                <div className="mb-2 font-semibold text-teal-600">
+                  {item.productname}
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-black justify-end mr-2">
                     ฿{item.price}
@@ -248,7 +265,7 @@ const SalesPage = () => {
                     <input
                       value={item.quantity}
                       onChange={(e) =>
-                        handleQuantityChange(item.productid, parseInt(e.target.value))
+                        handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
                       }
                       className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
                       min="1"
@@ -263,10 +280,19 @@ const SalesPage = () => {
                   <span className="text-teal-600 justify-end ml-2">
                     ฿{item.price * item.quantity}
                   </span>
+                  {/* เพิ่มไอคอนลบที่นี่ */}
+                  <button
+                    onClick={() => handleRemoveFromCart(item.productid)}
+                    className="text-red-500 ml-2"
+                  >
+                    <FaTrash size={20} />
+                  </button>
                 </div>
               </div>
             ))}
-            <div className="mt-4 text-black text-base font-bold">Total: ฿{totalAmount}</div>
+            <div className="mt-4 text-black text-base font-bold">
+              Total: ฿{totalAmount}
+            </div>
             <button
               onClick={handleCheckout}
               className="btn border-none mt-4 w-full bg-teal-500 text-white p-2 rounded hover:bg-teal-600 transition duration-300 mt-4"

@@ -6,7 +6,6 @@ import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
 import { HiEye } from "react-icons/hi";
 
-
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return format(date, "d/MM/yyyy, HH:mm");
@@ -21,6 +20,7 @@ const InventoryPage = () => {
   const [selectedInventory, setSelectedInventory] = useState(null);
   const [sortKey, setSortKey] = useState("productid");
   const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchInventory = async () => {
     try {
@@ -53,11 +53,6 @@ const InventoryPage = () => {
     }
   };
 
-  // รีเฟรชข้อมูลสินค้าเมื่อมีการเพิ่มสินค้าใหม่
-  const handleProductAdded = () => {
-    fetchProducts();
-  };
-
   useEffect(() => {
     fetchInventory();
   }, []);
@@ -79,6 +74,24 @@ const InventoryPage = () => {
 
     setInventory(sortedData);
   };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredInventory = inventory.filter((item) =>
+    products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group by branch
+  const groupedInventory = filteredInventory.reduce((groups, item) => {
+    const branchName = branches[item.branchid]?.bname || "Unknown";
+    if (!groups[branchName]) {
+      groups[branchName] = [];
+    }
+    groups[branchName].push(item);
+    return groups;
+  }, {});
 
   const sortOptions = [
     { key: "productid", label: "Product Name" },
@@ -107,50 +120,71 @@ const InventoryPage = () => {
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-black mb-4">Inventory</h1>
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
       <p className="text-black mb-4">Manage your Inventory here.</p>
 
       <div className="flex space-x-4 mb-4">
-        <RequestInventory onProductAdded={handleProductAdded} />
-        <ExportButtons filteredTables={inventory} columns={columns} filename="inventory.pdf" />
+        <RequestInventory onProductAdded={fetchInventory} />
+        <ExportButtons filteredTables={filteredInventory} columns={columns} filename="inventory.pdf" />
       </div>
 
-      <SortByDropdown
-        onSortChange={handleSortChange}
-        currentSortKey={sortKey}
-        currentSortDirection={sortDirection}
-        sortOptions={sortOptions}
-      />
+      <div className="mb-4 space-x-6 flex">
+        
+        <div className="flex items-center space-x-4 m-2 w-full">
+          <label htmlFor="searchInput" className=" text-black font-semibold w-1/2">
+            Search by Product Name
+          </label>
+          <input
+            id="searchInput"
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by product name"
+            className="border bg-white border-gray-700 p-3 m-2 text-black rounded-md w-full mr-2 items-center"
+          />
+        </div>
+
+        <SortByDropdown
+          onSortChange={handleSortChange}
+          currentSortKey={sortKey}
+          currentSortDirection={sortDirection}
+          sortOptions={sortOptions}
+        />
+
+      </div>
 
       <div className="overflow-x-auto">
-        <table className="table w-full table-striped">
-          <thead>
-            <tr>
-              <th className="text-black">Product Name</th>
-              <th className="text-black">Branch Name</th>
-              <th className="text-black">Quantity</th>
-              <th className="text-black">Updated At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.map((item) => (
-              <tr key={item.inventoryid}>
-                <td className="text-black">{products[item.productid]}</td>
-                <td className="text-black">{branches[item.branchid]?.bname}</td>
-                <td className="text-black">{item.quantity}</td>
-                <td className="text-black">{formatDate(item.updatedat)}</td>
-                <td className="text-black">
-                  <button
-                    onClick={() => handleViewDetails(item)}
-                    className="hover:border-b-2 border-gray-400 transition duration-30"
-                  >
-                    <HiEye className="text-blue-600 h-6 w-6" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {Object.keys(groupedInventory).map((branchName) => (
+          <div key={branchName} className="mb-6">
+            <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
+            <table className="table w-full table-striped">
+              <thead>
+                <tr>
+                  <th className="text-black">Product Name</th>
+                  <th className="text-black">Quantity</th>
+                  <th className="text-black">Updated At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedInventory[branchName].map((item) => (
+                  <tr key={item.inventoryid}>
+                    <td className="text-black">{products[item.productid]}</td>
+                    <td className="text-black">{item.quantity}</td>
+                    <td className="text-black">{formatDate(item.updatedat)}</td>
+                    <td className="text-black">
+                      <button
+                        onClick={() => handleViewDetails(item)}
+                        className="hover:border-b-2 border-gray-400 transition duration-30"
+                      >
+                        <HiEye className="text-blue-600 h-6 w-6" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
       </div>
 
       {/* Popup สำหรับแสดงรายละเอียด */}

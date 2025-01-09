@@ -108,15 +108,11 @@ const ProductPage = () => {
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-black mb-4">Product Management</h1>
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Product Management</h1>
       <p className="text-black mb-4">Manage your Product here.</p>
 
       {/* Product List */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl text-black font-bold">Product List</h1>
-        </div>
-
         <div className="flex items-center mb-4">
           <input
             type="text"
@@ -152,7 +148,7 @@ const ProductPage = () => {
 
       {/* Product Table */}
       <div className="overflow-x-auto">
-        <h2 className="text-2xl font-bold text-black mb-4">Product Table</h2>
+        <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
           <ProductForm onProductAdded={handleProductAdded} />
           <ExportButtons filteredTables={products} columns={columns} filename="products.pdf" />

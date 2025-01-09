@@ -74,9 +74,15 @@ const MainLayout = ({ children }) => {
         {/* Sidebar */}
         <aside className="w-64 bg-teal-600 shadow-md fixed top-0 left-0 h-full">
           <div className="py-6 text-center px-6">
-            <h1 className="text-2xl font-bold text-white">
-              <Link to="/">POS SYSTEM</Link>
-            </h1>
+          <h1 className="text-4xl font-bold text-yellow-200">
+            <Link to="/" className="flex items-center">
+              <img 
+                src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg" 
+                alt="Lotus's Icon" 
+                className="h-30 w-30 object-contain mx-auto mt-6" 
+              />
+            </Link>
+          </h1>
           </div>
           {/* เพิ่มการเลื่อนเฉพาะในเมนู */}
           <nav className="p-5 list-none overflow-y-auto h-full">
@@ -92,6 +98,7 @@ const MainLayout = ({ children }) => {
             <SidebarItem label="Inventory" link="/inventory" icon={<HiDocumentText />} />
             <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
               {[ 
+                { label: "New Item", link: "/reports" },
                 { label: "Detail Report", link: "/detailReport" },
                 { label: "Customer Rank", link: "/customerRank" },
                 { label: "Cash Flow", link: "/cashFlow" },
@@ -99,6 +106,7 @@ const MainLayout = ({ children }) => {
             </SidebarDropdown>
             <SidebarDropdown label="User Management" icon={<HiUser />}>
               {[ 
+                { label: "User", link: "/userManagement" },
                 { label: "Access Rights", link: "/accessRights" },
                 { label: "Employee Transfer", link: "/employeeTransfer" },
               ]}
