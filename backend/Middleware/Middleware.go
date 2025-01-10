@@ -46,7 +46,7 @@ func IsAuthenticated() fiber.Handler {
 			// Manager สามารถเข้าถึงทุกอย่าง ยกเว้น สำหรับ branches
 
 			return c.Next()
-		case "cashier":
+		case "Cashier":
 			// Cashier สามารถเข้าถึงเฉพาะ GET method สำหรับ /branches, /products, และ /inventory
 
 			return c.Next()

@@ -42,12 +42,19 @@ const ProductForm = ({ onProductAdded }) => {
         formData.append("image", image); // เพิ่มไฟล์รูปภาพ
       }
 
+      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+      };
+
       // ส่งข้อมูลไปยัง backend
       const response = await axios.post("http://localhost:5050/products", formData, {
         headers: {
           "Content-Type": "multipart/form-data", // บอกว่าเป็น multipart/form-data
         },
-      });
+      }, config);
 
       if (response.data) {
         // หากเพิ่มสินค้าสำเร็จ

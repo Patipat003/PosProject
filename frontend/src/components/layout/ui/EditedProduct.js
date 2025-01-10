@@ -11,6 +11,12 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
 
   // Fetch product data from API to populate the inputs
   useEffect(() => {
+    const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+    const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+      },
+    };
     const fetchProduct = async () => {
       if (!productId) {
         console.error("Product ID is not available.");
@@ -18,8 +24,9 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
       }
     
       try {
+        
         // ตรวจสอบว่าใช้เส้นทางที่ถูกต้อง
-        const response = await axios.get(`http://localhost:5050/Products/${productId}`);
+        const response = await axios.get(`http://localhost:5050/Products/${productId}`, config);
         const product = response.data.Data;
         setProductName(product.productname);
         setDescription(product.description);
@@ -54,12 +61,18 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     }
 
     try {
+      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
       const response = await axios.put(`http://localhost:5050/products/${productId}`, {
         productname: productName,
         description: description,
         price: numericPrice,
         imageurl: imageUrl, // Send the image URL
-      });
+      }, config);
 
       if (response.status === 200) {
         onProductUpdated(); // Refresh data after successful update

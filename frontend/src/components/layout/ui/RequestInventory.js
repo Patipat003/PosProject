@@ -18,7 +18,14 @@ const RequestInventory = () => {
     // Fetch data from API
     const fetchRequests = async () => {
       try {
-        const response = await axios.get("http://localhost:5050/Requests");
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+
+        const response = await axios.get("http://localhost:5050/Requests",config);
         setRequests(response.data.Data || []);
       } catch (err) {
         console.error("Error fetching requests:", err);
@@ -27,7 +34,13 @@ const RequestInventory = () => {
   
     const fetchBranches = async () => {
       try {
-        const response = await axios.get("http://localhost:5050/branches");
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+        const response = await axios.get("http://localhost:5050/branches", config);
         setBranches(response.data.Data || []);
       } catch (err) {
         console.error("Error fetching branches:", err);
@@ -36,7 +49,13 @@ const RequestInventory = () => {
   
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:5050/products");
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+        const response = await axios.get("http://localhost:5050/products", config);
         setProducts(response.data.Data || []);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -45,7 +64,13 @@ const RequestInventory = () => {
   
     const fetchInventory = async () => {
       try {
-        const response = await axios.get("http://localhost:5050/inventory");
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+        const response = await axios.get("http://localhost:5050/inventory", config);
         setInventory(response.data.Data || []); // Set inventory data
       } catch (err) {
         console.error("Error fetching inventory:", err);
@@ -62,7 +87,13 @@ const RequestInventory = () => {
     // Add new request
     const handleAddRequest = async () => {
       try {
-        await axios.post("http://localhost:5050/Requests", newRequest);
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+        await axios.post("http://localhost:5050/Requests", newRequest, config);
         fetchRequests();
         setNewRequest({
           frombranchid: "",
@@ -79,9 +110,15 @@ const RequestInventory = () => {
     // Update request status
     const handleUpdateStatus = async (requestId) => {
       try {
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
         await axios.put(`http://localhost:5050/Requests/${requestId}`, {
           status: "complete",
-        });
+        }, config);
         fetchRequests();
       } catch (err) {
         console.error("Error updating status:", err);
