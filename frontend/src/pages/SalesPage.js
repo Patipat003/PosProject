@@ -209,10 +209,10 @@ const SalesPage = () => {
 
   return (
     <div className="p-4 bg-white"> 
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Product</h1>
+      <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
       <div className="flex">
         <div className="w-4/5 mr-6">
-          {/* <p className="text-black mb-4">Product Lists</p> */}
+          <p className="text-black mb-6">Product Lists</p>
           <div className="grid grid-cols-4 gap-4">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
@@ -267,7 +267,7 @@ const SalesPage = () => {
             </select>
           </div>
 
-          <h3 className="text-xl text-black font-bold mb-4">Your Cart</h3>
+          <h3 className="text-xl text-black font-semibold mb-4">Your Cart</h3>
           <div className="border p-6 rounded h-96 overflow-y-auto mb-6">
             {cart.map((item) => (
               <div key={item.productid} className="text-black mb-6">
