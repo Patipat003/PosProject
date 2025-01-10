@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";  // นำเข้า jwtDecode
+import { jwtDecode } from "jwt-decode";  // ใช้ชื่อของฟังก์ชันที่ส่งออกจาก jwt-decode
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,35 +11,28 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const response = await axios.post("http://localhost:5050/login", {
         email,
         password,
       });
       const token = response.data.token;
-  
-      // เก็บ Token และข้อมูลผู้ใช้ใน LocalStorage
+
+      // เก็บเฉพาะ Token ใน LocalStorage
       localStorage.setItem("authToken", token);
-  
-      // แยกข้อมูลจาก token (เช่น ชื่อ, role, email, employeeId)
-      const decodedToken = jwtDecode(token); // ใช้ jwtDecode
-      localStorage.setItem("userData", JSON.stringify({
-        email: decodedToken.email,
-        name: decodedToken.name,
-        role: decodedToken.role,
-        branchid: decodedToken.branchid,
-        employeeId: decodedToken.employeeId,
-      }));
+
+      // แยกข้อมูลจาก token เพื่อใช้ในการตรวจสอบสิทธิ์ในภายหลัง
+      const decodedToken = jwtDecode(token);
       console.log(decodedToken);
-  
+
       // ใช้ navigate เพื่อ redirect ไปหน้า Dashboard
       navigate("/");  // เปลี่ยนจาก window.location.href
     } catch (err) {
       setError("Login failed: " + (err.response?.data?.error || err.message));
     }
   };
-  
+
   return (
     <div className="login-page">
       <form onSubmit={handleSubmit} className="login-form">

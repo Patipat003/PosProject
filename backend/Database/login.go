@@ -44,10 +44,12 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 
 		// สร้าง JWT token
 		claims := jwt.MapClaims{
-			"email":    body.Email,
-			"role":     employee.Role,
-			"branchid": employee.BranchID,                     // เพิ่มข้อมูล branchid จาก employee
-			"exp":      time.Now().Add(time.Hour * 24).Unix(), // กำหนดวันหมดอายุเป็น 1 วัน
+			"employeeid": employee.EmployeeID,
+			"email":      employee.Email,
+			"name":       employee.Name,
+			"role":       employee.Role,
+			"branchid":   employee.BranchID,                     // เพิ่มข้อมูล branchid จาก employee
+			"exp":        time.Now().Add(time.Hour * 24).Unix(), // กำหนดวันหมดอายุเป็น 1 วัน
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

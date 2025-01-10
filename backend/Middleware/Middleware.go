@@ -30,6 +30,40 @@ func IsAuthenticated() fiber.Handler {
 
 		// ส่งข้อมูลผู้ใช้กลับ (สามารถใช้ user ID จาก claims หรือทำอะไรเพิ่มเติมได้ที่นี่)
 		c.Locals("user", claims)
-		return c.Next()
+
+		// ตรวจสอบ role จาก claims และกำหนดการเข้าถึง
+		role, ok := claims["role"].(string)
+		if !ok || role == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token does not have a valid role"})
+		}
+
+		// ตรวจสอบ role และกำหนดการเข้าถึง route
+		switch role {
+		case "admin":
+			// Admin สามารถเข้าถึงทุกอย่าง
+			return c.Next()
+		case "Manager":
+			// Manager สามารถเข้าถึงทุกอย่าง ยกเว้น สำหรับ branches
+
+			return c.Next()
+		case "cashier":
+			// Cashier สามารถเข้าถึงเฉพาะ GET method สำหรับ /branches, /products, และ /inventory
+
+			return c.Next()
+
+		case "Audit":
+			// Audit สามารถเข้าถึงข้อมูลทุกอย่าง แต่เฉพาะ GET method เท่านั้น
+			if c.Method() != "GET" {
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"error": "Audit role can only perform GET requests",
+				})
+			}
+			return c.Next()
+		default:
+			// ถ้า role ไม่มีสิทธิ์เข้าถึง
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have permission",
+			})
+		}
 	}
 }

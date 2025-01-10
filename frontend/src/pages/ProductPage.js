@@ -25,9 +25,16 @@ const ProductPage = () => {
   // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
   const fetchProducts = async () => {
     try {
+      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+        },
+      };
+
       const [productResponse, inventoryResponse] = await Promise.all([
-        axios.get("http://localhost:5050/products"),
-        axios.get("http://localhost:5050/inventory"),
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/inventory", config),
       ]);
 
       const inventoryMap = {};

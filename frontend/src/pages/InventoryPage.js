@@ -24,10 +24,17 @@ const InventoryPage = () => {
 
   const fetchInventory = async () => {
     try {
+      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+        },
+      };
+
       const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
-        axios.get("http://localhost:5050/inventory"),
-        axios.get("http://localhost:5050/products"),
-        axios.get("http://localhost:5050/branches"),
+        axios.get("http://localhost:5050/inventory", config), // ส่ง token ไปด้วย
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/branches", config),
       ]);
 
       const productMap = {};
@@ -129,7 +136,6 @@ const InventoryPage = () => {
       </div>
 
       <div className="mb-4 space-x-6 flex">
-        
         <div className="flex items-center space-x-4 m-2 w-full">
           <label htmlFor="searchInput" className=" text-black font-semibold w-1/2">
             Search by Product Name
@@ -150,7 +156,6 @@ const InventoryPage = () => {
           currentSortDirection={sortDirection}
           sortOptions={sortOptions}
         />
-
       </div>
 
       <div className="overflow-x-auto">
