@@ -146,8 +146,8 @@ const ProductPage = () => {
                 />
               </div>
               <div className="text-black text-lg font-bold">{product.code}</div>
-              <div className="text-black text-sm mb-2">{product.productname}</div>
-              <div className="text-black text-sm">Price : {product.price}</div>
+              <div className="text-black text-sm mb-2 font-semibold">{product.productname}</div>
+              <div className="text-black text-sm">Price : ฿{product.price.toFixed(2)}</div>
             </div>
           ))}
         </div>
@@ -182,8 +182,12 @@ const ProductPage = () => {
             {products.map((product) => (
               <tr key={product.productid}> {/* ใช้ product.productid แทน */}
                 <td className="text-black">{product.productname}</td>
-                <td className="text-black">{product.description}</td>
-                <td className="text-black">{product.price}</td>
+                <td className="text-black">
+                  {product.description.length > 50
+                  ? product.description.substring(0, 50) + "..."
+                  : product.description}
+                </td>
+                <td className="text-black">{product.price.toFixed(2)}</td>
                 <td className="text-black">{formatDate(product.createdat)}</td>
                 <td>
                   <button
