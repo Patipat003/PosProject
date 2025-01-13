@@ -1,174 +1,233 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ExportButtons from "../components/layout/ui/ExportButtons";
+import SortByDropdown from "../components/layout/ui/SortByDropdown";
+import { format } from "date-fns";
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return format(date, "d/MM/yyyy, HH:mm");
+};
 
 const UserManagementPage = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [Name, setName] = useState("");
-  const [Email, setEmail] = useState("");
-  const [Phone, setPhone] = useState("");
-  const [AccessRights, setAccessRights] = useState("");
-  const [employees, setEmployees] = useState([]); // State for storing employee list
+  const [employees, setEmployees] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    email: "",
+    password: "",
+    name: "",
+    role: "",
+    branched: "",
+  });
+  const [sortKey, setSortKey] = useState("employeeid");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleAddEmployee = () => {
-    setIsModalOpen(true); // Open modal
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
+      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+
+      setEmployees(employeeResponse.data.Data);
+      setBranches(branchResponse.data.Data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load data");
+      setLoading(false);
+    }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // Close modal
-    // Clear input fields
-    setName("");
-    setEmail("");
-    setPhone("");
-    setAccessRights("");
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const getBranchName = (branchId) => {
+    const branch = branches.find((b) => b.branchid === branchId);
+    return branch ? branch.bname : "Unknown Branch";
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Add new employee to the employee list
-    const newEmployee = {
-      name: Name,
-      email: Email,
-      phone: Phone,
-      rights: AccessRights,
-    };
-
-    setEmployees([...employees, newEmployee]); // Update the employee list
-    handleCloseModal(); // Close modal after submission
+  const handleSortChange = (key, direction) => {
+    setSortKey(key);
+    setSortDirection(direction);
+    const sortedData = [...employees].sort((a, b) => {
+      const aValue = a[key];
+      const bValue = b[key];
+      return direction === "asc" ? (aValue < bValue ? -1 : 1) : aValue > bValue ? -1 : 1;
+    });
+    setEmployees(sortedData);
   };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleAddEmployee = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await axios.post("http://localhost:5050/employees", newEmployee, config);
+      setShowAddModal(false);
+      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
+      fetchData();
+    } catch (err) {
+      console.error("Failed to add employee:", err);
+    }
+  };
+
+  const filteredEmployees = employees.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">User Management</h1>
-
-      {/* Add Employee Button */}
-      <div className="flex justify-end mb-4">
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">User Management</h1>
+      <div className="flex justify-between mb-4">
         <button
-          onClick={handleAddEmployee}
-          className="bg-base-200 text-white px-6 py-3 rounded hover:bg-gray-700 transition duration-300 mt-4"
+          onClick={() => setShowAddModal(true)}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
         >
           + Add Employee
         </button>
+        <ExportButtons
+          filteredTables={filteredEmployees}
+          columns={["employeeid", "email", "name", "role", "branched", "createdat"]}
+          filename="employees.pdf"
+        />
       </div>
 
-      {/* Info Bar */}
-      <div className="bg-white p-4 rounded-lg shadow-lg mb-6 flex justify-between items-center">
-        <span className="text-lg font-semibold text-gray-700">Name</span>
-        <span className="text-lg font-semibold text-gray-700">Email</span>
-        <span className="text-lg font-semibold text-gray-700">Phone</span>
-        <span className="text-lg font-semibold text-gray-700">
-          Access Rights
-        </span>
+      <div className="mb-4 space-x-6 flex">
+        <div className="flex items-center space-x-4 w-full">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by name"
+            className="border p-2 rounded w-full"
+          />
+          <SortByDropdown
+            onSortChange={handleSortChange}
+            currentSortKey={sortKey}
+            currentSortDirection={sortDirection}
+            sortOptions={[
+              { key: "employeeid", label: "Employee ID" },
+              { key: "name", label: "Name" },
+            ]}
+          />
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <table className="table-auto w-full border-collapse border border-gray-200 text-left">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2">Name</th>
-              <th className="border border-gray-300 px-4 py-2">Email</th>
-              <th className="border border-gray-300 px-4 py-2">Phone</th>
-              <th className="border border-gray-300 px-4 py-2">Access Rights</th>
+      <table className="table-auto w-full border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-4 py-2">Email</th>
+            <th className="border border-gray-300 px-4 py-2">Name</th>
+            <th className="border border-gray-300 px-4 py-2">Role</th>
+            <th className="border border-gray-300 px-4 py-2">Branch</th>
+            <th className="border border-gray-300 px-4 py-2">Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredEmployees.map((employee, index) => (
+            <tr
+              key={employee.employeeid}
+              className={
+                index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
+              }
+            >
+              <td className="border border-gray-300 px-4 py-2 text-center">{employee.email}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{employee.name}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{employee.role}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{getBranchName(employee.branchid)}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{formatDate(employee.createdat)}</td>
             </tr>
-          </thead>
-          <tbody>
-            {/* Render employee data dynamically */}
-            {employees.map((user, index) => (
-              <tr
-                key={index}
-                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+          ))}
+        </tbody>
+      </table>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Add Employee</h2>
+            <form onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="text"
+                value={newEmployee.name}
+                onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                placeholder="Name"
+                className="border p-2 mb-2 w-full"
+              />
+              <input
+                type="email"
+                value={newEmployee.email}
+                onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                placeholder="Email"
+                className="border p-2 mb-2 w-full"
+              />
+              <input
+                type="password"
+                value={newEmployee.password}
+                onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                placeholder="Password"
+                className="border p-2 mb-2 w-full"
+              />
+              <select
+                value={newEmployee.role}
+                onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                className="border p-2 mb-2 w-full"
               >
-                <td className="border border-gray-300 px-4 py-2">{user.name}</td>
-                <td className="border border-gray-300 px-4 py-2">{user.email}</td>
-                <td className="border border-gray-300 px-4 py-2">{user.phone}</td>
-                <td className="border border-gray-300 px-4 py-2">{user.rights}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal for Adding Employee */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative z-60">
-            <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
-              Add Employee
-            </h2>
-            <form onSubmit={handleSubmit}>
-              {/* Employee Name Input */}
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter name"
-                  value={Name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              {/* Email Input */}
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter email"
-                  value={Email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              {/* Phone Input */}
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
-                  Phone
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter phone"
-                  value={Phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
-                  Access Rights
-                </label>
-                <select
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  placeholder="Enter Access Rights"
-                  value={AccessRights}
-                  onChange={(e) => setAccessRights(e.target.value)}
-                >
-                  <option value="">Select Access Rights</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Cashier">Cashier</option>
-                  <option value="Audit">Audit</option>
-                </select>
-              </div>
-
-              {/* Save Button */}
+                <option value="" disabled>
+                  Select Role
+                </option>
+                <option value="Manager">Manager</option>
+                <option value="Cashier">Cashier</option>
+                <option value="Audit">Audit</option>
+              </select>
+              <select
+                value={newEmployee.branched}
+                onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                className="border p-2 mb-2 w-full"
+              >
+                <option value="" disabled>
+                  Select Branch
+                </option>
+                {branches.map((branch) => (
+                  <option key={branch.branchid} value={branch.branchid}>
+                    {branch.bname}
+                  </option>
+                ))}
+              </select>
               <button
-                type="submit"
-                className="w-full bg-blue-500 text-white font-medium py-3 rounded hover:bg-blue-700 transition duration-300"
+                onClick={handleAddEmployee}
+                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full"
               >
-                Add Employee
+                Submit
+              </button>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-full mt-2"
+              >
+                Cancel
               </button>
             </form>
-            {/* Close Button */}
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 text-2xl"
-            >
-              &times;
-            </button>
           </div>
         </div>
       )}

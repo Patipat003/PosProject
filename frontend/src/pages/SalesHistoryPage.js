@@ -1,48 +1,67 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const SalesHistoryPage = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("authToken"); // ดึง Token จาก Local Storage
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // ใส่ Token ใน Header
+          },
+        };
+
+        // ดึงข้อมูลจาก API
+        const response = await axios.get("http://localhost:5050/products", config);
+        console.log("API Response:", response.data); // Log ข้อมูลเพื่อตรวจสอบ
+        setProducts(response.data.Data || []); // ตรวจสอบว่ามีข้อมูล Data หรือไม่
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Failed to fetch products");
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales History</h1>
-
-      {/* Search Bar */}
-      <div className="flex items-center mb-4">
-        <select
-          className="border border-gray-400 p-2 rounded mr-2"
-          name="filter"
-          id="filter"
-        >
-          <option value="products-in-orders">Products in Orders</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Search"
-          className="border border-gray-400 p-2 rounded mr-2"
-        />
-        <button className="bg-gray-300 px-4 py-2 rounded">Search</button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex space-x-4 mb-4">
-        <button className="bg-gray-200 px-4 py-2 rounded">All Inventories</button>
-        <button className="bg-gray-200 px-4 py-2 rounded">All Dates</button>
-      </div>
-
-      {/* Table */}
+      {/* ตารางแสดงข้อมูล */}
       <table className="border border-collapse w-full text-left">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border p-2">Product Code</th>
-            <th className="border p-2">Product</th>
+            <th className="border p-2">Product Name</th>
+            <th className="border p-2">Description</th>
             <th className="border p-2">Price</th>
-            <th className="border p-2">Product Quantity</th>
-            <th className="border p-2">Order Number</th>
-            <th className="border p-2">Order Sales</th>
-            <th className="border p-2">Name</th>
+            <th className="border p-2">Units per Box</th>
+            <th className="border p-2">Created At</th>
           </tr>
         </thead>
         <tbody>
-          {/* Add rows dynamically here */}
+          {products.map((product) => (
+            <tr key={product.product_id}>
+              <td className="border p-2">{product.productname }</td>
+              <td className="border p-2">{product.description }</td>
+              <td className="border p-2">{product.price }</td>
+              <td className="border p-2">{product.unitsperbox }</td>
+              <td className="border p-2">
+                {product.createdat
+                  ? new Date(product.createdat).toLocaleDateString()
+                  : "N/A"}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
@@ -50,4 +69,3 @@ const SalesHistoryPage = () => {
 };
 
 export default SalesHistoryPage;
-
