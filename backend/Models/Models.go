@@ -53,6 +53,7 @@ type Product struct {
 	UnitsPerBox int       `gorm:"type:int;not null;default:1" json:"unitsperbox"` // จำนวนชิ้นต่อกล่อง
 	CreatedAt   time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
 	ImageURL    string    `gorm:"type:varchar(255)" json:"imageurl"` // ฟิลด์สำหรับเก็บ URL ของภาพ
+	CategoryID  string    `gorm:"type:uuid;foreignKey:CategoryID" json:"categoryid"`
 }
 
 func (Product) TableName() string {
@@ -158,4 +159,15 @@ type Shipments struct {
 
 func (Shipments) TableName() string {
 	return "Shipments"
+}
+
+// Category struct
+type Category struct {
+	CategoryID   string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"categoryid"`
+	CategoryName string    `gorm:"type:varchar(100);not null" json:"categoryname"`
+	CreatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
+}
+
+func (Category) TableName() string {
+	return "Category"
 }

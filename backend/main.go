@@ -52,6 +52,7 @@ func main() {
 		&Models.ReceiptItems{},
 		&Models.Requests{},
 		&Models.Shipments{},
+		&Models.Category{},
 	)
 	if err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)
@@ -85,6 +86,7 @@ func main() {
 	Database.ReceiptItemRoutes(app, db)
 	Database.RequestRoutes(app, db)
 	Database.ShipmentRoutes(app, db)
+	Database.CategoryRoutes(app, db)
 
 	// เริ่มต้นเซิร์ฟเวอร์ที่พอร์ต 5050
 	log.Fatal(app.Listen(":5050"))

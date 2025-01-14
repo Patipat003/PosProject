@@ -222,11 +222,16 @@ const SalesPage = () => {
           <p className="text-black mb-6">Product Lists</p>
           <div className="grid grid-cols-4 gap-4">
             {selectedBranch ? (
-              filterInventoryByProduct().map((product) => (
+              filterInventoryByProduct().map((product) => {
+                const stock =
+                  inventory.find(
+                    (item) => item.productid === product.productid && item.branchid === selectedBranch
+                  )?.quantity || 0;
+                return (
                 <button
                   key={product.productid}
                   onClick={() => handleAddToCart(product)}
-                  className="card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105"
+                  className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
                 >
                   <figure className="flex justify-center items-center h-2/3 w-full">
                     <img
@@ -242,7 +247,8 @@ const SalesPage = () => {
                     <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
                   </div>
                 </button>
-              ))
+              );
+            })
             ) : (
               <p className="text-center col-span-4">Please select a branch to view products.</p>
             )}

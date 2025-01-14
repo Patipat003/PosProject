@@ -18,10 +18,11 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// ตรวจสอบ URL ของรูปภาพ
-	if req.ImageURL == "" {
+	// ตรวจสอบ CategoryID
+	var category Models.Category
+	if err := db.Where("category_id = ?", req.CategoryID).First(&category).Error; err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ImageURL is required",
+			"error": "Invalid CategoryID: " + err.Error(),
 		})
 	}
 
@@ -101,13 +102,21 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// อัปเดตฟิลด์ที่ต้องการ
+	// ตรวจสอบ CategoryID
+	var category Models.Category
+	if err := db.Where("category_id = ?", req.CategoryID).First(&category).Error; err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid CategoryID: " + err.Error(),
+		})
+	}
+
+	// อัปเดตฟิลด์
 	product.ProductName = req.ProductName
 	product.Description = req.Description
 	product.Price = req.Price
 	product.UnitsPerBox = req.UnitsPerBox
-	product.ImageURL = req.ImageURL // อัปเดต URL ของภาพ
-	product.CreatedAt = time.Now()
+	product.ImageURL = req.ImageURL
+	product.CategoryID = req.CategoryID
 
 	if err := db.Save(&product).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -19,7 +19,7 @@ const SortByDropdown = ({ onSortChange, currentSortKey, currentSortDirection }) 
       <select
         value={`${currentSortKey}:${currentSortDirection}`}
         onChange={handleSortChange}
-        className="select bg-white text-black select-bordered border border-gray-700 w-full max-w-xs"
+        className="select bg-white text-black select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
       >
         {sortOptions.map((option) => (
           <option key={option.key} value={`${option.key}:asc`}>
