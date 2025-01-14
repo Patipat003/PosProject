@@ -125,7 +125,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter product name"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
@@ -137,7 +137,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -149,7 +149,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter image URL"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
@@ -160,7 +160,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                   Category
                 </label>
                 <select
-                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -177,7 +177,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                   Description
                 </label>
                 <textarea
-                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

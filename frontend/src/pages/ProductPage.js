@@ -17,6 +17,7 @@ const ProductPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(""); // New state for category
   const [inventory, setInventory] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +25,6 @@ const ProductPage = () => {
 
   const itemsPerPage = 10; // จำนวนรายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
-  
 
   // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
   const fetchProducts = async () => {
@@ -55,6 +55,11 @@ const ProductPage = () => {
       setError("Failed to load products or inventory data");
       setLoading(false);
     }
+  };
+
+  // ฟังก์ชันสำหรับการเปลี่ยนแปลงการเลือก category
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
   };
 
   // ฟังก์ชันลบสินค้า
@@ -90,7 +95,7 @@ const ProductPage = () => {
     return searchQuery
       ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
-  }
+  };
 
   // ฟังก์ชันสำหรับการเปลี่ยนแปลงการเรียงลำดับ
   const handleSortChange = (key, direction) => {
@@ -152,6 +157,10 @@ const ProductPage = () => {
     return <div>{error}</div>;
   }
 
+  const filteredProducts = selectedCategory
+    ? products.filter((product) => product.categoryid === selectedCategory)
+    : products;
+
   const paginatedProducts = getPaginatedProducts();
   const columns = ["productname", "description", "price", "createdat"]; // Define columns for export
 
@@ -159,6 +168,22 @@ const ProductPage = () => {
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Product Management</h1>
       <p className="text-black mb-4">Manage your Product here.</p>
+
+      {/* Category Dropdown */}
+      <div className="mb-4">
+        <select
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value="">All Categories</option>
+          {categories.map((category) => (
+            <option key={category.categoryid} value={category.categoryid}>
+              {category.categoryname}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Product List */}
       <div className="mb-6">
@@ -168,7 +193,7 @@ const ProductPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search for products"
-            className="border bg-white border-gray-300 p-2 rounded w-full mr-2"
+            className="border bg-white border-gray-300 p-2 rounded w-full mr-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
           />
           <button className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
             Search
@@ -176,7 +201,7 @@ const ProductPage = () => {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          {products
+          {filteredProducts
             .filter((product) =>
               searchQuery
                 ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
@@ -195,17 +220,16 @@ const ProductPage = () => {
                     className="w-full h-full object-cover rounded"
                   />
                 </div>
-                <div className="text-black text-lg font-bold">{product.code}</div>
-                <div className="text-black text-sm mb-2 font-semibold">
+                <div className="text-gray-600 text-lg font-bold">{product.code}</div>
+                <div className="text-gray-600 text-sm mb-2 font-semibold">
                   {product.productname}
                 </div>
-                <div className="text-black text-sm">
+                <div className="text-gray-600 text-sm">
                   Price : ฿{product.price.toFixed(2)}
                 </div>
               </div>
             ))}
         </div>
-
       </div>
 
       {/* Product Table */}
@@ -213,17 +237,17 @@ const ProductPage = () => {
         <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
           <ProductForm onProductAdded={handleProductAdded} />
-          <ExportButtons filteredTables={products} columns={columns} filename="products.pdf" />
+          <ExportButtons filteredTables={filteredProducts} columns={columns} filename="products.pdf" />
         </div>
 
         <table className="table w-full table-striped">
           <thead>
             <tr>
-              <th className="text-black">Name</th>
-              <th className="text-black">Category</th>
-              <th className="text-black">Description</th>
-              <th className="text-black">Price</th>
-              <th className="text-black">Create Date</th>
+              <th className="text-gray-600">Name</th>
+              <th className="text-gray-600">Category</th>
+              <th className="text-gray-600">Description</th>
+              <th className="text-gray-600">Price</th>
+              <th className="text-gray-600">Create Date</th>
             </tr>
           </thead>
           <tbody>
@@ -235,15 +259,12 @@ const ProductPage = () => {
               )
               .map((product) => (
                 <tr key={product.productid}>
-                  <td className="text-black">{product.productname}</td>
-                  <td className="text-black">{getCategoryName(product.categoryid)}</td>
-                  <td className="text-black">
-                    {product.description.length > 50
-                      ? product.description.substring(0, 50) + "..."
-                      : product.description}
-                  </td>
-                  <td className="text-black">{product.price.toFixed(2)}</td>
-                  <td className="text-black">{formatDate(product.createdat)}</td>
+                  <td className="text-gray-600">{product.productname}</td>
+                  <td className="text-gray-600">{getCategoryName(product.categoryid)}</td>
+                  <td className="text-gray-600">{product.description}</td>
+                  <td className="text-gray-600">฿{product.price.toFixed(2)}</td>
+                  <td className="text-gray-600">{formatDate(product.createdat)}</td>
+                  <td className="text-gray-600"></td>
                   {/* <td>
                     <button
                       onClick={() => handleDeleteProduct(product.productid)}
@@ -261,7 +282,6 @@ const ProductPage = () => {
                 </tr>
               ))}
           </tbody>
-
         </table>
 
         {/* Pagination Controls */}

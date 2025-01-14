@@ -194,7 +194,7 @@ const InventoryPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search by product name"
-            className="border bg-white border-gray-700 p-3 m-2 text-black rounded-md w-full mr-2 items-center"
+            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-600"
           />
         </div>
 

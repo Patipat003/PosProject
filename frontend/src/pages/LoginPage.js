@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";  // ใช้ชื่อของฟังก์ชันที่ส่งออกจาก jwt-decode
+import { jwtDecode } from "jwt-decode";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -34,30 +34,64 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-page">
-      <form onSubmit={handleSubmit} className="login-form">
-        <h2>Login</h2>
-        {error && <p className="error-message">{error}</p>}
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 py-20 px-6 lg:px-8">  {/* เพิ่ม py-20 เพื่อเพิ่มพื้นที่ */}
+      <div className="w-full max-w-md space-y-8">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-10 rounded-lg shadow-lg"> {/* เพิ่ม p-10 เพื่อเพิ่มพื้นที่ฟอร์ม */}
+          <div className="text-center text-white">
+            <img
+              alt="POS"
+              src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-primary.svg"
+              className="mx-auto h-12 w-auto"
+            />
+            <h2 className="mt-6 text-xl font-semibold text-gray-500">
+              Sign in to your account
+            </h2>
+          </div>
+
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email address
+            </label>
+            <div className="mt-1">
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <div className="mt-1">
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              className="btn w-full py-2 px-4 border-none bg-teal-500 text-white font-semibold rounded-md shadow-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-opacity-50"
+            >
+              Sign in
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
