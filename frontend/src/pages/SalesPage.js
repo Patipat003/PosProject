@@ -209,10 +209,10 @@ const SalesPage = () => {
 
   return (
     <div className="p-4 bg-white"> 
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Product</h1>
-      <div className="flex">
+      <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="w-4/5 mr-6">
-          {/* <p className="text-black mb-4">Product Lists</p> */}
+          <p className="text-black mb-6">Product Lists</p>
           <div className="grid grid-cols-4 gap-4">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
@@ -237,8 +237,8 @@ const SalesPage = () => {
                       <h2 className="text-black font-semibold text-sm">
                         {product.productname}
                       </h2>
-                      <p className="text-sm font-semibold text-black">
-                        ฿{product.price}
+                      <p className="text-sm text-black mt-1">
+                        ฿{product.price.toFixed(2)}
                       </p>
                     </div>
                   </button>
@@ -266,61 +266,61 @@ const SalesPage = () => {
               ))}
             </select>
           </div>
-
-          <h3 className="text-xl text-black font-bold mb-4">Your Cart</h3>
-          <div className="border p-6 rounded h-96 overflow-y-auto mb-6">
-            {cart.map((item) => (
-              <div key={item.productid} className="text-black mb-6">
-                <div className="mb-2 font-semibold text-teal-600">
-                  {item.productname}
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-black justify-end mr-2">
-                    ฿{item.price}
-                  </span>
-                  <div className="flex items-center">
+          
+          <div className="border-2 border-teal-500 p-6 rounded rounded-lg mb-6 sticky top-20 bg-white">
+            <h3 className="text-xl text-black font-semibold mb-4">Your Cart</h3>
+            <div className="border p-6 rounded h-96 overflow-y-auto mb-6">
+              {cart.map((item) => (
+                <div key={item.productid} className="text-black mb-6">
+                  <div className="mb-2 font-semibold text-teal-600">
+                    {item.productname}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-black justify-end mr-2 mt-2">฿{item.price.toFixed(2)}</span>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => handleDecreaseQuantity(item.productid)}
+                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
+                      >
+                        -
+                      </button>
+                      <input
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
+                        }
+                        className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
+                        min="1"
+                      />
+                      <button
+                        onClick={() => handleIncreaseQuantity(item.productid)}
+                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
-                      onClick={() => handleDecreaseQuantity(item.productid)}
-                      className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
+                      onClick={() => handleRemoveFromCart(item.productid)}
+                      className="ml-4 text-red-600 hover:text-red-800"
                     >
-                      -
-                    </button>
-                    <input
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
-                      }
-                      className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
-                      min="1"
-                    />
-                    <button
-                      onClick={() => handleIncreaseQuantity(item.productid)}
-                      className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
-                    >
-                      +
+                      <FaTrash />
                     </button>
                   </div>
-                  <button
-                    onClick={() => handleRemoveFromCart(item.productid)}
-                    className="ml-4 text-red-600 hover:text-red-800"
-                  >
-                    <FaTrash />
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-black">Total Amount :</span>
-            <span className="font-semibold text-black">฿{totalAmount}</span>
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-black">Total Amount :</span>
+              <span className="font-semibold text-black">฿{totalAmount}</span>
+            </div>
+            <button
+              onClick={handleCheckout}
+              className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-teal-700 transition"
+            >
+              Checkout
+            </button>
           </div>
-          <button
-            onClick={handleCheckout}
-            className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-teal-700 transition"
-          >
-            Checkout
-          </button>
         </div>
       </div>
     </div>

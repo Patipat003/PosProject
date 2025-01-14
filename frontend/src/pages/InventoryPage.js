@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Import library สำหรับ decode token
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import RequestInventory from "../components/layout/ui/RequestInventory";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
@@ -21,10 +22,17 @@ const InventoryPage = () => {
   const [sortKey, setSortKey] = useState("productid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewAllBranches, setViewAllBranches] = useState(false); // State สำหรับ Toggle ระหว่างทุกสาขาและเฉพาะสาขาตัวเอง
+  const [userRole, setUserRole] = useState(""); // Role ของ user
+  const [userBranchId, setUserBranchId] = useState(""); // Branch ID ของ user
 
   const fetchInventory = async () => {
     try {
       const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const decodedToken = jwtDecode(token); // Decode token เพื่อดึง role และ branchid
+      setUserRole(decodedToken.role);
+      setUserBranchId(decodedToken.branchid);
+
       const config = {
         headers: {
           Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
@@ -86,9 +94,17 @@ const InventoryPage = () => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredInventory = inventory.filter((item) =>
-    products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleToggleView = () => {
+    setViewAllBranches(!viewAllBranches); // Toggle สถานะการดูข้อมูล
+  };
+
+  // Filter Inventory ตาม branch
+  const filteredInventory = inventory.filter((item) => {
+    if (userRole === "Manager" && viewAllBranches) {
+      return true; // Manager ที่เลือกดูทุกสาขา
+    }
+    return item.branchid === userBranchId; // เฉพาะ branch ของ user
+  });
 
   // Group by branch
   const groupedInventory = filteredInventory.reduce((groups, item) => {
@@ -130,6 +146,8 @@ const InventoryPage = () => {
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
       <p className="text-black mb-4">Manage your Inventory here.</p>
 
+      
+
       <div className="flex space-x-4 mb-4">
         <RequestInventory onProductAdded={fetchInventory} />
         <ExportButtons filteredTables={filteredInventory} columns={columns} filename="inventory.pdf" />
@@ -158,7 +176,23 @@ const InventoryPage = () => {
         />
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto space-y-6">
+
+        {userRole === "Manager" && (
+          <div>
+            <div className="mb-4 text-blue-500">
+              <h2>Manager Privileges</h2>
+            </div>
+
+            <button
+              onClick={handleToggleView}
+              className="btn bg-blue-500 text-white font-medium px-6 py-3 mb-4 rounded-md border-none hover:bg-blue-600 transition duration-300"
+            >
+              {viewAllBranches ? "View My Branch Only" : "View All Branches"}
+            </button>
+        </div>
+        )}
+
         {Object.keys(groupedInventory).map((branchName) => (
           <div key={branchName} className="mb-6">
             <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
@@ -196,7 +230,7 @@ const InventoryPage = () => {
       {selectedInventory && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+            <h2 className="text-3xl font-bold mb-6 text-teal-600 text-center">
               Inventory Details
             </h2>
             <div className="space-y-4">
@@ -218,7 +252,7 @@ const InventoryPage = () => {
             </div>
             <button
               onClick={handleCloseModal}
-              className="w-full bg-base-200 text-white font-medium px-6 py-3 mt-6 rounded-md hover:bg-gray-700 transition duration-300"
+              className="btn w-full bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md border-none hover:bg-teal-600 transition duration-300"
             >
               Close
             </button>
