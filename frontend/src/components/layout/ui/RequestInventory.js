@@ -179,6 +179,7 @@ const RequestInventory = () => {
   // แยก currentPage สำหรับ Sent และ Received
   const [currentSentPage, setCurrentSentPage] = useState(1);
   const [currentReceivedPage, setCurrentReceivedPage] = useState(1);
+  const [currentProductPage, setCurrentProductPage] = useState(1);
 
   // Filter and sort requests for Sent and Received Requests
   const sentRequests = requests
@@ -199,10 +200,12 @@ const RequestInventory = () => {
   // Get paginated data
   const currentSentRequests = getPaginatedRequests(sentRequests, currentSentPage);
   const currentReceivedRequests = getPaginatedRequests(receivedRequests, currentReceivedPage);
+  const currentProductRequests = getPaginatedRequests(filteredInventory, currentProductPage);
 
   // Calculate total pages
   const totalSentPages = Math.ceil(sentRequests.length / itemsPerPage);
   const totalReceivedPages = Math.ceil(receivedRequests.length / itemsPerPage);
+  const totalProductPages = Math.ceil(filteredInventory.length / itemsPerPage);
 
   // Handle Previous Page for Sent Requests
   const handlePreviousPageSent = () => {
@@ -229,6 +232,20 @@ const RequestInventory = () => {
   const handleNextPageReceived = () => {
     if (currentReceivedPage < totalReceivedPages) {
       setCurrentReceivedPage(currentReceivedPage + 1);
+    }
+  };
+
+  // Handle Previous Page for Products
+  const handlePreviousPageProduct = () => {
+    if (currentProductPage > 1) {
+      setCurrentProductPage(currentProductPage - 1);
+    }
+  };
+
+  // Handle Next Page for Products
+  const handleNextPageProduct = () => {
+    if (currentProductPage < totalProductPages) {
+      setCurrentProductPage(currentProductPage + 1);
     }
   };
 
@@ -413,7 +430,7 @@ const RequestInventory = () => {
             </div>
 
             {/* Pagination Controls for Sent Requests */}
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-center mt-4 space-x-4">
               <button
                 onClick={handlePreviousPageSent}
                 disabled={currentSentPage === 1}
@@ -480,7 +497,7 @@ const RequestInventory = () => {
             </div>
 
             {/* Pagination Controls for Received Requests */}
-            <div className="flex justify-between">
+            <div className="flex justify-center mt-4 space-x-4">
               <button
                 onClick={handlePreviousPageReceived}
                 disabled={currentReceivedPage === 1}
@@ -516,7 +533,7 @@ const RequestInventory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInventory.map((item) => {
+                  {currentProductRequests.map((item) => {
                     const product = products.find(
                       (product) => product.productid === item.productid
                     );
@@ -534,7 +551,30 @@ const RequestInventory = () => {
                   })}
                 </tbody>
               </table>           
-            </div>    
+            </div>
+
+            {/* Pagination Controls for Products */}
+            <div className="flex justify-center mt-4 space-x-4">
+              <button
+                onClick={handlePreviousPageProduct}
+                disabled={currentProductPage === 1}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Previous
+              </button>
+              <div className="flex items-center">
+                <span className="mr-2">Page</span>
+                <span>{currentProductPage}</span>
+                <span className="ml-2">of {totalProductPages}</span>
+              </div>
+              <button
+                onClick={handleNextPageProduct}
+                disabled={currentProductPage === totalProductPages}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}

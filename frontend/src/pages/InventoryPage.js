@@ -26,6 +26,9 @@ const InventoryPage = () => {
   const [userRole, setUserRole] = useState(""); // Role ของ user
   const [userBranchId, setUserBranchId] = useState(""); // Branch ID ของ user
 
+  const itemsPerPage = 10; // จำนวนรายการต่อหน้า
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+
   const fetchInventory = async () => {
     try {
       const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
@@ -100,11 +103,19 @@ const InventoryPage = () => {
 
   // Filter Inventory ตาม branch
   const filteredInventory = inventory.filter((item) => {
+    const matchesSearch = searchQuery
+      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+
     if (userRole === "Manager" && viewAllBranches) {
-      return true; // Manager ที่เลือกดูทุกสาขา
+      // Manager ที่เลือกดูทุกสาขา
+      return matchesSearch;
     }
-    return item.branchid === userBranchId; // เฉพาะ branch ของ user
+
+    // เฉพาะ branch ของ user
+    return item.branchid === userBranchId && matchesSearch;
   });
+
 
   // Group by branch
   const groupedInventory = filteredInventory.reduce((groups, item) => {
@@ -130,6 +141,25 @@ const InventoryPage = () => {
   if (error) {
     return <div>{error}</div>;
   }
+
+  const totalProductPages = Math.ceil(filteredInventory.length / itemsPerPage);
+
+  const getPaginatedRequests = (requests) => {
+    const startIndex = (currentProductPage - 1) * itemsPerPage;
+    return requests.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const handlePreviousPageProduct = () => {
+    if (currentProductPage > 1) {
+      setCurrentProductPage(currentProductPage - 1);
+    }
+  };
+
+  const handleNextPageProduct = () => {
+    if (currentProductPage < totalProductPages) {
+      setCurrentProductPage(currentProductPage + 1);
+    }
+  };
 
   const handleViewDetails = (inventory) => {
     setSelectedInventory(inventory);
@@ -193,7 +223,10 @@ const InventoryPage = () => {
         </div>
         )}
 
-        {Object.keys(groupedInventory).map((branchName) => (
+        {Object.keys(groupedInventory).map((branchName) => {
+          const paginatedRequests = getPaginatedRequests(groupedInventory[branchName]);
+          return (
+        
           <div key={branchName} className="mb-6">
             <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
             <table className="table w-full table-striped">
@@ -205,7 +238,7 @@ const InventoryPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {groupedInventory[branchName].map((item) => (
+                {paginatedRequests.map((item) => (
                   <tr key={item.inventoryid}>
                     <td className="text-black">{products[item.productid]}</td>
                     <td className="text-black">{item.quantity}</td>
@@ -222,8 +255,33 @@ const InventoryPage = () => {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-4 space-x-4">
+              <button 
+                onClick={handlePreviousPageProduct} 
+                disabled={currentProductPage === 1}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Previous
+              </button>
+              <div className="flex items-center">
+                <span className="mr-2">Page</span>
+                <span>{currentProductPage}</span>
+                <span className="ml-2">of {totalProductPages}</span>
+              </div>
+              <button 
+                onClick={handleNextPageProduct} 
+                disabled={currentProductPage === totalProductPages}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        ))}
+          );
+        })}
+
       </div>
 
       {/* Popup สำหรับแสดงรายละเอียด */}

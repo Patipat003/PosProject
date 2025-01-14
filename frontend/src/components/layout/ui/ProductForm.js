@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const ProductForm = ({ onProductAdded }) => {
@@ -7,6 +7,28 @@ const ProductForm = ({ onProductAdded }) => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState(""); // เก็บ URL ของรูปภาพ
+  const [categories, setCategories] = useState([]); // เก็บข้อมูล category
+  const [selectedCategory, setSelectedCategory] = useState(""); // เก็บ ID ของ category ที่เลือก
+
+  // ฟังก์ชันสำหรับดึงข้อมูล categories
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get("http://localhost:5050/categories", config); // ดึงข้อมูล categories จาก API
+      setCategories(response.data.Data);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleAddProduct = () => {
     setIsModalOpen(true);
@@ -39,7 +61,8 @@ const ProductForm = ({ onProductAdded }) => {
         description,
         price: numericPrice,
         unitsperbox: 30, // ค่า fix
-        imageurl: imageUrl, // ใช้ URL ของรูปภาพที่ผู้ใช้กรอก
+        imageurl: imageUrl,
+        categoryid: selectedCategory, // ส่ง category ID ไปกับข้อมูลสินค้า
       };
 
       // ส่งข้อมูลสินค้าไปยัง backend
@@ -72,70 +95,95 @@ const ProductForm = ({ onProductAdded }) => {
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative z-60">
+        <div
+          className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50"
+          onClick={handleCloseModal} // คลิกที่ Backdrop เพื่อปิด
+        >
+          <div
+            className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-60 overflow-y-auto max-h-screen mt-10"
+            onClick={(e) => e.stopPropagation()} // ป้องกันการปิด Modal เมื่อคลิกใน Modal
+          >
             <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
               Add Product
             </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex flex-col w-full">
                 <label className="block text-gray-700 font-medium mb-2">
                   Product Name
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter product name"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
+              <div className="flex flex-col w-full">
                 <label className="block text-gray-700 font-medium mb-2">
                   Price
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
-              <div className="mb-4">
+              <div className="flex flex-col w-full">
                 <label className="block text-gray-700 font-medium mb-2">
                   Image URL
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter image URL"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
               </div>
-              <button
-                type="submit"
-                className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Add Product
-              </button>
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Category
+                </label>
+                <select
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category.categoryid} value={category.categoryid}>
+                      {category.categoryname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col w-full sm:col-span-2">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4} // เพิ่มจำนวนแถวของช่อง description
+                />
+              </div>
+              <div className="col-span-2">
+                <button
+                  type="submit"
+                  className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Add Product
+                </button>
+              </div>
             </form>
             <button
               onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 text-2xl"
+              className="absolute top-2 right-2 text-gray-500 text-2xl mr-2"
             >
               &times;
             </button>

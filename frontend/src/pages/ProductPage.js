@@ -16,11 +16,15 @@ const formatDate = (dateString) => {
 const ProductPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [inventory, setInventory] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [sortKey, setSortKey] = useState("productname");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const itemsPerPage = 10; // จำนวนรายการต่อหน้า
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+  
 
   // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
   const fetchProducts = async () => {
@@ -32,9 +36,10 @@ const ProductPage = () => {
         },
       };
 
-      const [productResponse, inventoryResponse] = await Promise.all([
+      const [productResponse, inventoryResponse, categoryResponse] = await Promise.all([
         axios.get("http://localhost:5050/products", config),
         axios.get("http://localhost:5050/inventory", config),
+        axios.get("http://localhost:5050/categories", config),
       ]);
 
       const inventoryMap = {};
@@ -44,6 +49,7 @@ const ProductPage = () => {
 
       setProducts(productResponse.data.Data);
       setInventory(inventoryMap);
+      setCategories(categoryResponse.data.Data);
       setLoading(false);
     } catch (err) {
       setError("Failed to load products or inventory data");
@@ -76,6 +82,16 @@ const ProductPage = () => {
     fetchProducts();
   };
 
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const matchesSearch = (item) => {
+    return searchQuery
+      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+  }
+
   // ฟังก์ชันสำหรับการเปลี่ยนแปลงการเรียงลำดับ
   const handleSortChange = (key, direction) => {
     setSortKey(key);
@@ -103,6 +119,31 @@ const ProductPage = () => {
     fetchProducts();
   }, []);
 
+  // ฟังก์ชันสำหรับ pagination
+  const totalProductPages = Math.ceil(products.length / itemsPerPage);
+
+  const getPaginatedProducts = () => {
+    const startIndex = (currentProductPage - 1) * itemsPerPage;
+    return products.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const handlePreviousPageProduct = () => {
+    if (currentProductPage > 1) {
+      setCurrentProductPage(currentProductPage - 1);
+    }
+  };
+
+  const handleNextPageProduct = () => {
+    if (currentProductPage < totalProductPages) {
+      setCurrentProductPage(currentProductPage + 1);
+    }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat.categoryid === categoryId);
+    return category ? category.categoryname : "Unknown";
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -111,6 +152,7 @@ const ProductPage = () => {
     return <div>{error}</div>;
   }
 
+  const paginatedProducts = getPaginatedProducts();
   const columns = ["productname", "description", "price", "createdat"]; // Define columns for export
 
   return (
@@ -123,6 +165,8 @@ const ProductPage = () => {
         <div className="flex items-center mb-4">
           <input
             type="text"
+            value={searchQuery}
+            onChange={handleSearch}
             placeholder="Search for products"
             className="border bg-white border-gray-300 p-2 rounded w-full mr-2"
           />
@@ -132,25 +176,36 @@ const ProductPage = () => {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          {products.map((product) => (
-            <div
-              key={product.productid} // ใช้ product.productid แทน
-              className="border border-gray-300 p-4 rounded flex flex-col items-center cursor-pointer"
-              onClick={() => setSelectedProduct(product)}
-            >
-              <div className="w-24 h-24 bg-gray-200 mb-2 rounded">
-                <img
-                  src={product.imageurl} // ดึงจากฐานข้อมูล
-                  alt={product.productname}  // ใช้ productname แทน name
-                  className="w-full h-full object-cover rounded"
-                />
+          {products
+            .filter((product) =>
+              searchQuery
+                ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
+                : true
+            )
+            .map((product) => (
+              <div
+                key={product.productid}
+                className="border border-gray-300 p-4 rounded flex flex-col items-center cursor-pointer"
+                onClick={() => setSelectedProduct(product)}
+              >
+                <div className="w-24 h-24 bg-gray-200 mb-2 rounded">
+                  <img
+                    src={product.imageurl}
+                    alt={product.productname}
+                    className="w-full h-full object-cover rounded"
+                  />
+                </div>
+                <div className="text-black text-lg font-bold">{product.code}</div>
+                <div className="text-black text-sm mb-2 font-semibold">
+                  {product.productname}
+                </div>
+                <div className="text-black text-sm">
+                  Price : ฿{product.price.toFixed(2)}
+                </div>
               </div>
-              <div className="text-black text-lg font-bold">{product.code}</div>
-              <div className="text-black text-sm mb-2 font-semibold">{product.productname}</div>
-              <div className="text-black text-sm">Price : ฿{product.price.toFixed(2)}</div>
-            </div>
-          ))}
+            ))}
         </div>
+
       </div>
 
       {/* Product Table */}
@@ -161,52 +216,74 @@ const ProductPage = () => {
           <ExportButtons filteredTables={products} columns={columns} filename="products.pdf" />
         </div>
 
-        {/* Add SortByDropdown for sorting */}
-        <SortByDropdown
-          onSortChange={handleSortChange}
-          currentSortKey={sortKey}
-          currentSortDirection={sortDirection}
-          sortOptions={sortOptions}
-        />
-
         <table className="table w-full table-striped">
           <thead>
             <tr>
               <th className="text-black">Name</th>
+              <th className="text-black">Category</th>
               <th className="text-black">Description</th>
               <th className="text-black">Price</th>
               <th className="text-black">Create Date</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product.productid}> {/* ใช้ product.productid แทน */}
-                <td className="text-black">{product.productname}</td>
-                <td className="text-black">
-                  {product.description.length > 50
-                  ? product.description.substring(0, 50) + "..."
-                  : product.description}
-                </td>
-                <td className="text-black">{product.price.toFixed(2)}</td>
-                <td className="text-black">{formatDate(product.createdat)}</td>
-                <td>
-                  <button
-                    onClick={() => handleDeleteProduct(product.productid)} // ใช้ product.productid
-                    className="hover:border-b-2 border-gray-400 transition duration-30"
-                  >
-                    <TrashIcon className="text-red-600 h-6 w-6" />
-                  </button>
-                </td>
-                <td>
-                  <EditedProduct
-                    productId={product.productid} // ใช้ product.productid
-                    onProductUpdated={fetchProducts} // Function to refresh products after editing
-                  />
-                </td>
-              </tr>
-            ))}
+            {paginatedProducts
+              .filter((product) =>
+                searchQuery
+                  ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
+                  : true
+              )
+              .map((product) => (
+                <tr key={product.productid}>
+                  <td className="text-black">{product.productname}</td>
+                  <td className="text-black">{getCategoryName(product.categoryid)}</td>
+                  <td className="text-black">
+                    {product.description.length > 50
+                      ? product.description.substring(0, 50) + "..."
+                      : product.description}
+                  </td>
+                  <td className="text-black">{product.price.toFixed(2)}</td>
+                  <td className="text-black">{formatDate(product.createdat)}</td>
+                  {/* <td>
+                    <button
+                      onClick={() => handleDeleteProduct(product.productid)}
+                      className="hover:border-b-2 border-gray-400 transition duration-30"
+                    >
+                      <TrashIcon className="text-red-600 h-6 w-6" />
+                    </button>
+                  </td> */}
+                  <td>
+                    <EditedProduct
+                      productId={product.productid}
+                      onProductUpdated={fetchProducts}
+                    />
+                  </td>
+                </tr>
+              ))}
           </tbody>
+
         </table>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-center mt-4 space-x-4">
+            <button
+              onClick={handlePreviousPageProduct}
+              disabled={currentProductPage === 1}
+              className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+            >
+              Previous
+            </button>
+            <div className="flex items-center">
+              Page {currentProductPage} of {totalProductPages}
+            </div>
+            <button
+              onClick={handleNextPageProduct}
+              disabled={currentProductPage === totalProductPages}
+              className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+            >
+              Next
+            </button>
+          </div>
       </div>
     </div>
   );

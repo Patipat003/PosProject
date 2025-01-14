@@ -8,15 +8,28 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState(""); // State for Image URL
+  const [categories, setCategories] = useState([]); // Categories state
+  const [selectedCategory, setSelectedCategory] = useState(""); // Selected category state
 
   // Fetch product data from API to populate the inputs
   useEffect(() => {
     const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
     const config = {
-        headers: {
-          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+      headers: {
+        Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
       },
     };
+    
+    // ฟังก์ชันสำหรับดึงข้อมูล Categories
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:5050/categories", config);
+        setCategories(response.data.Data);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
     const fetchProduct = async () => {
       if (!productId) {
         console.error("Product ID is not available.");
@@ -24,20 +37,19 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
       }
     
       try {
-        
-        // ตรวจสอบว่าใช้เส้นทางที่ถูกต้อง
         const response = await axios.get(`http://localhost:5050/Products/${productId}`, config);
         const product = response.data.Data;
         setProductName(product.productname);
         setDescription(product.description);
         setPrice(product.price);
         setImageUrl(product.imageurl);
+        setSelectedCategory(product.categoryid); // Set the selected category
       } catch (err) {
         console.error("Error fetching product data:", err);
       }
     };
     
-
+    fetchCategories();
     if (productId) {
       fetchProduct();
     }
@@ -62,16 +74,17 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
 
     try {
       const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
-          },
-        };
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+        },
+      };
       const response = await axios.put(`http://localhost:5050/products/${productId}`, {
         productname: productName,
         description: description,
         price: numericPrice,
-        imageurl: imageUrl, // Send the image URL
+        imageurl: imageUrl,
+        categoryid: selectedCategory, // ส่ง category ID ไปด้วย
       }, config);
 
       if (response.status === 200) {
@@ -94,66 +107,95 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96 relative z-60">
+        <div
+          className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50"
+          onClick={handleCloseModal} // คลิกที่ Backdrop เพื่อปิด
+        >
+          <div
+            className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-60 overflow-y-auto max-h-screen mt-10"
+            onClick={(e) => e.stopPropagation()} // ป้องกันการปิด Modal เมื่อคลิกใน Modal
+          >
             <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
               Edit Product
             </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
                   Product Name
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={productName} // Use productName state as initial value
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter product name"
+                  value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={description} // Use description state as initial value
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
                   Price
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={price} // Use price state as initial value
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter price"
+                  value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-600 font-medium mb-2">
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
                   Image URL
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 border border-gray-300 rounded bg-white focus:outline-none focus:ring focus:ring-blue-200"
-                  value={imageUrl} // Use imageUrl state as initial value
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter image URL"
+                  value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
               </div>
-              <button
-                type="submit"
-                className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Update Product
-              </button>
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Category
+                </label>
+                <select
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category.categoryid} value={category.categoryid}>
+                      {category.categoryname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col w-full sm:col-span-2">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4} // เพิ่มจำนวนแถวของช่อง description
+                />
+              </div>
+              <div className="col-span-2">
+                <button
+                  type="submit"
+                  className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Update Product
+                </button>
+              </div>
             </form>
             <button
               onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 text-2xl"
+              className="absolute top-2 right-2 text-gray-500 text-2xl mr-2"
             >
               &times;
             </button>

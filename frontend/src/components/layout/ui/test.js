@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import moment from "moment";
+import ProductForm from "../components/layout/ui/ProductForm";
+import EditedProduct from "../components/layout/ui/EditedProduct";
+import ExportButtons from "../components/layout/ui/ExportButtons";
+import { format } from "date-fns";
+import { TrashIcon } from "@heroicons/react/outline";
 
-const RequestInventory = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [requests, setRequests] = useState([]);
-  const [branches, setBranches] = useState([]);
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return format(date, "d/MM/yyyy, HH:mm");
+};
+
+const ProductPage = () => {
   const [products, setProducts] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [newRequest, setNewRequest] = useState({
-    frombranchid: "",
-    tobranchid: "",
-    productid: "",
-    quantity: 0,
-    status: "pending",
-  });
-  const [branchName, setBranchName] = useState("");
-  const [error, setError] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchRequests = async () => {
+  const itemsPerPage = 10;
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+
+  const fetchProductsAndCategories = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -28,213 +29,125 @@ const RequestInventory = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get("http://localhost:5050/Requests", config);
-      setRequests(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching requests:", err);
-    }
-  };
 
-  const fetchBranches = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/branches", config);
-      setBranches(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching branches:", err);
-    }
-  };
+      const [productResponse, categoryResponse] = await Promise.all([
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/categories", config),
+      ]);
 
-  const fetchProducts = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/products", config);
-      setProducts(response.data.Data || []);
+      setProducts(productResponse.data.Data);
+      setCategories(categoryResponse.data.Data);
+      setLoading(false);
     } catch (err) {
-      console.error("Error fetching products:", err);
-    }
-  };
-
-  const fetchInventory = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/inventory", config);
-      setInventory(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching inventory:", err);
+      setError("Failed to load products or categories");
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBranches();
-    fetchProducts();
-    fetchRequests();
-    fetchInventory();
+    fetchProductsAndCategories();
   }, []);
 
-  const getBranchFromToken = () => {
-    const token = localStorage.getItem("authToken");
-    const decoded = JSON.parse(atob(token.split('.')[1])); // Decode JWT token
-    return decoded.branchid;
+  const handleSearch = (e) => setSearchQuery(e.target.value);
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat.categoryid === categoryId);
+    return category ? category.name : "Unknown";
   };
 
-  useEffect(() => {
-    const branchid = getBranchFromToken();
-    setNewRequest((prevRequest) => ({
-      ...prevRequest,
-      tobranchid: branchid,
-    }));
-    const branch = branches.find((branch) => branch.branchid === branchid);
-    if (branch) {
-      setBranchName(branch.bname);
-    }
-  }, [branches]);
-
-  const branchid = getBranchFromToken();
-  const filteredRequests = requests.filter(
-    (request) =>
-      request.frombranchid === branchid || request.tobranchid === branchid
+  const paginatedProducts = products.slice(
+    (currentProductPage - 1) * itemsPerPage,
+    currentProductPage * itemsPerPage
   );
 
-  const indexOfLastRequest = currentPage * itemsPerPage;
-  const indexOfFirstRequest = indexOfLastRequest - itemsPerPage;
-  const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
+  const totalProductPages = Math.ceil(products.length / itemsPerPage);
 
-  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handlePreviousPageProduct = () => {
+    if (currentProductPage > 1) setCurrentProductPage(currentProductPage - 1);
   };
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handleNextPageProduct = () => {
+    if (currentProductPage < totalProductPages)
+      setCurrentProductPage(currentProductPage + 1);
   };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
-      >
-        Request Inventory
-      </button>
-
-      {/* Add Request Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-          onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}
-        >
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-7xl w-full relative z-60 overflow-y-auto max-h-screen mt-10">
-            {/* Other content */}
-
-            {/* Sending Shipment */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-4">Sending Shipment</h3>
-              <table className="table-auto w-full border-collapse border border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-teal-600 text-white">
-                  <tr>
-                    <th className="border px-4 py-2">From Branch</th>
-                    <th className="border px-4 py-2">To Branch</th>
-                    <th className="border px-4 py-2">Product Name</th>
-                    <th className="border px-4 py-2">Quantity</th>
-                    <th className="border px-4 py-2">Created At</th>
-                    <th className="border px-4 py-2">Status</th>
-                    <th className="border px-4 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRequests.map((request) => {
-                    const fromBranch = branches.find(
-                      (branch) => branch.branchid === request.frombranchid
-                    );
-                    const toBranch = branches.find(
-                      (branch) => branch.branchid === request.tobranchid
-                    );
-                    const product = products.find(
-                      (product) => product.productid === request.productid
-                    );
-
-                    return (
-                      <tr key={request.requestid} className="hover:bg-teal-50">
-                        <td className="border px-4 py-2">
-                          {fromBranch ? fromBranch.bname : "-"}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {toBranch ? toBranch.bname : "-"}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border px-4 py-2">{request.quantity}</td>
-                        <td className="border px-4 py-2">
-                          {moment(request.createdat).format("L, HH:mm")}
-                        </td>
-                        <td className="border px-4 py-2">{request.status}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="flex justify-between">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentPage}</span>
-                <span className="ml-2">of {totalPages}</span>
-              </div>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-0 right-0 m-4 text-white"
-            >
-              X
-            </button>
-          </div>
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Product Management</h1>
+      <div className="mb-6">
+        <div className="flex items-center mb-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search for products"
+            className="border bg-white border-gray-300 p-2 rounded w-full mr-2"
+          />
         </div>
-      )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
+        <table className="table w-full table-striped">
+          <thead>
+            <tr>
+              <th className="text-black">Name</th>
+              <th className="text-black">Category</th>
+              <th className="text-black">Description</th>
+              <th className="text-black">Price</th>
+              <th className="text-black">Create Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProducts
+              .filter((product) =>
+                searchQuery
+                  ? product.productname
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase())
+                  : true
+              )
+              .map((product) => (
+                <tr key={product.productid}>
+                  <td className="text-black">{product.productname}</td>
+                  <td className="text-black">{getCategoryName(product.categoryid)}</td>
+                  <td className="text-black">
+                    {product.description.length > 50
+                      ? product.description.substring(0, 50) + "..."
+                      : product.description}
+                  </td>
+                  <td className="text-black">{product.price.toFixed(2)}</td>
+                  <td className="text-black">{formatDate(product.createdat)}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+
+        <div className="flex justify-center mt-4 space-x-4">
+          <button
+            onClick={handlePreviousPageProduct}
+            disabled={currentProductPage === 1}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600"
+          >
+            Previous
+          </button>
+          <div>
+            Page {currentProductPage} of {totalProductPages}
+          </div>
+          <button
+            onClick={handleNextPageProduct}
+            disabled={currentProductPage === totalProductPages}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default RequestInventory;
+export default ProductPage;
