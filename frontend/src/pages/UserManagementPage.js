@@ -137,7 +137,7 @@ const UserManagementPage = () => {
 
       <table className="table-auto w-full border-collapse border border-gray-200">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-teal-600 text-white">
             <th className="border border-gray-300 px-4 py-2">Email</th>
             <th className="border border-gray-300 px-4 py-2">Name</th>
             <th className="border border-gray-300 px-4 py-2">Role</th>
