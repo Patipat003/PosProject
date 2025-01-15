@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import moment from "moment";
+import { useLocation } from "react-router-dom";
 
 
 const RequestInventory = () => {
@@ -19,6 +20,7 @@ const RequestInventory = () => {
   const [branchName, setBranchName] = useState("");
   const [error, setError] = useState(""); // Add error state
   const [itemsPerPage] = useState(10); // จำนวนข้อมูลต่อหน้า
+  const location = useLocation();  // ใช้ useLocation เพื่อดึงข้อมูลจาก state ที่ส่งมาจาก Header
 
 
   // Fetch data from API
@@ -248,6 +250,12 @@ const RequestInventory = () => {
       setCurrentProductPage(currentProductPage + 1);
     }
   };
+
+  useEffect(() => {
+    if (location.state?.openModal) {
+      setIsModalOpen(true);  // ถ้ามี openModal ใน state ให้เปิด modal ทันที
+    }
+  }, [location.state]);
 
   return (
     <div>

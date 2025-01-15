@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -9,6 +9,7 @@ const Header = () => {
   const [branchName, setBranchName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [salesNotifications, setSalesNotifications] = useState([]);
   const navigate = useNavigate();
 
   // ฟังก์ชันเพื่อดึงข้อมูลจาก token
@@ -41,6 +42,36 @@ const Header = () => {
     }
   }, []);
 
+  // ฟังก์ชันเพื่อดึงข้อมูลการร้องขอจาก API /requests
+  const fetchRequests = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      // Extract branchid from token
+      const decodedToken = jwtDecode(token);
+      const branchid = decodedToken.branchid;
+
+      const response = await axios.get(
+        `http://localhost:5050/requests`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const requests = response.data.Data;
+
+      // Check for requests with matching frombranchid and pending status
+      const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending");
+      setSalesNotifications(notifications);
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+    }
+  }, []);
+
   useEffect(() => {
     getUserDataFromToken();
   }, [getUserDataFromToken]);
@@ -48,12 +79,18 @@ const Header = () => {
   useEffect(() => {
     if (userData && userData.branchid) {
       fetchBranchName(userData.branchid);
+      fetchRequests();
     }
-  }, [userData, fetchBranchName]);
+  }, [userData, fetchBranchName, fetchRequests]);
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/login");
+  };
+
+  // ฟังก์ชันเมื่อคลิกไอคอนแจ้งเตือน
+  const handleNotificationClick = () => {
+    navigate("/inventory", { state: { openModal: true } }); // ส่ง state ให้หน้า inventory ว่าต้องการเปิด modal
   };
 
   return (
@@ -69,8 +106,19 @@ const Header = () => {
         </Link>
       </div>
 
-      {/* Right: User Dropdown */}
+      {/* Right: User Dropdown and Notification */}
       <div className="relative ml-auto">
+        {/* Notification Icon */}
+        {salesNotifications.length > 0 && (
+          <button
+            onClick={handleNotificationClick}  // เมื่อคลิกที่ไอคอนจะนำทางไปหน้า /inventory
+            className="absolute top-0 right-16 flex items-center p-2 text-white bg-red-500 rounded-full shadow-md"
+          >
+            <HiBell />
+          </button>
+        )}
+
+        {/* User Dropdown */}
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
@@ -80,6 +128,7 @@ const Header = () => {
             className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
           />
         </button>
+
         {dropdownOpen && userData && (
           <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 text-black">
             <div className="px-4 py-2 text-sm flex items-center">
