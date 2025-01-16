@@ -1,163 +1,199 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
+import { HiEye } from "react-icons/hi";
+
+const SearchBar = ({ query, onSearch }) => (
+  <input
+    type="text"
+    value={query}
+    onChange={(e) => onSearch(e.target.value)}
+    placeholder="Search..."
+    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+  />
+);
+
+const Modal = ({ title, children, onClose }) => (
+  <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative">
+      <h2 className="text-3xl font-bold mb-6 text-teal-600 text-center">{title}</h2>
+      {children}
+      <button
+        onClick={onClose}
+        className="btn w-full bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md hover:bg-teal-600 transition duration-300"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+);
 
 const DetailReportPage = () => {
-  // Example data
-  const exampleData = [
-    {
-      date: "2025-01-01",
-      productCode: "001",
-      productName: "Example Product",
-      price: 100,
-      quantity: 10,
-      sales: 1000,
-      profit: 200,
-    },
-    {
-      date: "2025-01-05",
-      productCode: "002",
-      productName: "Another Product",
-      price: 200,
-      quantity: 5,
-      sales: 1000,
-      profit: 300,
-    },
-    {
-      date: "2025-01-15",
-      productCode: "003",
-      productName: "New Product",
-      price: 150,
-      quantity: 7,
-      sales: 1050,
-      profit: 250,
-    },
-  ];
+  const [saleItems, setSaleItems] = useState([]);
+  const [products, setProducts] = useState({});
+  const [employeeNames, setEmployeeNames] = useState({});
+  const [filteredSaleItems, setFilteredSaleItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
-  const [filteredData, setFilteredData] = useState(exampleData);
-  const [customRange, setCustomRange] = useState({ start: "", end: "" });
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const decodedToken = jwtDecode(token);
 
-  // Filter by predefined ranges
-  const filterByRange = (range) => {
-    const now = new Date();
-    let startDate;
-    switch (range) {
-      case "Today":
-        startDate = new Date(now.setHours(0, 0, 0, 0));
-        break;
-      case "This Week":
-        startDate = new Date(
-          now.setDate(now.getDate() - now.getDay())
-        ); // Start of the week
-        break;
-      case "This Month":
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      case "This Year":
-        startDate = new Date(now.getFullYear(), 0, 1);
-        break;
-      default:
-        setFilteredData(exampleData);
-        return;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const [saleItemsResponse, productsResponse, salesResponse, employeesResponse] = await Promise.all([
+        axios.get("http://localhost:5050/saleitems", config),
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/sales", config),
+        axios.get("http://localhost:5050/employees", config),
+      ]);
+
+      const productMap = {};
+      productsResponse.data.Data.forEach((product) => {
+        productMap[product.productid] = product.productname;
+      });
+
+      const saleToEmployeeMap = {};
+      salesResponse.data.Data.forEach((sale) => {
+        saleToEmployeeMap[sale.saleid] = sale.employeeid;
+      });
+
+      const employeeMap = {};
+      employeesResponse.data.Data.forEach((employee) => {
+        employeeMap[employee.employeeid] = employee.name;
+      });
+
+      const saleToEmployeeNameMap = {};
+      Object.keys(saleToEmployeeMap).forEach((saleid) => {
+        const employeeId = saleToEmployeeMap[saleid];
+        saleToEmployeeNameMap[saleid] = employeeMap[employeeId] || "Unknown";
+      });
+
+      setSaleItems(saleItemsResponse.data.Data);
+      setFilteredSaleItems(saleItemsResponse.data.Data);
+      setProducts(productMap);
+      setEmployeeNames(saleToEmployeeNameMap);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load data");
+      setLoading(false);
     }
-
-    const filtered = exampleData.filter(
-      (item) => new Date(item.date) >= startDate
-    );
-    setFilteredData(filtered);
   };
 
-  // Filter by custom date range
-  const filterByCustomRange = () => {
-    if (customRange.start && customRange.end) {
-      const filtered = exampleData.filter(
-        (item) =>
-          new Date(item.date) >= new Date(customRange.start) &&
-          new Date(item.date) <= new Date(customRange.end)
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+
+    const filtered = saleItems.filter((item) => {
+      const employeeName = employeeNames[item.saleid]?.toLowerCase() || "";
+      const productName = products[item.productid]?.toLowerCase() || "";
+
+      return (
+        item.saleitemid.toString().includes(query) ||
+        employeeName.includes(query.toLowerCase()) ||
+        productName.includes(query.toLowerCase()) ||
+        item.quantity.toString().includes(query) ||
+        item.price.toString().includes(query) ||
+        item.totalprice.toString().includes(query)
       );
-      setFilteredData(filtered);
-    }
+    });
+
+    setFilteredSaleItems(filtered);
   };
+
+  const handleViewDetails = (item) => {
+    setSelectedItem(item);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedItem(null);
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">Detail Report</h1>
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Detail Report</h1>
 
-      {/* Date Range Filter */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-4">
-          {["Today", "This Week", "This Month", "This Year", "All"].map(
-            (label) => (
-              <button
-                key={label}
-                onClick={() => filterByRange(label)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition"
-              >
-                {label}
-              </button>
-            )
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-600">Custom Range:</span>
-          <input
-            type="date"
-            value={customRange.start}
-            onChange={(e) =>
-              setCustomRange({ ...customRange, start: e.target.value })
-            }
-            className="border border-gray-400 rounded-lg px-2 py-1"
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={customRange.end}
-            onChange={(e) =>
-              setCustomRange({ ...customRange, end: e.target.value })
-            }
-            className="border border-gray-400 rounded-lg px-2 py-1"
-          />
-          <button
-            onClick={filterByCustomRange}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Search
-          </button>
-        </div>
-      </div>
+      <SearchBar query={searchQuery} onSearch={handleSearch} />
 
-      {/* Product Summary */}
-      <div className="bg-gray-200 p-4 rounded-lg mb-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-2">Product Summary</h2>
-        <table className="table-auto w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-400 px-4 py-2">Date</th>
-              <th className="border border-gray-400 px-4 py-2">Product Code</th>
-              <th className="border border-gray-400 px-4 py-2">Product Name</th>
-              <th className="border border-gray-400 px-4 py-2">Price</th>
-              <th className="border border-gray-400 px-4 py-2">Quantity</th>
-              <th className="border border-gray-400 px-4 py-2">Sales</th>
-              <th className="border border-gray-400 px-4 py-2">Profit</th>
+      <div className="overflow-x-auto mt-4">
+        <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
+          <thead className="bg-teal-600 text-white">
+            <tr>
+              <th className="border-b-2 p-2 text-left">Sale Item ID</th>
+              <th className="border-b-2 p-2 text-left">Employee Name</th>
+              <th className="border-b-2 p-2 text-left">Product Name</th>
+              <th className="border-b-2 p-2 text-left">Quantity</th>
+              <th className="border-b-2 p-2 text-left">Price</th>
+              <th className="border-b-2 p-2 text-left">Total Price</th>
+              <th className="border-b-2 p-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
-              <tr key={index}>
-                <td className="border border-gray-400 px-4 py-2">{row.date}</td>
-                <td className="border border-gray-400 px-4 py-2">
-                  {row.productCode}
+            {filteredSaleItems.map((item) => (
+              <tr key={item.saleitemid} className="hover:bg-gray-100">
+                <td className="border-b p-2">{item.saleitemid}</td>
+                <td className="border-b p-2">{employeeNames[item.saleid] || "Unknown"}</td>
+                <td className="border-b p-2">{products[item.productid] || "Unknown"}</td>
+                <td className="border-b p-2">{item.quantity}</td>
+                <td className="border-b p-2">{item.price.toFixed(2)}</td>
+                <td className="border-b p-2">{item.totalprice.toFixed(2)}</td>
+                <td className="border-b p-2 text-center">
+                  <button
+                    onClick={() => handleViewDetails(item)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    <HiEye className="h-5 w-5 inline" /> View
+                  </button>
                 </td>
-                <td className="border border-gray-400 px-4 py-2">
-                  {row.productName}
-                </td>
-                <td className="border border-gray-400 px-4 py-2">${row.price}</td>
-                <td className="border border-gray-400 px-4 py-2">{row.quantity}</td>
-                <td className="border border-gray-400 px-4 py-2">${row.sales}</td>
-                <td className="border border-gray-400 px-4 py-2">${row.profit}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {selectedItem && (
+        <Modal title="Sale Item Details" onClose={handleCloseModal}>
+          <div className="space-y-4">
+            <p>
+              <span className="font-semibold">Sale Item ID:</span> {selectedItem.saleitemid}
+            </p>
+            <p>
+              <span className="font-semibold">Employee Name:</span> {employeeNames[selectedItem.saleid] || "Unknown"}
+            </p>
+            <p>
+              <span className="font-semibold">Product Name:</span> {products[selectedItem.productid] || "Unknown"}
+            </p>
+            <p>
+              <span className="font-semibold">Quantity:</span> {selectedItem.quantity}
+            </p>
+            <p>
+              <span className="font-semibold">Price:</span> {selectedItem.price.toFixed(2)}
+            </p>
+            <p>
+              <span className="font-semibold">Total Price:</span> {selectedItem.totalprice.toFixed(2)}
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
