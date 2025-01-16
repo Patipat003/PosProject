@@ -17,6 +17,7 @@ import InventoryPage from "./pages/InventoryPage";
 import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
+import ReceiptsPage from "./pages/ReceiptsPage";
 
 
 function App() {
@@ -154,6 +155,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <InventoryPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ReceiptsPage />
                 </MainLayout>
               </ProtectedRoute>
             }
