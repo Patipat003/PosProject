@@ -1,329 +1,164 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import { FaTrash } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 
-const SalesPage = () => {
-  const [products, setProducts] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [categories, setCategories] = useState([]); // เพิ่ม state สำหรับ Category
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(""); // เพิ่ม state สำหรับ Category ที่เลือก
-  const [cart, setCart] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [employee, setEmployee] = useState(null);
+const Header = () => {
+  const [branchName, setBranchName] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [salesNotifications, setSalesNotifications] = useState([]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
+  // ฟังก์ชันเพื่อดึงข้อมูลจาก token
+  const getUserDataFromToken = useCallback(() => {
     const token = localStorage.getItem("authToken");
-
     if (token) {
       const decodedToken = jwtDecode(token);
-      setEmployee(decodedToken);
-
-      if (!decodedToken.employeeid) {
-        console.log("Employee ID not found in token");
-      }
-    } else {
-      alert("You need to log in to access this page");
-      window.location.href = "/login";
+      setUserData(decodedToken);
     }
   }, []);
 
-  const fetchData = async () => {
+  // ฟังก์ชันเพื่อดึงข้อมูลสาขาจาก API
+  const fetchBranchName = useCallback(async (branchid) => {
     try {
       const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("No token found");
-
-      const [productRes, branchRes, inventoryRes, categoryRes] = await Promise.all([
-        axios.get("http://localhost:5050/products", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/branches", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/inventory", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/categories", {
-          headers: { Authorization: `Bearer ${token}` },
-        }), // ดึงข้อมูล Category
-      ]);
-
-      setProducts(productRes.data.Data);
-      setInventory(inventoryRes.data.Data);
-      setCategories(categoryRes.data.Data); // ตั้งค่า Categories
-      const filteredBranches = branchRes.data.Data.filter((branch) => branch.branchid === employee?.branchid);
-      setBranches(filteredBranches);
-    } catch (err) {
-      console.error("Error fetching data", err);
-    }
-  };
-
-  useEffect(() => {
-    if (employee) {
-      fetchData();
-    }
-  }, [employee]);
-
-  const handleBranchChange = (event) => {
-    const branchId = event.target.value;
-    setSelectedBranch(branchId);
-    setCart([]);
-    setTotalAmount(0);
-  };
-
-  const handleCategoryChange = (event) => {
-    setSelectedCategory(event.target.value); // กำหนด Category ที่เลือก
-  };
-
-  const filterInventoryByProduct = () => {
-    if (!selectedBranch) return [];
-
-    return products.filter((product) => {
-      const inInventory = inventory.some(
-        (item) => item.productid === product.productid && item.branchid === selectedBranch
-      );
-      const inCategory =
-        !selectedCategory || product.categoryid === selectedCategory; // กรองตาม Category
-      return inInventory && inCategory;
-    });
-  };
-
-  const handleAddToCart = (product) => {
-    if (!selectedBranch) {
-      alert("Please select a branch first");
-      return;
-    }
-
-    const inventoryItem = inventory.find(
-      (item) => item.productid === product.productid && item.branchid === selectedBranch
-    );
-    if (!inventoryItem || inventoryItem.quantity === 0) {
-      alert("Out of stock");
-      return;
-    }
-
-    setCart((prevCart) => {
-      const existingProduct = prevCart.find((item) => item.productid === product.productid);
-      if (existingProduct) {
-        return prevCart.map((item) =>
-          item.productid === product.productid
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+      if (!token) {
+        console.error("No token found");
+        return;
       }
-      return [...prevCart, { ...product, quantity: 1, branchid: selectedBranch }];
-    });
-  };
-
-  useEffect(() => {
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    setTotalAmount(total);
-  }, [cart]);
-
-  const handleCheckout = async () => {
-    if (!selectedBranch) {
-      alert("Select branch before checkout");
-      return;
+      const response = await axios.get(
+        `http://localhost:5050/branches/${branchid}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const branch = response.data.Data;
+      setBranchName(branch.bname);
+    } catch (err) {
+      console.error("Error fetching branch:", err);
     }
+  }, []);
 
-    if (cart.length === 0) {
-      alert("Your cart is empty, select some products to checkout");
-      return;
-    }
-
-    const saleItems = cart.map((item) => ({
-      productid: item.productid,
-      quantity: item.quantity,
-      price: item.price,
-      totalprice: item.price * item.quantity,
-    }));
-
-    const saleData = {
-      employeeid: employee?.employeeid, // ใช้ employeeid ที่ดึงมาจาก token
-      branchid: selectedBranch,         // ใช้ branchid ที่เลือกจากตัวเลือก
-      saleitems: saleItems,             // รายการสินค้าในตะกร้า
-      totalamount: totalAmount,         // จำนวนเงินทั้งหมด
-    };
-
+  // ฟังก์ชันเพื่อดึงข้อมูลการขายจาก API
+  const fetchSales = useCallback(async () => {
     try {
       const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("No token found");
-      console.log(saleData);  // ดูข้อมูลที่ส่งไป
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
 
-      await axios.post("http://localhost:5050/sales", saleData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Sale completed successfully!");
-      setCart([]);  // เคลียร์ตะกร้า
-      setTotalAmount(0);  // เคลียร์จำนวนเงิน
+      // Extract branchid from token
+      const decodedToken = jwtDecode(token);
+      const branchid = decodedToken.branchid;
+
+      const response = await axios.get(
+        `http://localhost:5050/sales`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const sales = response.data.Data;
+
+      // Check for sales with matching frombranchid
+      const notifications = sales.filter(sale => sale.frombranchid === branchid && sale.status === "pending");
+      setSalesNotifications(notifications);
     } catch (err) {
-      console.error("Error during sale", err);
-      alert("Failed to complete the sale.");
+      console.error("Error fetching sales:", err);
     }
+  }, []);
+
+  useEffect(() => {
+    getUserDataFromToken();
+  }, [getUserDataFromToken]);
+
+  useEffect(() => {
+    if (userData && userData.branchid) {
+      fetchBranchName(userData.branchid);
+      fetchSales();
+    }
+  }, [userData, fetchBranchName, fetchSales]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
   };
 
-  // ฟังก์ชันสำหรับการเพิ่ม/ลดจำนวนสินค้า
-  const handleIncreaseQuantity = (productId) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId
-          ? { ...item, quantity: item.quantity + 1 } // เพิ่มจำนวนสินค้า
-          : item
-      )
-    );
-  };
-
-  const handleDecreaseQuantity = (productId) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 } // ลดจำนวนสินค้า (หากไม่เป็น 1)
-          : item
-      )
-    );
-  };
-
-  const handleQuantityChange = (productId, newQuantity) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId
-          ? { ...item, quantity: newQuantity } // เปลี่ยนแปลงจำนวนสินค้าตามที่กรอก
-          : item
-      )
-    );
-  };
-
-  const handleRemoveFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.productid !== productId)); // ลบสินค้าออกจากตะกร้า
+  const handleNotificationClick = () => {
+    navigate("/inventorypage");  // Navigate to inventory page
   };
 
   return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="w-4/5 mr-6">
-          <div className="flex justify-between mb-6">
-            <select
-              id="category-select"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              className="w-2/3 bg-white border border-gray-300 text-gray-500 font-semibold p-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.categoryid} value={category.categoryid}>
-                  {category.categoryname}
-                </option>
-              ))}
-            </select>
-          </div>
-          <p className="text-black mb-6">Product Lists</p>
-          <div className="grid grid-cols-4 gap-4">
-            {selectedBranch ? (
-              filterInventoryByProduct().map((product) => (
-                <button
-                  key={product.productid}
-                  onClick={() => handleAddToCart(product)}
-                  className="card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105"
-                >
-                  <figure className="flex justify-center items-center h-2/3 w-full">
-                    <img
-                      src={product.imageurl}
-                      alt={product.productname}
-                      className="max-h-full max-w-full"
-                    />
-                  </figure>
-                  <div className="text-center my-2">
-                    <h2 className="text-black font-semibold text-sm">
-                      {product.productname}
-                    </h2>
-                    <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <p className="text-center col-span-4">Please select a branch to view products.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="w-2/5">
-          <div className="flex justify-end mb-6">
-            <select
-              id="branch-select"
-              value={selectedBranch || ""}
-              onChange={handleBranchChange}
-              className="w-2/3 bg-white border border-gray-300 text-gray-500 font-semibold p-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
-            >
-              <option value="" className="text-gray-500">Select Branch</option>
-              {branches.map((branch) => (
-                <option key={branch.branchid} value={branch.branchid}>
-                  {branch.bname}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="border-2 border-teal-500 p-6 rounded rounded-lg mb-6 sticky top-20 bg-white">
-            <h3 className="text-xl text-black font-semibold mb-4">Your Cart</h3>
-            <div className="border p-6 rounded h-96 overflow-y-auto mb-6">
-              {cart.map((item) => (
-                <div key={item.productid} className="text-black mb-6">
-                  <div className="mb-2 font-semibold text-teal-600">
-                    {item.productname}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-black justify-end mr-2 mt-2">฿{item.price.toFixed(2)}</span>
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => handleDecreaseQuantity(item.productid)}
-                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
-                      >
-                        -
-                      </button>
-                      <input
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
-                        }
-                        className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
-                        min="1"
-                      />
-                      <button
-                        onClick={() => handleIncreaseQuantity(item.productid)}
-                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveFromCart(item.productid)}
-                      className="ml-4 text-red-600 hover:text-red-800"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-black">Total Amount :</span>
-              <span className="font-semibold text-black">฿{totalAmount}</span>
-            </div>
-            <button
-              onClick={handleCheckout}
-              className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-teal-700 transition"
-            >
-              Checkout
-            </button>
-          </div>
-        </div>
+    <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md">
+      {/* Left: Logo */}
+      <div className="flex-shrink-0 ml-5">
+        <Link to="/" className="flex items-center">
+          <img
+            src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg"
+            alt="Lotus's Icon"
+            className="h-6 w-40"
+          />
+        </Link>
       </div>
-    </div>
+
+      {/* Right: User Dropdown and Notification */}
+      <div className="relative ml-auto">
+        {/* Notification Icon */}
+        {salesNotifications.length > 0 && (
+          <button
+            onClick={handleNotificationClick}
+            className="absolute top-0 right-16 flex items-center p-2 text-white bg-red-500 rounded-full shadow-md"
+          >
+            <HiBell />
+          </button>
+        )}
+
+        {/* User Dropdown */}
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
+        >
+          <HiUser />
+          <HiChevronDown
+            className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {dropdownOpen && userData && (
+          <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 text-black">
+            <div className="px-4 py-2 text-sm flex items-center">
+              <HiUser className="text-teal-600 mr-2" />
+              {userData?.name || "Loading name..."}
+            </div>
+            <div className="px-4 py-2 text-sm flex items-center">
+              <HiMail className="text-teal-600 mr-2" />
+              {userData?.email || "Loading email..."}
+            </div>
+            <div className="px-4 py-2 text-sm flex items-center">
+              <HiUserGroup className="text-teal-600 mr-2" />
+              {userData?.role || "Loading role..."}
+            </div>
+            <div className="px-4 py-2 text-sm flex items-center">
+              <HiOfficeBuilding className="text-teal-600 mr-2" />
+              {branchName || "Loading branch..."}
+            </div>
+            <div
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm text-red-600 cursor-pointer flex items-center space-x-2"
+            >
+              <HiLogout />
+              <span>Logout</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
   );
 };
 
-export default SalesPage;
+export default Header;
