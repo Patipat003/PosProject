@@ -90,9 +90,15 @@ const UserManagementPage = () => {
     }
   };
 
-  const filteredEmployees = employees.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEmployees = employees.filter((item) => {
+    const branchName = getBranchName(item.branchid).toLowerCase();
+    return (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      branchName.includes(searchQuery.toLowerCase())
+    );
+  });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -120,7 +126,7 @@ const UserManagementPage = () => {
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search by name"
+            placeholder="Search by name, email, role, or branch"
             className="border p-2 rounded w-full"
           />
           <SortByDropdown
@@ -130,6 +136,8 @@ const UserManagementPage = () => {
             sortOptions={[
               { key: "employeeid", label: "Employee ID" },
               { key: "name", label: "Name" },
+              { key: "email", label: "Email" },
+              { key: "role", label: "Role" },
             ]}
           />
         </div>
