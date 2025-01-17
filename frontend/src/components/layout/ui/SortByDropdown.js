@@ -1,23 +1,20 @@
-import React from "react";
-
-// ฟังก์ชันสำหรับการเปลี่ยนแปลงการเรียงลำดับ
 const SortByDropdown = ({ onSortChange, currentSortKey, currentSortDirection }) => {
   const handleSortChange = (event) => {
     const [key, direction] = event.target.value.split(":");
-    onSortChange(key, direction); // ส่งค่าไปยังฟังก์ชันใน parent component
+    onSortChange(key, direction); // Send values to the parent component
   };
 
-  // เฉพาะตัวเลือกที่ต้องการ (Quantity, Updated At)
+  // Only show the specific sort options required
   const sortOptions = [
     { key: "quantity", label: "Quantity" },
     { key: "updatedat", label: "Updated At" },
   ];
 
-  return ( 
+  return (
     <div className="flex items-center space-x-4 w-full">
       <label className="text-black font-semibold">Sort by</label>
       <select
-        value={`${currentSortKey}:${currentSortDirection}`}
+        value={`${currentSortKey}:${currentSortDirection}`}  // Keep value controlled
         onChange={handleSortChange}
         className="select bg-white text-black select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
       >

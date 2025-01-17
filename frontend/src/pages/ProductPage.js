@@ -122,6 +122,14 @@ const ProductPage = () => {
 
   useEffect(() => {
     fetchProducts();
+    
+    // Poll every 5 seconds
+    const interval = setInterval(() => {
+      fetchProducts();
+    }, 5000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(interval);
   }, []);
 
   // ฟังก์ชันสำหรับ pagination
@@ -162,7 +170,7 @@ const ProductPage = () => {
     : products;
 
   const paginatedProducts = getPaginatedProducts();
-  const columns = ["productname", "description", "price", "createdat"]; // Define columns for export
+  const columns = ["productname", "description", "price", "createdat"]; // Define columns
 
   return (
     <div className="p-4 bg-white">

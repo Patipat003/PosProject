@@ -257,6 +257,19 @@ const RequestInventory = () => {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    if (!branchid) {
+      return; // ถ้าไม่มีข้อมูลของ user หรือ branchid ก็ไม่ทำการ polling
+    }
+  
+    const intervalId = setInterval(() => {
+      fetchRequests();
+    }, 2000); // Polling ทุกๆ 2 วินาที
+  
+    // Cleanup function เพื่อหยุดการ Polling เมื่อ Component ถูก unmount
+    return () => clearInterval(intervalId);
+  }, [fetchRequests]);
+  
   return (
     <div>
       <button

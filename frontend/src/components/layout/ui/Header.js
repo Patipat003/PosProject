@@ -83,6 +83,18 @@ const Header = () => {
     }
   }, [userData, fetchBranchName, fetchRequests]);
 
+  // เพิ่มฟังก์ชัน Polling
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (userData && userData.branchid) {
+        fetchRequests();
+      }
+    }, 2000); // Polling ทุกๆ 2 วินาที
+
+    // Cleanup function เพื่อหยุดการ Polling เมื่อ Component ถูก unmount
+    return () => clearInterval(intervalId);
+  }, [userData, fetchRequests]);
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/login");

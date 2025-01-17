@@ -1,164 +1,324 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Import library สำหรับ decode token
+import ExportButtons from "../components/layout/ui/ExportButtons";
+import RequestInventory from "../components/layout/ui/RequestInventory";
+import SortByDropdown from "../components/layout/ui/SortByDropdown";
+import { format } from "date-fns";
+import { HiEye } from "react-icons/hi";
 
-const Header = () => {
-  const [branchName, setBranchName] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [salesNotifications, setSalesNotifications] = useState([]);
-  const navigate = useNavigate();
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return format(date, "d/MM/yyyy, HH:mm");
+};
 
-  // ฟังก์ชันเพื่อดึงข้อมูลจาก token
-  const getUserDataFromToken = useCallback(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      setUserData(decodedToken);
-    }
-  }, []);
+const InventoryPage = () => {
+  const [inventory, setInventory] = useState([]);
+  const [products, setProducts] = useState({});
+  const [branches, setBranches] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedInventory, setSelectedInventory] = useState(null);
+  const [sortKey, setSortKey] = useState("productid");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewAllBranches, setViewAllBranches] = useState(false); // State สำหรับ Toggle ระหว่างทุกสาขาและเฉพาะสาขาตัวเอง
+  const [userRole, setUserRole] = useState(""); // Role ของ user
+  const [userBranchId, setUserBranchId] = useState(""); // Branch ID ของ user
 
-  // ฟังก์ชันเพื่อดึงข้อมูลสาขาจาก API
-  const fetchBranchName = useCallback(async (branchid) => {
+  const itemsPerPage = 10; // จำนวนรายการต่อหน้า
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+
+  const fetchInventory = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-      const response = await axios.get(
-        `http://localhost:5050/branches/${branchid}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const branch = response.data.Data;
-      setBranchName(branch.bname);
+      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const decodedToken = jwtDecode(token); // Decode token เพื่อดึง role และ branchid
+      setUserRole(decodedToken.role);
+      setUserBranchId(decodedToken.branchid);
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+        },
+      };
+
+      const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
+        axios.get("http://localhost:5050/inventory", config), // ส่ง token ไปด้วย
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/branches", config),
+      ]);
+
+      const productMap = {};
+      productResponse.data.Data.forEach((product) => {
+        productMap[product.productid] = product.productname;
+      });
+
+      const branchMap = {};
+      branchResponse.data.Data.forEach((branch) => {
+        branchMap[branch.branchid] = {
+          bname: branch.bname,
+          location: branch.location,
+        };
+      });
+
+      setInventory(inventoryResponse.data.Data);
+      setProducts(productMap);
+      setBranches(branchMap);
+      setLoading(false);
     } catch (err) {
-      console.error("Error fetching branch:", err);
+      setError("Failed to load inventory data");
+      setLoading(false);
     }
-  }, []);
-
-  // ฟังก์ชันเพื่อดึงข้อมูลการขายจาก API
-  const fetchSales = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-
-      // Extract branchid from token
-      const decodedToken = jwtDecode(token);
-      const branchid = decodedToken.branchid;
-
-      const response = await axios.get(
-        `http://localhost:5050/sales`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const sales = response.data.Data;
-
-      // Check for sales with matching frombranchid
-      const notifications = sales.filter(sale => sale.frombranchid === branchid && sale.status === "pending");
-      setSalesNotifications(notifications);
-    } catch (err) {
-      console.error("Error fetching sales:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    getUserDataFromToken();
-  }, [getUserDataFromToken]);
-
-  useEffect(() => {
-    if (userData && userData.branchid) {
-      fetchBranchName(userData.branchid);
-      fetchSales();
-    }
-  }, [userData, fetchBranchName, fetchSales]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/login");
   };
 
-  const handleNotificationClick = () => {
-    navigate("/inventorypage");  // Navigate to inventory page
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const handleSortChange = (key, direction) => {
+    setSortKey(key);
+    setSortDirection(direction);
+
+    const sortedData = [...inventory].sort((a, b) => {
+      const aValue =
+        key === "productid" ? products[a[key]] : key === "branchid" ? branches[a[key]]?.bname : a[key];
+      const bValue =
+        key === "productid" ? products[b[key]] : key === "branchid" ? branches[b[key]]?.bname : b[key];
+
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setInventory(sortedData);
   };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleToggleView = () => {
+    setViewAllBranches(!viewAllBranches); // Toggle สถานะการดูข้อมูล
+  };
+
+  // Filter Inventory ตาม branch
+  const filteredInventory = inventory.filter((item) => {
+    const matchesSearch = searchQuery
+      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+
+    if (userRole === "Manager" && viewAllBranches) {
+      // Manager ที่เลือกดูทุกสาขา
+      return matchesSearch;
+    }
+
+    // เฉพาะ branch ของ user
+    return item.branchid === userBranchId && matchesSearch;
+  });
+
+
+  // Group by branch
+  const groupedInventory = filteredInventory.reduce((groups, item) => {
+    const branchName = branches[item.branchid]?.bname || "Unknown";
+    if (!groups[branchName]) {
+      groups[branchName] = [];
+    }
+    groups[branchName].push(item);
+    return groups;
+  }, {});
+
+  const sortOptions = [
+    { key: "productid", label: "Product Name" },
+    { key: "branchid", label: "Branch Name" },
+    { key: "quantity", label: "Quantity" },
+    { key: "updatedat", label: "Updated At" },
+  ];
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  const totalProductPages = Math.ceil(filteredInventory.length / itemsPerPage);
+
+  const getPaginatedRequests = (requests) => {
+    const startIndex = (currentProductPage - 1) * itemsPerPage;
+    return requests.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const handlePreviousPageProduct = () => {
+    if (currentProductPage > 1) {
+      setCurrentProductPage(currentProductPage - 1);
+    }
+  };
+
+  const handleNextPageProduct = () => {
+    if (currentProductPage < totalProductPages) {
+      setCurrentProductPage(currentProductPage + 1);
+    }
+  };
+
+  const handleViewDetails = (inventory) => {
+    setSelectedInventory(inventory);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedInventory(null);
+  };
+
+  const columns = ["inventoryid", "productid", "branchid", "quantity", "updatedat"]; // Define columns for export
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md">
-      {/* Left: Logo */}
-      <div className="flex-shrink-0 ml-5">
-        <Link to="/" className="flex items-center">
-          <img
-            src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg"
-            alt="Lotus's Icon"
-            className="h-6 w-40"
-          />
-        </Link>
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
+      <p className="text-black mb-4">Manage your Inventory here.</p>
+
+      
+
+      <div className="flex space-x-4 mb-4">
+        <RequestInventory onProductAdded={fetchInventory} />
+        <ExportButtons filteredTables={filteredInventory} columns={columns} filename="inventory.pdf" />
       </div>
 
-      {/* Right: User Dropdown and Notification */}
-      <div className="relative ml-auto">
-        {/* Notification Icon */}
-        {salesNotifications.length > 0 && (
-          <button
-            onClick={handleNotificationClick}
-            className="absolute top-0 right-16 flex items-center p-2 text-white bg-red-500 rounded-full shadow-md"
-          >
-            <HiBell />
-          </button>
+      <div className="mb-4 space-x-6 flex">
+        <div className="flex items-center space-x-4 m-2 w-full">
+          <label htmlFor="searchInput" className=" text-black font-semibold w-1/2">
+            Search by Product Name
+          </label>
+          <input
+            id="searchInput"
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by product name"
+            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-600"
+          />
+        </div>
+
+        <SortByDropdown
+          onSortChange={handleSortChange}
+          currentSortKey={sortKey}
+          currentSortDirection={sortDirection}
+          sortOptions={sortOptions}
+        />
+      </div>
+
+      <div className="overflow-x-auto space-y-6">
+
+        {userRole === "Manager" && (
+          <div>
+            <div className="mb-4 text-blue-500">
+              <h2>Manager Privileges</h2>
+            </div>
+
+            <button
+              onClick={handleToggleView}
+              className="btn bg-blue-500 text-white font-medium px-6 py-3 mb-4 rounded-md border-none hover:bg-blue-600 transition duration-300"
+            >
+              {viewAllBranches ? "View My Branch Only" : "View All Branches"}
+            </button>
+        </div>
         )}
 
-        {/* User Dropdown */}
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
-        >
-          <HiUser />
-          <HiChevronDown
-            className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {dropdownOpen && userData && (
-          <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 text-black">
-            <div className="px-4 py-2 text-sm flex items-center">
-              <HiUser className="text-teal-600 mr-2" />
-              {userData?.name || "Loading name..."}
-            </div>
-            <div className="px-4 py-2 text-sm flex items-center">
-              <HiMail className="text-teal-600 mr-2" />
-              {userData?.email || "Loading email..."}
-            </div>
-            <div className="px-4 py-2 text-sm flex items-center">
-              <HiUserGroup className="text-teal-600 mr-2" />
-              {userData?.role || "Loading role..."}
-            </div>
-            <div className="px-4 py-2 text-sm flex items-center">
-              <HiOfficeBuilding className="text-teal-600 mr-2" />
-              {branchName || "Loading branch..."}
-            </div>
-            <div
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm text-red-600 cursor-pointer flex items-center space-x-2"
-            >
-              <HiLogout />
-              <span>Logout</span>
+        {Object.keys(groupedInventory).map((branchName) => {
+          const paginatedRequests = getPaginatedRequests(groupedInventory[branchName]);
+          return (
+        
+          <div key={branchName} className="mb-6">
+            <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
+            <table className="table w-full table-striped">
+              <thead>
+                <tr>
+                  <th className="text-black">Product Name</th>
+                  <th className="text-black">Quantity</th>
+                  <th className="text-black">Updated At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedRequests.map((item) => (
+                  <tr key={item.inventoryid}>
+                    <td className="text-black">{products[item.productid]}</td>
+                    <td className="text-black">{item.quantity}</td>
+                    <td className="text-black">{formatDate(item.updatedat)}</td>
+                    <td className="text-black">
+                      <button
+                        onClick={() => handleViewDetails(item)}
+                        className="hover:border-b-2 border-gray-400 transition duration-30"
+                      >
+                        <HiEye className="text-blue-600 h-6 w-6" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-4 space-x-4">
+              <button 
+                onClick={handlePreviousPageProduct} 
+                disabled={currentProductPage === 1}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Previous
+              </button>
+              <div className="flex items-center">
+                <span className="mr-2">Page</span>
+                <span>{currentProductPage}</span>
+                <span className="ml-2">of {totalProductPages}</span>
+              </div>
+              <button 
+                onClick={handleNextPageProduct} 
+                disabled={currentProductPage === totalProductPages}
+                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+              >
+                Next
+              </button>
             </div>
           </div>
-        )}
+          );
+        })}
+
       </div>
-    </header>
+
+      {/* Popup สำหรับแสดงรายละเอียด */}
+      {selectedInventory && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative">
+            <h2 className="text-3xl font-bold mb-6 text-teal-600 text-center">
+              Inventory Details
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                <span className="font-semibold">Product Name:</span> {products[selectedInventory.productid]}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Branch Name:</span> {branches[selectedInventory.branchid]?.bname}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Location:</span> {branches[selectedInventory.branchid]?.location}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Quantity:</span> {selectedInventory.quantity}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Updated At:</span> {formatDate(selectedInventory.updatedat)}
+              </p>
+            </div>
+            <button
+              onClick={handleCloseModal}
+              className="btn w-full bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md border-none hover:bg-teal-600 transition duration-300"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default Header;
+export default InventoryPage;

@@ -2,18 +2,20 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaTrash } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
+import PaymentModal from "../components/layout/ui/PaymentModal";
 
 const SalesPage = () => {
   const [products, setProducts] = useState([]);
   const [branches, setBranches] = useState([]);
   const [inventory, setInventory] = useState([]);
-  const [categories, setCategories] = useState([]); // เพิ่ม state สำหรับ Category
+  const [categories, setCategories] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(""); // เพิ่ม state สำหรับ Category ที่เลือก
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [cart, setCart] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [employee, setEmployee] = useState(null);
-  const [alertMessage, setAlertMessage] = useState(""); // เพิ่ม state สำหรับข้อความแจ้งเตือน
+  const [alertMessage, setAlertMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -48,13 +50,15 @@ const SalesPage = () => {
         }),
         axios.get("http://localhost:5050/categories", {
           headers: { Authorization: `Bearer ${token}` },
-        }), // ดึงข้อมูล Category
+        }),
       ]);
 
       setProducts(productRes.data.Data);
       setInventory(inventoryRes.data.Data);
-      setCategories(categoryRes.data.Data); // ตั้งค่า Categories
-      const filteredBranches = branchRes.data.Data.filter((branch) => branch.branchid === employee?.branchid);
+      setCategories(categoryRes.data.Data);
+      const filteredBranches = branchRes.data.Data.filter(
+        (branch) => branch.branchid === employee?.branchid
+      );
       setBranches(filteredBranches);
     } catch (err) {
       console.error("Error fetching data", err);
@@ -75,7 +79,7 @@ const SalesPage = () => {
   };
 
   const handleCategoryChange = (event) => {
-    setSelectedCategory(event.target.value); // กำหนด Category ที่เลือก
+    setSelectedCategory(event.target.value);
   };
 
   const filterInventoryByProduct = () => {
@@ -86,7 +90,7 @@ const SalesPage = () => {
         (item) => item.productid === product.productid && item.branchid === selectedBranch
       );
       const inCategory =
-        !selectedCategory || product.categoryid === selectedCategory; // กรองตาม Category
+        !selectedCategory || product.categoryid === selectedCategory;
       return inInventory && inCategory;
     });
   };
@@ -125,54 +129,28 @@ const SalesPage = () => {
     setTotalAmount(total);
   }, [cart]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!selectedBranch) {
-      alertMessage("Select branch before checkout");
+      setAlertMessage("Select branch before checkout");
       return;
     }
-
+  
     if (cart.length === 0) {
-      alertMessage("Your cart is empty, select some products to checkout");
+      setAlertMessage("Your cart is empty, select some products to checkout");
       return;
     }
-
-    const saleItems = cart.map((item) => ({
-      productid: item.productid,
-      quantity: item.quantity,
-      price: item.price,
-      totalprice: item.price * item.quantity,
-    }));
-
-    const saleData = {
-      employeeid: employee?.employeeid, // ใช้ employeeid ที่ดึงมาจาก token
-      branchid: selectedBranch,         // ใช้ branchid ที่เลือกจากตัวเลือก
-      saleitems: saleItems,             // รายการสินค้าในตะกร้า
-      totalamount: totalAmount,         // จำนวนเงินทั้งหมด
-    };
-
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("No token found");
-      console.log(saleData);  // ดูข้อมูลที่ส่งไป
-
-      await axios.post("http://localhost:5050/sales", saleData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Sale completed successfully!");
-      setCart([]);  // เคลียร์ตะกร้า
-      setTotalAmount(0);  // เคลียร์จำนวนเงิน
-    } catch (err) {
-      console.error("Error during sale", err);
-      alert("Failed to complete the sale.");
-    }
+  
+    // Clear cart and reset total amount after successful sale in modal
+    setCart([]);
+    setTotalAmount(0);
   };
-
+  
   // ฟังก์ชันสำหรับการเพิ่ม/ลดจำนวนสินค้า
   const handleIncreaseQuantity = (productId) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.productid === productId
-          ? { ...item, quantity: item.quantity + 1 } // เพิ่มจำนวนสินค้า
+          ? { ...item, quantity: item.quantity + 1 }
           : item
       )
     );
@@ -182,7 +160,7 @@ const SalesPage = () => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.productid === productId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 } // ลดจำนวนสินค้า (หากไม่เป็น 1)
+          ? { ...item, quantity: item.quantity - 1 }
           : item
       )
     );
@@ -192,21 +170,28 @@ const SalesPage = () => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.productid === productId
-          ? { ...item, quantity: newQuantity } // เปลี่ยนแปลงจำนวนสินค้าตามที่กรอก
+          ? { ...item, quantity: newQuantity }
           : item
       )
     );
   };
 
   const handleRemoveFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.productid !== productId)); // ลบสินค้าออกจากตะกร้า
+    setCart((prevCart) => prevCart.filter((item) => item.productid !== productId));
+  };
+
+  const handleContinue = () => {
+    // เก็บข้อมูลใน localStorage
+    localStorage.setItem("cartData", JSON.stringify(cart));
+
+    // เปิด Modal
+    setIsModalOpen(true);
   };
 
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
-      
-      {/* แสดงข้อความแจ้งเตือน */}
+
       {alertMessage && (
         <div className="mb-4 p-3 bg-red-100 text-red-600 rounded-lg">
           {alertMessage}
@@ -239,27 +224,25 @@ const SalesPage = () => {
                     (item) => item.productid === product.productid && item.branchid === selectedBranch
                   )?.quantity || 0;
                 return (
-                <button
-                  key={product.productid}
-                  onClick={() => handleAddToCart(product)}
-                  className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
-                >
-                  <figure className="flex justify-center items-center h-2/3 w-full">
-                    <img
-                      src={product.imageurl}
-                      alt={product.productname}
-                      className="max-h-full max-w-full"
-                    />
-                  </figure>
-                  <div className="text-center my-2">
-                    <h2 className="text-black font-semibold text-sm">
-                      {product.productname}
-                    </h2>
-                    <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
-                  </div>
-                </button>
-              );
-            })
+                  <button
+                    key={product.productid}
+                    onClick={() => handleAddToCart(product)}
+                    className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
+                  >
+                    <figure className="flex justify-center items-center h-2/3 w-full">
+                      <img
+                        src={product.imageurl}
+                        alt={product.productname}
+                        className="max-h-full max-w-full"
+                      />
+                    </figure>
+                    <div className="text-center my-2">
+                      <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
+                      <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
+                    </div>
+                  </button>
+                );
+              })
             ) : (
               <p className="text-center col-span-4">Please select a branch to view products.</p>
             )}
@@ -291,33 +274,36 @@ const SalesPage = () => {
                   <div className="mb-2 font-semibold text-teal-600">
                     {item.productname}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-black justify-end mr-2 mt-2">฿{item.price.toFixed(2)}</span>
-                    <div className="flex items-center">
+                  <div className="flex justify-between">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => handleDecreaseQuantity(item.productid)}
-                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
+                        className="text-xl text-teal-600"
                       >
                         -
                       </button>
                       <input
+                        type="number"
+                        min="1"
                         value={item.quantity}
                         onChange={(e) =>
-                          handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
+                          handleQuantityChange(item.productid, e.target.value)
                         }
-                        className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
-                        min="1"
+                        className="w-12 text-center bg-white"
                       />
                       <button
                         onClick={() => handleIncreaseQuantity(item.productid)}
-                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
+                        className="text-xl text-teal-600"
                       >
                         +
                       </button>
                     </div>
+                    <div>
+                      ฿{(item.price * item.quantity).toFixed(2)}
+                    </div>
                     <button
                       onClick={() => handleRemoveFromCart(item.productid)}
-                      className="ml-4 text-red-600 hover:text-red-800"
+                      className="text-red-600"
                     >
                       <FaTrash />
                     </button>
@@ -326,19 +312,28 @@ const SalesPage = () => {
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-black">Total Amount :</span>
-              <span className="font-semibold text-black">฿{totalAmount}</span>
+            <div className="flex justify-between mb-6">
+              <h3 className="text-xl font-semibold text-teal-600">Total</h3>
+              <p className="text-xl text-gray-600">{totalAmount.toFixed(2)} THB</p>
             </div>
+
             <button
-              onClick={handleCheckout}
-              className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-teal-700 transition"
+              onClick={handleContinue}
+              className="btn w-full bg-teal-500 text-white border-none font-semibold text-base py-2 rounded-lg hover:bg-teal-600 transition"
             >
-              Checkout
+              Continue
             </button>
           </div>
         </div>
       </div>
+
+      <PaymentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        cart={cart}
+        totalAmount={totalAmount}
+        onCheckout={handleCheckout}
+      />
     </div>
   );
 };
