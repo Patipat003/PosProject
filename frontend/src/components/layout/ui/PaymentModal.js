@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import promptpayQR from "promptpay-qr"; // นำเข้าไลบรารีห
+import PromptPayQRCode from "./PromptPayQRCode";
 
 const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
     const [paymentMethod, setPaymentMethod] = useState("");
@@ -44,12 +44,27 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
           setEmployeeName(decodedToken.name);
           fetchBranchName(decodedToken.branchid);
         }
-  
+    
         const storedCartData = JSON.parse(localStorage.getItem("cartData"));
-        if (storedCartData) setCartData(storedCartData);
+        if (storedCartData) {
+          // Fetch product names
+          Promise.all(
+            storedCartData.map(async (item) => {
+              try {
+                const response = await axios.get(`http://localhost:5050/products/${item.productid}`, {
+                  headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+                });
+                return { ...item, name: response.data.Data.pname };
+              } catch (error) {
+                console.error("Error fetching product name:", error);
+                return { ...item, name: "Unknown Product" }; // Fallback in case of error
+              }
+            })
+          ).then((updatedCartData) => setCartData(updatedCartData));
+        }
       }
-    }, [isOpen, fetchBranchName]);
-  
+    }, [isOpen, fetchBranchName]);    
+    
     const handlePaymentMethodChange = (method) => {
         setPaymentMethod(method);
         if (method !== "cash") setAmountPaid("");
@@ -278,28 +293,11 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
             </div>
             )}
 
+            {/* Mobile Pay Section (PromptPay) */}
             {paymentMethod === "mobile-pay" && (
-                <div className="mt-4">
-                    <label
-                    htmlFor="mobile-pay"
-                    className="block text-lg text-teal-600 font-semibold mb-2"
-                    >
-                    Mobile Pay
-                    </label>
-
-                    <div className="mb-4">
-                    {/* แสดง QR Code จาก URL */}
-                    <img
-                        src="https://i.postimg.cc/QCWCWXbm/ff219c06-d783-42a8-a15a-221f03807fed.jpg" // URL ของรูป QR code
-                        alt="QR Code for Mobile Pay"
-                        className="mx-auto" // จัดให้อยู่กลาง
-                        width={256} // ขนาดของ QR code (ปรับได้)
-                        height={256} // ขนาดของ QR code (ปรับได้)
-                    />
-                    </div>
-                </div>
-                )}
-            </div>
+              <PromptPayQRCode totalAmount={totalAmount} />
+            )}
+        </div>
 
         {/* Right Section */}
         <div
@@ -309,22 +307,38 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
             height: "100%",
           }}
         >
+
+          {/* แสดงข้อมูลพนักงานและสาขา */}
+          <div className="mb-4">
+            <p className="text-gray-600">
+              <span className="font-semibold">Employee:</span> {employeeName}
+            </p>
+            <p className="text-gray-600">
+              <span className="font-semibold">Branch:</span> {branchName}
+            </p>
+          </div>
+
+          {/* Cart Summary */}
+          
           <h3 className="text-xl text-teal-600 font-medium mb-4">Cart Summary</h3>
-          <ul className="divide-y divide-gray-200">
-            {cartData.map((item, index) => (
-              <li key={index} className="text-gray-600 py-2 flex justify-between">
-                <span>
-                  {item.name} x{item.quantity}
-                </span>
-                <span>฿{item.price * item.quantity}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4" style={{ maxHeight: "330px", overflowY: "auto" }}>
+            <ul className="divide-y divide-gray-200">
+              {cartData.map((item, index) => (
+                <li key={index} className="text-gray-600 py-2 flex justify-between">
+                  <span>
+                  x{item.quantity} {item.productname} 
+                  </span>
+                  <span className="mr-2">฿{(item.price * item.quantity).toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
 
           {/* Total Amount */}
           <div className="mt-4 flex justify-between">
             <span className="text-gray-600 font-semibold">Total Amount</span>
-            <span className="text-gray-600">฿{totalAmount}</span>
+            <span className="text-gray-600">฿{totalAmount.toFixed(2)}</span>
           </div>
 
           {/* Change if payment is cash */}
