@@ -287,7 +287,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
                         className="border-2 w-full text-gray-600 border-gray-300 bg-white rounded-lg p-2 text-gray-800"
                     />
                 <div className="grid grid-cols-3 gap-2 mt-4">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map((num) => (
                     <button
                     key={num}
                     onClick={() => handleNumpadInput(num.toString())}
@@ -298,7 +298,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
                 ))}
                 <button
                     onClick={() => handleNumpadInput("clear")}
-                    className="btn bg-red-500 text-white p-3 border-none rounded-lg hover:bg-red-600 col-span-2"
+                    className="btn bg-red-500 text-white p-3 border-none rounded-lg hover:bg-red-600"
                 >
                     Delete
                 </button>

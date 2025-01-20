@@ -19,7 +19,6 @@ import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
 import ReceiptsPage from "./pages/ReceiptsPage";
 
-
 function App() {
   return (
     <AuthProvider>

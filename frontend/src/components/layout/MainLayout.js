@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HiChevronDown,
@@ -8,6 +8,7 @@ import {
   HiUser,
   HiArrowLeft,
 } from "react-icons/hi";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 import Header from "./ui/Header";
 
 // SidebarDropdown Component
@@ -86,8 +87,21 @@ const SidebarItem = ({ label, link, icon }) => {
 const MainLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState(null);
 
-  // ตรวจสอบว่าอยู่ในหน้า `/sales` หรือไม่
+  useEffect(() => {
+    const token = localStorage.getItem("authToken"); // Retrieve the token from local storage
+    if (token) {
+      const decoded = jwtDecode(token); // Decode the JWT token
+      setUserRole(decoded.role); // Set the user role from the decoded token
+    }
+  }, []);
+
+  // Check if the user has access based on their role
+  const isCashier = userRole === "Cashier"; // Only Cashier can access Sales pages
+  const isManager = userRole === "Manager"; // Manager can access everything
+
+  // Check if the user is on the /sales page
   const isSalesProductPage = location.pathname === "/sales";
 
   return (
@@ -95,7 +109,7 @@ const MainLayout = ({ children }) => {
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 w-full z-10">
         <Header />
-        {/* แสดงปุ่มย้อนกลับเฉพาะในหน้า /sales */}
+        {/* Show the back button only on /sales */}
         {isSalesProductPage && (
           <div className="bg-white shadow-sm p-4 border-t">
             <button
@@ -115,40 +129,41 @@ const MainLayout = ({ children }) => {
           <aside className="w-64 bg-teal-600 shadow-md h-full fixed top-16 left-0 overflow-y-auto">
             <nav className="p-5 list-none">
               <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
-              <SidebarDropdown
-                label="Sales Management"
-                icon={<HiShoppingCart />}
-              >
-                {[
-                  { label: "Sales Product", link: "/sales" },
-                  { label: "Sales History", link: "/salesHistory" },
-                  { label: "Payment", link: "/payment" },
-                  { label: "Receipts", link: "/receipts" },
-                ]}
-              </SidebarDropdown>
-              <SidebarItem
-                label="Product Management"
-                link="/product"
-                icon={<HiDocumentText />}
-              />
-              <SidebarItem
-                label="Inventory"
-                link="/inventory"
-                icon={<HiDocumentText />}
-              />
-              <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
-                {[
-                  { label: "New Item", link: "/reports" },
-                  { label: "Detail Report", link: "/detailReport" },
-                ]}
-              </SidebarDropdown>
-              <SidebarDropdown label="User Management" icon={<HiUser />}>
-                {[
-                  { label: "User", link: "/userManagement" },
-                  { label: "Access Rights", link: "/accessRights" },
-                  { label: "Employee Transfer", link: "/employeeTransfer" },
-                ]}
-              </SidebarDropdown>
+                {(isManager || isCashier) && (
+                  <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
+                    {[{ label: "Sales Product", link: "/sales" },
+                      { label: "Sales History", link: "/salesHistory" },
+                      { label: "Payment", link: "/payment" },
+                      { label: "Receipts", link: "/receipts" }]}
+                  </SidebarDropdown>
+                )}
+                {(isManager || isCashier) && (
+                  <SidebarItem
+                    label="Product Management"
+                    link="/product"
+                    icon={<HiDocumentText />}
+                  />
+                )}
+                {(isManager || isCashier) && (
+                  <SidebarItem
+                    label="Inventory"
+                    link="/inventory"
+                    icon={<HiDocumentText />}
+                  />
+                )}
+                {(isManager) && (
+                  <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
+                    {[{ label: "New Item", link: "/reports" },
+                      { label: "Detail Report", link: "/detailReport" }]}
+                  </SidebarDropdown>
+                  )}
+                  {(isManager) && (
+                  <SidebarDropdown label="User Management" icon={<HiUser />}>
+                    {[{ label: "User", link: "/userManagement" },
+                      { label: "Access Rights", link: "/accessRights" },
+                      { label: "Employee Transfer", link: "/employeeTransfer" }]}
+                  </SidebarDropdown>
+                  )}
             </nav>
           </aside>
         )}
