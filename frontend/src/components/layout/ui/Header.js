@@ -4,15 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import ModalStockLow from "./ModalStockLow"; // Import modal component
 
 const Header = () => {
   const [branchName, setBranchName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [salesNotifications, setSalesNotifications] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // For managing modal state
   const navigate = useNavigate();
 
-  // ฟังก์ชันเพื่อดึงข้อมูลจาก token
   const getUserDataFromToken = useCallback(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -21,7 +23,6 @@ const Header = () => {
     }
   }, []);
 
-  // ฟังก์ชันเพื่อดึงข้อมูลสาขาจาก API
   const fetchBranchName = useCallback(async (branchid) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -42,7 +43,32 @@ const Header = () => {
     }
   }, []);
 
-  // ฟังก์ชันเพื่อดึงข้อมูลการร้องขอจาก API /requests
+  // ฟังก์ชันเพื่อดึงข้อมูลสินค้าในสต็อกจาก API
+  const fetchInventory = useCallback(async (branchid) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const response = await axios.get(
+        `http://localhost:5050/inventory?branchid=${branchid}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const inventory = response.data.Data;
+
+      // Filter products by branchid and quantity less than 10
+      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 10);
+      setLowStockProducts(lowStockItems); // Update state with filtered products
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
+    }
+  }, []);
+
   const fetchRequests = useCallback(async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -51,7 +77,6 @@ const Header = () => {
         return;
       }
 
-      // Extract branchid from token
       const decodedToken = jwtDecode(token);
       const branchid = decodedToken.branchid;
 
@@ -63,8 +88,6 @@ const Header = () => {
       );
 
       const requests = response.data.Data;
-
-      // Check for requests with matching frombranchid and pending status
       const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending");
       setSalesNotifications(notifications);
     } catch (err) {
@@ -78,35 +101,37 @@ const Header = () => {
 
   useEffect(() => {
     if (userData && userData.branchid) {
-      fetchBranchName(userData.branchid);
-      fetchRequests();
+      fetchBranchName(userData.branchid);  // ดึงชื่อสาขา
+      fetchRequests();  // ดึงข้อมูลการร้องขอ
     }
   }, [userData, fetchBranchName, fetchRequests]);
 
-  // เพิ่มฟังก์ชัน Polling
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (userData && userData.branchid) {
         fetchRequests();
+        fetchInventory(userData.branchid);
       }
-    }, 2000); // Polling ทุกๆ 2 วินาที
+    }, 2000); // Polling every 2 seconds
 
-    // Cleanup function เพื่อหยุดการ Polling เมื่อ Component ถูก unmount
     return () => clearInterval(intervalId);
-  }, [userData, fetchRequests]);
+  }, [userData, fetchRequests, fetchInventory]);
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/login");
   };
 
-  // ฟังก์ชันเมื่อคลิกไอคอนแจ้งเตือน
   const handleNotificationClick = () => {
-    navigate("/inventory", { state: { openModal: true } }); // ส่ง state ให้หน้า inventory ว่าต้องการเปิด modal
+    navigate("/inventory", { state: { openModal: true } });
+  };
+
+  const handleNotificationClick1 = () => {
+    setIsModalOpen(true); // Open modal on notification click
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md">
+    <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
       {/* Left: Logo */}
       <div className="flex-shrink-0 ml-5">
         <Link to="/" className="flex items-center">
@@ -118,18 +143,29 @@ const Header = () => {
         </Link>
       </div>
 
-      {/* Right: User Dropdown and Notification */}
-      <div className="relative ml-auto">
-        {/* Notification Icon */}
+      {/* Right: Notification Icons */}
+      <div className="flex items-center space-x-4">
         {salesNotifications.length > 0 && (
           <button
-            onClick={handleNotificationClick}  // เมื่อคลิกที่ไอคอนจะนำทางไปหน้า /inventory
-            className="absolute top-0 right-16 flex items-center p-2 text-white bg-red-500 rounded-full shadow-md"
+            onClick={handleNotificationClick}
+            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20"
           >
-            <HiBell />
+            <HiBell className="h-6 w-6" />
+            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{salesNotifications.length}</span>
           </button>
         )}
 
+        {lowStockProducts.length > 0 && (
+          <button
+            onClick={handleNotificationClick1}
+            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20"
+          >
+            <HiBell className="h-6 w-6" />
+            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{lowStockProducts.length}</span>
+          </button>
+        )}
+
+      <div className="relative ml-auto">
         {/* User Dropdown */}
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -168,6 +204,15 @@ const Header = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Modal for Low Stock Products */}
+      {isModalOpen && (
+        <ModalStockLow 
+          products={lowStockProducts} 
+          closeModal={() => setIsModalOpen(false)} 
+        />
+      )}
       </div>
     </header>
   );

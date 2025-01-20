@@ -264,11 +264,12 @@ const RequestInventory = () => {
   
     const intervalId = setInterval(() => {
       fetchRequests();
+      fetchInventory();
     }, 2000); // Polling ทุกๆ 2 วินาที
   
     // Cleanup function เพื่อหยุดการ Polling เมื่อ Component ถูก unmount
     return () => clearInterval(intervalId);
-  }, [fetchRequests]);
+  }, [fetchRequests],{fetchInventory});
   
   return (
     <div>
