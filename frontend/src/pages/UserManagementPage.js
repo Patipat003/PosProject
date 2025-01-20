@@ -21,7 +21,7 @@ const UserManagementPage = () => {
     password: "",
     name: "",
     role: "",
-    branched: "",
+    branchid: "",
   });
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -83,11 +83,13 @@ const UserManagementPage = () => {
 
       await axios.post("http://localhost:5050/employees", newEmployee, config);
       setShowAddModal(false);
-      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
+      setNewEmployee({ email: "", password: "", name: "", role: "", branchid: "" });
       fetchData();
+      
     } catch (err) {
       console.error("Failed to add employee:", err);
     }
+    console.log(newEmployee);
   };
 
   const filteredEmployees = employees.filter((item) => {
@@ -115,7 +117,7 @@ const UserManagementPage = () => {
         </button>
         <ExportButtons
           filteredTables={filteredEmployees}
-          columns={["employeeid", "email", "name", "role", "branched", "createdat"]}
+          columns={["employeeid", "email", "name", "role", "branchid", "createdat"]}
           filename="employees.pdf"
         />
       </div>
@@ -210,8 +212,8 @@ const UserManagementPage = () => {
                 <option value="Audit">Audit</option>
               </select>
               <select
-                value={newEmployee.branched}
-                onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                value={newEmployee.branchid}
+                onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
                 className="border p-2 mb-2 w-full"
               >
                 <option value="" disabled>

@@ -19,8 +19,8 @@ const InventoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedInventory, setSelectedInventory] = useState(null);
-  const [sortKey, setSortKey] = useState("quantity");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortKey, setSortKey] = useState("updatedat");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewAllBranches, setViewAllBranches] = useState(false);
   const [userRole, setUserRole] = useState("");
@@ -36,24 +36,24 @@ const InventoryPage = () => {
       const decodedToken = jwtDecode(token);
       setUserRole(decodedToken.role);
       setUserBranchId(decodedToken.branchid);
-
+  
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-
+  
       const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
         axios.get("http://localhost:5050/inventory", config),
         axios.get("http://localhost:5050/products", config),
         axios.get("http://localhost:5050/branches", config),
       ]);
-
+  
       const productMap = {};
       productResponse.data.Data.forEach((product) => {
         productMap[product.productid] = product.productname;
       });
-
+  
       const branchMap = {};
       branchResponse.data.Data.forEach((branch) => {
         branchMap[branch.branchid] = {
@@ -61,8 +61,20 @@ const InventoryPage = () => {
           location: branch.location,
         };
       });
-
-      setInventory(inventoryResponse.data.Data);
+  
+      let newInventory = inventoryResponse.data.Data;
+  
+      // เรียงลำดับค่าเริ่มต้นตาม `updatedat` ในลำดับ `desc`
+      newInventory = newInventory.sort((a, b) => {
+        const aValue = new Date(a.updatedat);
+        const bValue = new Date(b.updatedat);
+  
+        if (aValue < bValue) return -1;
+        if (aValue > bValue) return 1;
+        return 0;
+      }).reverse();
+  
+      setInventory(newInventory);
       setProducts(productMap);
       setBranches(branchMap);
       setLoading(false);
@@ -86,18 +98,18 @@ const InventoryPage = () => {
   const handleSortChange = (key, direction) => {
     setSortKey(key);
     setSortDirection(direction);
-
+  
     const sortedData = [...inventory].sort((a, b) => {
       const aValue =
         key === "productid" ? products[a[key]] : key === "branchid" ? branches[a[key]]?.bname : a[key];
       const bValue =
         key === "productid" ? products[b[key]] : key === "branchid" ? branches[b[key]]?.bname : b[key];
-
+  
       if (aValue < bValue) return direction === "asc" ? -1 : 1;
       if (aValue > bValue) return direction === "asc" ? 1 : -1;
       return 0;
     });
-
+  
     setInventory(sortedData);
   };
 

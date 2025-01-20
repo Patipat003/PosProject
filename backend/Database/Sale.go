@@ -1,6 +1,8 @@
 package Database
 
 import (
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -84,11 +86,14 @@ func AddSale(db *gorm.DB, c *fiber.Ctx) error {
 		}
 	}
 
-	// สร้าง Receipt
+	// สร้างหมายเลขใบเสร็จ
+	rand.Seed(time.Now().UnixNano())                               // ตั้งค่า Seed ให้สุ่มได้ทุกครั้ง
+	receiptNumber := fmt.Sprintf("R%010d", rand.Intn(10000000000)) // สุ่มตัวเลข 5 หลัก
+
 	receipt := Models.Receipts{
 		SaleID:        sale.SaleID,
 		BranchID:      sale.BranchID,
-		ReceiptNumber: uuid.New().String(),
+		ReceiptNumber: receiptNumber,
 		TotalAmount:   totalAmount,
 		ReceiptDate:   time.Now(),
 	}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import PromptPayQRCode from "./PromptPayQRCode";
+import { FaCreditCard, FaCashRegister, FaMobileAlt, FaUser, FaStore } from "react-icons/fa";
 
 const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
     const [paymentMethod, setPaymentMethod] = useState("");
@@ -191,17 +192,29 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
             <div className="space-y-2">
               {["credit-card", "cash", "mobile-pay"].map((method) => (
                 <button
-                key={method}
-                onClick={() => handlePaymentMethodChange(method)}
-                className={`btn block w-full rounded-lg text-sm font-medium text-left py-2 px-4 transition-all duration-300 ease-in-out ${
-                  paymentMethod === method
-                    ? "bg-teal-500 text-white border-2 border-teal-600"
-                    : "bg-white text-gray-600 border-2 border-gray-300"
-                } hover:bg-teal-500 hover:border-teal-500 hover:text-white focus:outline-none`}
+                  key={method}
+                  onClick={() => handlePaymentMethodChange(method)}
+                  className={`btn block w-full rounded-lg text-sm font-medium text-left py-2 px-4 transition-all duration-300 ease-in-out ${
+                    paymentMethod === method
+                      ? "bg-teal-500 text-white border-2 border-teal-600"
+                      : "bg-white text-gray-600 border-2 border-gray-300"
+                  } hover:bg-teal-500 hover:border-teal-500 hover:text-white focus:outline-none`}
                 >
-                    {method === "credit-card" && "Credit Card"}
-                    {method === "cash" && "Cash"}
-                    {method === "mobile-pay" && "Mobile Pay"}
+                  {method === "credit-card" && (
+                    <span className="flex items-center">
+                      <FaCreditCard className="mr-2" /> Credit Card
+                    </span>
+                  )}
+                  {method === "cash" && (
+                    <span className="flex items-center">
+                      <FaCashRegister className="mr-2" /> Cash
+                    </span>
+                  )}
+                  {method === "mobile-pay" && (
+                    <span className="flex items-center">
+                      <FaMobileAlt className="mr-2" /> Mobile Pay
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -308,25 +321,14 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
           }}
         >
 
-          {/* แสดงข้อมูลพนักงานและสาขา */}
-          <div className="mb-4">
-            <p className="text-gray-600">
-              <span className="font-semibold">Employee:</span> {employeeName}
-            </p>
-            <p className="text-gray-600">
-              <span className="font-semibold">Branch:</span> {branchName}
-            </p>
-          </div>
-
           {/* Cart Summary */}
-          
           <h3 className="text-xl text-teal-600 font-medium mb-4">Cart Summary</h3>
           <div className="mt-4" style={{ maxHeight: "330px", overflowY: "auto" }}>
             <ul className="divide-y divide-gray-200">
               {cartData.map((item, index) => (
                 <li key={index} className="text-gray-600 py-2 flex justify-between">
                   <span>
-                  x{item.quantity} {item.productname} 
+                  x<span className="mr-2">{item.quantity}</span> {item.productname} 
                   </span>
                   <span className="mr-2">฿{(item.price * item.quantity).toFixed(2)}</span>
                 </li>
@@ -335,11 +337,20 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
           </div>
 
 
-          {/* Total Amount */}
-          <div className="mt-4 flex justify-between">
-            <span className="text-gray-600 font-semibold">Total Amount</span>
-            <span className="text-gray-600">฿{totalAmount.toFixed(2)}</span>
+          {/* Total Items and Total Amount */}
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex flex-col items-start">
+              <span className="text-gray-600 font-semibold">Total</span>
+              <span className="text-gray-600 mb-2">
+                {cartData.reduce((acc, item) => acc + item.quantity, 0)} items
+              </span>
+            </div>
+            <span className="text-gray-600 font-semibold mt-6">
+              ฿{totalAmount.toFixed(2)}
+            </span>
           </div>
+
+
 
           {/* Change if payment is cash */}
           {paymentMethod === "cash" && amountPaid && (
@@ -363,7 +374,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="absolute top-4 right-5 text-gray-500 hover:text-gray-700 focus:outline-none"
         >
           &times;
         </button>

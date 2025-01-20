@@ -10,7 +10,6 @@ import (
 )
 
 // เพิ่ม Branch และสร้าง Inventory สำหรับทุก Product
-// เพิ่ม Branch และสร้าง Inventory สำหรับทุก Product
 func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Branches
 	if err := c.BodyParser(&req); err != nil {

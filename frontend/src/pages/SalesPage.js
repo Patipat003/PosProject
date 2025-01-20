@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaTrash } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import PaymentModal from "../components/layout/ui/PaymentModal";
 
@@ -188,6 +188,12 @@ const SalesPage = () => {
     setIsModalOpen(true);
   };
 
+  // ฟังก์ชันสำหรับล้างสินค้าทั้งหมดในตะกร้า
+  const handleClearCart = () => {
+    setCart([]);
+    setTotalAmount(0);
+  };
+
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
@@ -215,8 +221,10 @@ const SalesPage = () => {
               ))}
             </select>
           </div>
+
+          {/* Product List */}
           <p className="text-black mb-6">Product Lists</p>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
                 const stock =
@@ -244,9 +252,10 @@ const SalesPage = () => {
                 );
               })
             ) : (
-              <p className="text-center col-span-4">Please select a branch to view products.</p>
+              <p className="text-center col-span-5">Please select a branch to view products.</p>
             )}
           </div>
+
         </div>
 
         <div className="w-2/5">
@@ -265,73 +274,93 @@ const SalesPage = () => {
               ))}
             </select>
           </div>
-
-          <div className="border-2 border-teal-500 p-6 rounded rounded-lg mb-6 sticky top-20 bg-white">
-            <h3 className="text-xl text-black font-semibold mb-4">Your Cart</h3>
+          
+          {/* Your cart */}
+          <div className="border-2 border-teal-500 p-6 rounded rounded-lg mb-6 sticky top-0 bg-white">
+            <div className="flex justify-between mb-4">
+              <h3 className="text-xl text-black font-semibold">Your Cart</h3>
+              <button
+                  onClick={handleClearCart}
+                  className="text-red-600 flex items-center gap-2 font-semibold"
+                >
+                  <FaTrashAlt />
+                  Clear All
+                </button>
+              </div>
             <div className="border p-6 rounded h-96 overflow-y-auto mb-6">
-              {cart.map((item) => (
-                <div key={item.productid} className="text-black mb-6">
-                  <div className="mb-2 font-semibold text-teal-600">
-                    {item.productname}
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex gap-2">
+              {cart.length === 0 ? (
+                <p className="text-center text-gray-500">Your cart is empty</p>
+              ) : (
+                cart.map((item) => (
+                  <div key={item.productid} className="text-black mb-6">
+                    <div className="mb-2 font-semibold text-teal-600">
+                      {item.productname}
+                    </div>
+                    <div className="flex justify-between items-center">
+                    <span className="text-black justify-end mr-2 mt-2">฿{item.price.toFixed(2)}</span>
+                    <div className="flex items-center">
                       <button
                         onClick={() => handleDecreaseQuantity(item.productid)}
-                        className="text-xl text-teal-600"
+                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
                       >
                         -
                       </button>
                       <input
-                        type="number"
-                        min="1"
                         value={item.quantity}
                         onChange={(e) =>
-                          handleQuantityChange(item.productid, e.target.value)
+                          handleQuantityChange(item.productid, parseInt(e.target.value) || 1)
                         }
-                        className="w-12 text-center bg-white"
+                        className="text-black text-center bg-white w-14 h-8 border border-2 p-1 mx-0"
+                        min="1"
                       />
                       <button
                         onClick={() => handleIncreaseQuantity(item.productid)}
-                        className="text-xl text-teal-600"
+                        className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
                       >
                         +
                       </button>
                     </div>
-                    <div>
-                      ฿{(item.price * item.quantity).toFixed(2)}
-                    </div>
                     <button
                       onClick={() => handleRemoveFromCart(item.productid)}
-                      className="text-red-600"
+                      className="ml-4 text-red-600 hover:text-red-800"
                     >
-                      <FaTrash />
+                      <FaTrashAlt />
                     </button>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-teal-600 mb-2">Total</h3>
+              <div className="flex justify-between">
+                <p className="text-xl text-gray-600">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                </p>
+                <p className="text-xl text-gray-600">
+                  {totalAmount.toFixed(2)} THB
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-between mb-6">
-              <h3 className="text-xl font-semibold text-teal-600">Total</h3>
-              <p className="text-xl text-gray-600">{totalAmount.toFixed(2)} THB</p>
+              <button
+                onClick={handleContinue}
+                className="btn w-full bg-teal-500 text-white border-none font-semibold text-base py-2 rounded-lg hover:bg-teal-600 transition"
+              >
+                Continue
+              </button>
             </div>
-
-            <button
-              onClick={handleContinue}
-              className="btn w-full bg-teal-500 text-white border-none font-semibold text-base py-2 rounded-lg hover:bg-teal-600 transition"
-            >
-              Continue
-            </button>
           </div>
-        </div>
       </div>
+    </div>
 
       <PaymentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         cart={cart}
-        totalAmount={totalAmount}
+        totalAmount={totalAmount.toFixed(2)}
         onCheckout={handleCheckout}
       />
     </div>

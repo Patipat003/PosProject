@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HiChevronDown,
   HiHome,
   HiShoppingCart,
   HiDocumentText,
   HiUser,
+  HiArrowLeft,
 } from "react-icons/hi";
 import Header from "./ui/Header";
 
@@ -14,7 +15,7 @@ const SidebarDropdown = ({ label, children, icon }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const isActive = children.some((child) => child.link === location.pathname);
     setIsOpen(isActive);
   }, [location.pathname, children]);
@@ -83,55 +84,84 @@ const SidebarItem = ({ label, link, icon }) => {
 
 // MainLayout Component
 const MainLayout = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // ตรวจสอบว่าอยู่ในหน้า `/sales` หรือไม่
+  const isSalesProductPage = location.pathname === "/sales";
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 w-full z-10">
         <Header />
+        {/* แสดงปุ่มย้อนกลับเฉพาะในหน้า /sales */}
+        {isSalesProductPage && (
+          <div className="bg-white shadow-sm p-4 border-t">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-teal-600 font-semibold"
+            >
+              <HiArrowLeft className="text-lg" />
+              <span>Back</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 pt-6">
         {/* Sidebar */}
-        <aside className="w-64 bg-teal-600 shadow-md h-full fixed top-16 left-0 overflow-y-auto">
-          <nav className="p-5 list-none">
-            <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
-            <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
-              {[
-                { label: "Sales Product", link: "/sales" },
-                { label: "Sales History", link: "/salesHistory" },
-                { label: "Payment", link: "/payment" },
-                { label: "Receipts", link: "/receipts" },
-              ]}
-            </SidebarDropdown>
-            <SidebarItem
-              label="Product Management"
-              link="/product"
-              icon={<HiDocumentText />}
-            />
-            <SidebarItem
-              label="Inventory"
-              link="/inventory"
-              icon={<HiDocumentText />}
-            />
-            <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
-              {[
-                { label: "New Item", link: "/reports" },
-                { label: "Detail Report", link: "/detailReport" },              
-              ]}
-            </SidebarDropdown>
-            <SidebarDropdown label="User Management" icon={<HiUser />}>
-              {[
-                { label: "User", link: "/userManagement" },
-                { label: "Access Rights", link: "/accessRights" },
-                { label: "Employee Transfer", link: "/employeeTransfer" },
-              ]}
-            </SidebarDropdown>
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 bg-white ml-64 pt-16">{children}</main>
+        {!isSalesProductPage && (
+          <aside className="w-64 bg-teal-600 shadow-md h-full fixed top-16 left-0 overflow-y-auto">
+            <nav className="p-5 list-none">
+              <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
+              <SidebarDropdown
+                label="Sales Management"
+                icon={<HiShoppingCart />}
+              >
+                {[
+                  { label: "Sales Product", link: "/sales" },
+                  { label: "Sales History", link: "/salesHistory" },
+                  { label: "Payment", link: "/payment" },
+                  { label: "Receipts", link: "/receipts" },
+                ]}
+              </SidebarDropdown>
+              <SidebarItem
+                label="Product Management"
+                link="/product"
+                icon={<HiDocumentText />}
+              />
+              <SidebarItem
+                label="Inventory"
+                link="/inventory"
+                icon={<HiDocumentText />}
+              />
+              <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
+                {[
+                  { label: "New Item", link: "/reports" },
+                  { label: "Detail Report", link: "/detailReport" },
+                ]}
+              </SidebarDropdown>
+              <SidebarDropdown label="User Management" icon={<HiUser />}>
+                {[
+                  { label: "User", link: "/userManagement" },
+                  { label: "Access Rights", link: "/accessRights" },
+                  { label: "Employee Transfer", link: "/employeeTransfer" },
+                ]}
+              </SidebarDropdown>
+            </nav>
+          </aside>
+        )}
       </div>
+
+      {/* Main Content */}
+      <main
+        className={`flex-1 p-6 bg-white ${
+          isSalesProductPage ? "pt-28" : "ml-64 pt-16"
+        }`}
+      >
+        {children}
+      </main>
     </div>
   );
 };
