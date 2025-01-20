@@ -3,6 +3,7 @@ import axios from "axios";
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
+import { FaPencilAlt } from "react-icons/fa"; // Pencil icon import
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -23,6 +24,9 @@ const UserManagementPage = () => {
     role: "",
     branched: "",
   });
+  const [showRoleModal, setShowRoleModal] = useState(false); // New state for role modal
+  const [roleToUpdate, setRoleToUpdate] = useState(""); // State for role to update
+  const [employeeIdToUpdate, setEmployeeIdToUpdate] = useState(""); // State for employee ID to update
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,7 +76,36 @@ const UserManagementPage = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleAddEmployee = async () => {
+  const handleAddEmployee = async (e) => {
+    e.preventDefault();  // ป้องกันการ submit แบบปกติ
+  
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+  
+      const response = await axios.post("http://localhost:5050/employees", newEmployee, config);
+  
+      console.log("Employee added successfully:", JSON.stringify(response.data, null, 2)); // แสดงข้อมูลในรูปแบบ JSON
+  
+      // ปิด modal และ reset ฟอร์ม
+      setShowAddModal(false);
+      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
+  
+      // รีเฟรชข้อมูล
+      fetchData();
+    } catch (err) {
+      console.error("Failed to add employee:", err);
+      alert("Failed to add employee. Please try again.");
+    }
+};
+
+  
+
+  const handleRoleChange = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -81,12 +114,20 @@ const UserManagementPage = () => {
         },
       };
 
-      await axios.post("http://localhost:5050/employees", newEmployee, config);
-      setShowAddModal(false);
-      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
-      fetchData();
+      await axios.patch(
+        `http://localhost:5050/employees/${employeeIdToUpdate}`,
+        { role: roleToUpdate },
+        config
+      );
+
+      // Update the local state
+      const updatedEmployees = employees.map((employee) =>
+        employee.employeeid === employeeIdToUpdate ? { ...employee, role: roleToUpdate } : employee
+      );
+      setEmployees(updatedEmployees);
+      setShowRoleModal(false); // Close the modal after updating
     } catch (err) {
-      console.error("Failed to add employee:", err);
+      console.error("Failed to update role:", err);
     }
   };
 
@@ -151,6 +192,7 @@ const UserManagementPage = () => {
             <th className="border border-gray-300 px-4 py-2">Role</th>
             <th className="border border-gray-300 px-4 py-2">Branch</th>
             <th className="border border-gray-300 px-4 py-2">Created At</th>
+            <th className="border border-gray-300 px-4 py-2">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -166,11 +208,22 @@ const UserManagementPage = () => {
               <td className="border border-gray-300 px-4 py-2 text-center">{employee.role}</td>
               <td className="border border-gray-300 px-4 py-2 text-center">{getBranchName(employee.branchid)}</td>
               <td className="border border-gray-300 px-4 py-2 text-center">{formatDate(employee.createdat)}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                <FaPencilAlt
+                  className="cursor-pointer text-teal-500"
+                  onClick={() => {
+                    setEmployeeIdToUpdate(employee.employeeid);
+                    setRoleToUpdate(employee.role);
+                    setShowRoleModal(true);
+                  }}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
+      {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-md shadow-md w-96">
@@ -236,6 +289,39 @@ const UserManagementPage = () => {
                 Cancel
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Role Update Modal */}
+      {showRoleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Update Role</h2>
+            <select
+              value={roleToUpdate}
+              onChange={(e) => setRoleToUpdate(e.target.value)}
+              className="border p-2 mb-4 w-full"
+            >
+              <option value="" disabled>Select Role</option>
+              <option value="Manager">Manager</option>
+              <option value="Cashier">Cashier</option>
+              <option value="Audit">Audit</option>
+            </select>
+            <div className="flex justify-between">
+              <button
+                onClick={handleRoleChange}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+              >
+                Update Role
+              </button>
+              <button
+                onClick={() => setShowRoleModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

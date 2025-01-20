@@ -10,7 +10,6 @@ import UserManagementPage from "./pages/UserManagementPage";
 import DetailReportPage from "./pages/DetailReportPage";
 import CustomerRankPage from "./pages/CustomerRankPage";
 import CashFlowPage from "./pages/CashFlowPage";
-import AccessRightsPage from "./pages/AccessRightsPage";
 import EmployeeTransferPage from "./pages/EmployeeTransferPage";
 import PaymentPage from "./pages/PaymentPage";
 import InventoryPage from "./pages/InventoryPage";
@@ -115,16 +114,6 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <CashFlowPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/accessRights"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <AccessRightsPage />
                 </MainLayout>
               </ProtectedRoute>
             }

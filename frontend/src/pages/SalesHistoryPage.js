@@ -29,13 +29,14 @@ const SalesHistoryPage = () => {
           },
         };
 
-        const [salesResponse, branchesResponse, saleItemsResponse] = await Promise.all([
+        const [salesResponse, branchesResponse, saleItemsResponse, productsResponse] = await Promise.all([
           axios.get("http://localhost:5050/sales", config),
           axios.get("http://localhost:5050/branches", config),
           axios.get("http://localhost:5050/saleItems", config),
+          axios.get("http://localhost:5050/products", config), // Fetch product data
         ]);
 
-        setProducts(salesResponse.data.Data || []);
+        setProducts(productsResponse.data.Data || []);
         setBranches(branchesResponse.data.Data || []);
         setSaleItems(saleItemsResponse.data.Data || []);
         setFilteredProducts(salesResponse.data.Data || []);
@@ -55,8 +56,18 @@ const SalesHistoryPage = () => {
     return branch ? branch.bname : "Unknown Branch";
   };
 
+  const getProductName = (productId) => {
+    const product = products.find((p) => p.productid === productId);
+    return product ? product.productname : "Unknown Product";
+  };
+
   const handleViewDetails = (sale) => {
-    const relatedSaleItems = saleItems.filter((item) => item.saleid === sale.saleid);
+    const relatedSaleItems = saleItems
+      .filter((item) => item.saleid === sale.saleid)
+      .map((item) => ({
+        ...item,
+        productname: getProductName(item.productid),
+      }));
     setSelectedSale({ ...sale, items: relatedSaleItems });
   };
 
@@ -68,7 +79,7 @@ const SalesHistoryPage = () => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    const filtered = products.filter((product) => {
+    const filtered = filteredProducts.filter((product) => {
       const branchName = getBranchName(product.branchid).toLowerCase();
       return branchName.includes(query);
     });
@@ -142,7 +153,7 @@ const SalesHistoryPage = () => {
               {selectedSale.items.map((item, index) => (
                 <li key={index}>
                   <strong>Sale Item ID:</strong> {item.saleitemid} <br />
-                  <strong>Product ID:</strong> {item.productid} <br />
+                  <strong>Product Name:</strong> {item.productname} <br />
                   <strong>Quantity:</strong> {item.quantity} <br />
                   <strong>Price:</strong> {item.price} <br />
                   <strong>Total Price:</strong> {item.totalprice}

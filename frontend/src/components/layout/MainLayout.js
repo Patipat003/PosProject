@@ -100,7 +100,7 @@ const MainLayout = ({ children }) => {
                 { label: "Sales Product", link: "/sales" },
                 { label: "Sales History", link: "/salesHistory" },
                 { label: "Payment", link: "/payment" },
-                { label: "Receipts", link: "/receipts" },
+                //{ label: "Receipts", link: "/receipts" },
               ]}
             </SidebarDropdown>
             <SidebarItem
@@ -122,7 +122,6 @@ const MainLayout = ({ children }) => {
             <SidebarDropdown label="User Management" icon={<HiUser />}>
               {[
                 { label: "User", link: "/userManagement" },
-                { label: "Access Rights", link: "/accessRights" },
                 { label: "Employee Transfer", link: "/employeeTransfer" },
               ]}
             </SidebarDropdown>
