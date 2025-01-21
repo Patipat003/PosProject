@@ -64,7 +64,7 @@ func main() {
 	// กำหนด CORS middleware
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://127.0.0.1:3000",                       // อนุญาตให้ React app ที่รันที่ localhost:3000 เข้าถึง
-		AllowMethods:     "GET,POST,PUT,DELETE",                         // อนุญาต HTTP methods
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",                         // อนุญาต HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization", // อนุญาต headers
 		AllowCredentials: true,                                          // อนุญาตการใช้ credentials เช่น cookies, authorization headers
 	}))
@@ -74,6 +74,7 @@ func main() {
 
 	// ใช้ middleware ตรวจสอบ JWT token สำหรับทุกๆ route ที่ต้องการ
 	app.Use(Middleware.IsAuthenticated())
+	
 
 	// กำหนด routes อื่นๆ
 	Database.BranchRoutes(app, db)

@@ -26,7 +26,7 @@ const UserManagementPage = () => {
   });
   const [showRoleModal, setShowRoleModal] = useState(false); // New state for role modal
   const [roleToUpdate, setRoleToUpdate] = useState(""); // State for role to update
-  const [employeeIdToUpdate, setEmployeeIdToUpdate] = useState(""); // State for employee ID to update
+  const [employeeid, setemployeeid] = useState(""); // State for employee ID to update
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,7 +77,12 @@ const UserManagementPage = () => {
   };
 
   const handleAddEmployee = async (e) => {
-    e.preventDefault();  // ป้องกันการ submit แบบปกติ
+    e.preventDefault();
+  
+    if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role || !newEmployee.branched) {
+      alert("All fields are required.");
+      return;
+    }
   
     try {
       const token = localStorage.getItem("authToken");
@@ -87,21 +92,29 @@ const UserManagementPage = () => {
         },
       };
   
-      const response = await axios.post("http://localhost:5050/employees", newEmployee, config);
+      const payload = {
+        ...newEmployee,
+        branchid: newEmployee.branched, // Assuming backend uses 'branchid'
+      };
   
-      console.log("Employee added successfully:", JSON.stringify(response.data, null, 2)); // แสดงข้อมูลในรูปแบบ JSON
+      console.log("Payload to backend:", payload);
   
-      // ปิด modal และ reset ฟอร์ม
+      const response = await axios.post("http://localhost:5050/employees", payload, config);
+  
+      console.log("Employee added successfully:", response.data);
+  
+      // Reset form and close modal
       setShowAddModal(false);
       setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
   
-      // รีเฟรชข้อมูล
+      // Refresh data
       fetchData();
     } catch (err) {
       console.error("Failed to add employee:", err);
       alert("Failed to add employee. Please try again.");
     }
-};
+  };
+  
 
   
 
@@ -115,14 +128,14 @@ const UserManagementPage = () => {
       };
 
       await axios.patch(
-        `http://localhost:5050/employees/${employeeIdToUpdate}`,
+        `http://localhost:5050/employees/${employeeid}`,
         { role: roleToUpdate },
         config
       );
 
       // Update the local state
       const updatedEmployees = employees.map((employee) =>
-        employee.employeeid === employeeIdToUpdate ? { ...employee, role: roleToUpdate } : employee
+        employee.employeeid === employeeid ? { ...employee, role: roleToUpdate } : employee
       );
       setEmployees(updatedEmployees);
       setShowRoleModal(false); // Close the modal after updating
@@ -212,7 +225,7 @@ const UserManagementPage = () => {
                 <FaPencilAlt
                   className="cursor-pointer text-teal-500"
                   onClick={() => {
-                    setEmployeeIdToUpdate(employee.employeeid);
+                    setemployeeid(employee.employeeid);
                     setRoleToUpdate(employee.role);
                     setShowRoleModal(true);
                   }}

@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaPencilAlt } from "react-icons/fa"; // Pencil icon for edit
 
 const EmployeeTransferPage = () => {
-  const [transfers, setTransfers] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [branches, setBranches] = useState([]);
   const [formData, setFormData] = useState({
     id: "",
-    name: "",
     currentBranch: "",
     newBranch: "",
     date: "",
@@ -16,7 +13,7 @@ const EmployeeTransferPage = () => {
   });
   const [error, setError] = useState(null);
 
-  const fetchEmployees = async () => {
+  const fetchEmployeesAndBranches = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -24,8 +21,10 @@ const EmployeeTransferPage = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
-      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+      const [employeeResponse, branchResponse] = await Promise.all([
+        axios.get("http://localhost:5050/employees", config),
+        axios.get("http://localhost:5050/branches", config),
+      ]);
       setEmployees(employeeResponse.data.Data);
       setBranches(branchResponse.data.Data);
     } catch (err) {
@@ -34,7 +33,7 @@ const EmployeeTransferPage = () => {
   };
 
   useEffect(() => {
-    fetchEmployees();
+    fetchEmployeesAndBranches();
   }, []);
 
   const handleInputChange = (e) => {
@@ -44,6 +43,12 @@ const EmployeeTransferPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.id || !formData.newBranch || !formData.date || !formData.time) {
+      alert("All fields are required.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -51,32 +56,60 @@ const EmployeeTransferPage = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-      await axios.post("http://localhost:5050/employee-transfer", formData, config);
-      setTransfers([...transfers, formData]); // Update the local transfers state
-      setFormData({
-        id: "",
-        name: "",
-        currentBranch: "",
-        newBranch: "",
-        date: "",
-        time: "",
-      });
+
+      const payload = {
+        branchid: formData.newBranch,
+        transferDate: formData.date,
+        transferTime: formData.time,
+      };
+
+      const response = await axios.patch(
+        `http://localhost:5050/employees/${formData.id}`,
+        payload,
+        config
+      );
+
+      if (response.status === 200) {
+        // Update employee list to reflect the new branch assignment
+        const updatedEmployees = employees.map((employee) =>
+          employee.employeeid === formData.id
+            ? { ...employee, branchid: formData.newBranch }
+            : employee
+        );
+
+        setEmployees(updatedEmployees);
+        setFormData({
+          id: "",
+          currentBranch: "",
+          newBranch: "",
+          date: "",
+          time: "",
+        });
+
+        alert("Employee transfer completed successfully.");
+      } else {
+        alert("Transfer failed. Please check the data and try again.");
+      }
     } catch (err) {
-      console.error("Failed to submit transfer", err);
+      console.error("Error during transfer:", err);
+      alert("Failed to transfer employee. Please check your data and try again.");
     }
+  };
+
+  // Function to get branch name by branchid
+  const getBranchName = (branchid) => {
+    const branch = branches.find((branch) => branch.branchid === branchid);
+    return branch ? branch.bname : "Unknown Branch";
   };
 
   return (
     <div className="p-8 bg-white min-h-screen">
-      {/* Header */}
       <h1 className="text-4xl font-bold text-teal-600 mb-6">Employee Branch Transfer</h1>
       <p className="text-gray-600 mb-4">Manage employee transfers between branches.</p>
 
-      {/* Transfer Form */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">Transfer Details</h2>
         <form onSubmit={handleSubmit}>
-          {/* Employee Selector */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Select Employee</label>
             <select
@@ -86,34 +119,14 @@ const EmployeeTransferPage = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">Select Employee</option>
-              {Array.isArray(employees) &&
-                employees.map((employee) => (
-                  <option key={employee.employeeid} value={employee.employeeid}>
-                    {employee.name} - {employee.role} - {employee.branchid}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          {/* Current Branch */}
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-2">Current Branch</label>
-            <select
-              name="currentBranch"
-              value={formData.currentBranch}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="">Select Current Branch</option>
-              {branches.map((branch, index) => (
-                <option key={index} value={branch.bname}>
-                  {branch.bname}
+              {employees.map((employee) => (
+                <option key={employee.employeeid} value={employee.employeeid}>
+                  {employee.name} - Current Branch: {getBranchName(employee.branchid)}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* New Branch */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">New Branch</label>
             <select
@@ -123,15 +136,14 @@ const EmployeeTransferPage = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">Select New Branch</option>
-              {branches.map((branch, index) => (
-                <option key={index} value={branch.bname}>
+              {branches.map((branch) => (
+                <option key={branch.branchid} value={branch.branchid}>
                   {branch.bname}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Date & Time */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Transfer Date</label>
             <input
@@ -154,7 +166,6 @@ const EmployeeTransferPage = () => {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-md hover:bg-teal-600"
@@ -162,48 +173,6 @@ const EmployeeTransferPage = () => {
             Submit Transfer
           </button>
         </form>
-      </div>
-
-      {/* Transfer Records */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Transfer Records</h2>
-        {transfers.length > 0 ? (
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-teal-600 text-white">
-                <th className="border border-gray-300 px-4 py-2">ID</th>
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">Current Branch</th>
-                <th className="border border-gray-300 px-4 py-2">New Branch</th>
-                <th className="border border-gray-300 px-4 py-2">Date</th>
-                <th className="border border-gray-300 px-4 py-2">Time</th>
-                <th className="border border-gray-300 px-4 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transfers.map((transfer, index) => (
-                <tr
-                  key={index}
-                  className={
-                    index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
-                  }
-                >
-                  <td className="border border-gray-300 px-4 py-2">{transfer.id}</td>
-                  <td className="border border-gray-300 px-4 py-2">{transfer.name}</td>
-                  <td className="border border-gray-300 px-4 py-2">{transfer.currentBranch}</td>
-                  <td className="border border-gray-300 px-4 py-2">{transfer.newBranch}</td>
-                  <td className="border border-gray-300 px-4 py-2">{transfer.date}</td>
-                  <td className="border border-gray-300 px-4 py-2">{transfer.time}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <FaPencilAlt className="text-teal-500 cursor-pointer" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500">No transfer records found.</p>
-        )}
       </div>
     </div>
   );

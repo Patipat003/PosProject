@@ -119,6 +119,56 @@ func DeleteEmployee(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
+func PatchEmployee(db *gorm.DB, c *fiber.Ctx) error {
+	id := c.Params("id")
+	var employee Models.Employees
+	if err := db.Where("employee_id = ?", id).First(&employee).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Employee not found",
+		})
+	}
+
+	var req Models.Employees
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid JSON format: " + err.Error(),
+		})
+	}
+
+	// อัปเดตเฉพาะข้อมูลที่มีการส่งมาใน request
+	if req.Email != "" {
+		employee.Email = req.Email
+	}
+	if req.Name != "" {
+		employee.Name = req.Name
+	}
+	if req.Role != "" {
+		employee.Role = req.Role
+	}
+	if req.BranchID != "" {
+		employee.BranchID = req.BranchID
+	}
+
+	// แฮชรหัสผ่านใหม่ถ้ามีการเปลี่ยนแปลง
+	if req.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error hashing password: " + err.Error(),
+			})
+		}
+		employee.Password = string(hashedPassword)
+	}
+
+	if err := db.Save(&employee).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update employee: " + err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
+}
+
+// Route สำหรับ Employees
 // Route สำหรับ Employees
 func EmployeesRoutes(app *fiber.App, db *gorm.DB) {
 	app.Get("/employees", func(c *fiber.Ctx) error {
@@ -133,6 +183,9 @@ func EmployeesRoutes(app *fiber.App, db *gorm.DB) {
 	app.Put("/employees/:id", func(c *fiber.Ctx) error {
 		return UpdateEmployee(db, c)
 	})
+	app.Patch("/employees/:id", func(c *fiber.Ctx) error {
+        return PatchEmployee(db, c)
+    })
 	app.Delete("/employees/:id", func(c *fiber.Ctx) error {
 		return DeleteEmployee(db, c)
 	})
