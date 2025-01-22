@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell, HiTruck  } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -61,8 +61,8 @@ const Header = () => {
 
       const inventory = response.data.Data;
 
-      // Filter products by branchid and quantity less than 10
-      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 10);
+      // Filter products by branchid and quantity less than 100
+      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 100);
       setLowStockProducts(lowStockItems); // Update state with filtered products
     } catch (err) {
       console.error("Error fetching inventory:", err);
@@ -148,9 +148,9 @@ const Header = () => {
         {salesNotifications.length > 0 && (
           <button
             onClick={handleNotificationClick}
-            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20"
+            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
           >
-            <HiBell className="h-6 w-6" />
+            <HiTruck   className="h-6 w-6" />
             <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{salesNotifications.length}</span>
           </button>
         )}
@@ -158,7 +158,7 @@ const Header = () => {
         {lowStockProducts.length > 0 && (
           <button
             onClick={handleNotificationClick1}
-            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20"
+            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
           >
             <HiBell className="h-6 w-6" />
             <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{lowStockProducts.length}</span>

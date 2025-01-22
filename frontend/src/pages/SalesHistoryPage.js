@@ -101,7 +101,7 @@ const SalesHistoryPage = () => {
           value={searchQuery}
           onChange={handleSearch}
           placeholder="Search by Branch Name"
-          className="w-full px-4 py-2 border rounded"
+          className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
 

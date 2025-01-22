@@ -21,7 +21,7 @@ const RequestInventory = () => {
   const [error, setError] = useState(""); // Add error state
   const [itemsPerPage] = useState(10); // จำนวนข้อมูลต่อหน้า
   const location = useLocation();  // ใช้ useLocation เพื่อดึงข้อมูลจาก state ที่ส่งมาจาก Header
-
+  const [toBranch, setToBranch] = useState('');
 
   // Fetch data from API
   const fetchRequests = async () => {
@@ -85,12 +85,51 @@ const RequestInventory = () => {
     }
   };
 
+  // ดึงข้อมูล Inventory ของ Branch ที่เลือก
+  const fetchInventoryForBranch = async (branchid) => {
+    try {
+      const response = await axios.get(`/inventory?branchid=${branchid}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setInventory(response.data);
+    } catch (error) {
+      console.error('Failed to fetch inventory data:', error);
+    }
+  };
+
+  // ฟังก์ชันในการอัปเดตชื่อสินค้าให้แสดงจำนวน
+  const updateProductOptionsWithInventory = () => {
+    const updatedProducts = products.map((product) => {
+      const inventoryItem = inventory.find(
+        (item) => item.productid === product.productid
+      );
+      const quantity = inventoryItem ? inventoryItem.quantity : 0;
+      return {
+        ...product,
+        displayName: `${product.productname} (${quantity})`, // แสดงจำนวนสินค้าด้วย
+      };
+    });
+    setProducts(updatedProducts);
+  };
+
   useEffect(() => {
     fetchBranches();
     fetchProducts();
     fetchRequests();
     fetchInventory();
   }, []);
+
+  useEffect(() => {
+      if (toBranch) {
+        fetchInventoryForBranch(toBranch);
+      }
+    }, [toBranch]);
+  
+  useEffect(() => {
+    if (inventory.length > 0) {
+      updateProductOptionsWithInventory();
+    }
+  }, [inventory]);
 
   // Extract the branch ID from the token (assuming it's stored in the payload)
   const getBranchFromToken = () => {
@@ -300,104 +339,117 @@ const RequestInventory = () => {
 
             {/* Add Request Form */}
             <div className="mb-8">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Add New Request
-              </h3>
-              <form>
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      From Branch ({branchName})
-                    </label>
-                    <select
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      value={newRequest.tobranchid}
-                      disabled
-                    >
-                      <option value="">Your Branch</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      To Branch
-                    </label>
-                    <select
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      value={newRequest.frombranchid}
-                      onChange={(e) =>
-                        setNewRequest({ ...newRequest, frombranchid: e.target.value })
-                      }
-                    >
-                      <option value="">Select Branch</option>
-                      {branches
-                        .filter((branch) => branch.branchid !== branchid) // Filter out our own branch
-                        .map((branch) => (
-                          <option key={branch.branchid} value={branch.branchid}>
-                            {branch.bname}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Add New Request
+            </h3>
+            <form>
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    From Branch ({branchName})
+                  </label>
+                  <select
+                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={newRequest.tobranchid}
+                    disabled
+                  >
+                    <option value="">Your Branch</option>
+                  </select>
                 </div>
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Product
-                    </label>
-                    <select
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      value={newRequest.productid}
-                      onChange={(e) =>
-                        setNewRequest({ ...newRequest, productid: e.target.value })
-                      }
-                    >
-                      <option value="">Select Product</option>
-                      {products.map((product) => (
-                        <option key={product.productid} value={product.productid}>
-                          {product.productname}
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    To Branch
+                  </label>
+                  <select
+                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={newRequest.frombranchid}
+                    onChange={(e) =>
+                      setNewRequest({ ...newRequest, frombranchid: e.target.value })
+                    }
+                  >
+                    <option value="">Select Branch</option>
+                    {branches
+                      .filter((branch) => branch.branchid !== branchid) // Filter out our own branch
+                      .map((branch) => (
+                        <option key={branch.branchid} value={branch.branchid}>
+                          {branch.bname}
                         </option>
                       ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Quantity
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      value={newRequest.quantity}
-                      onChange={(e) =>
-                        setNewRequest({
-                          ...newRequest,
-                          quantity: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
+                  </select>
                 </div>
-                <button
-                  className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
-                  onClick={handleAddRequest}
-                >
-                  Add Request
-                </button>
-              </form>
-            </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Product
+                  </label>
+                  <select
+                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={newRequest.productid}
+                    onChange={(e) =>
+                      setNewRequest({ ...newRequest, productid: e.target.value })
+                    }
+                  >
+                    <option value="">Select Product</option>
+                    {products.map((product) => {
+                      // Find the inventory for this product in the selected "To Branch"
+                      const branchInventory = inventory.find(
+                        (item) => item.productid === product.productid && item.branchid === newRequest.frombranchid
+                      );
+                      const quantity = branchInventory ? branchInventory.quantity : 0;
+
+                      return (
+                        <option key={product.productid} value={product.productid}>
+                          {product.productname} ({quantity})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={newRequest.quantity}
+                    onChange={(e) =>
+                      setNewRequest({
+                        ...newRequest,
+                        quantity: parseInt(e.target.value),
+                      })
+                    }
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <button
+                className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                onClick={handleAddRequest}
+              >
+                Add Request
+              </button>
+            </form>
+          </div>
+
 
             {/* Sending Shipment */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold text-teal-600 mb-4">Sending Shipment</h3>
-              <table className="table-auto w-full border-collapse border border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-teal-600 text-white">
+              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                <thead className="bg-gray-100 text-gray-600">
                   <tr>
-                    <th className="border px-4 py-2">To Branch</th>
-                    <th className="border px-4 py-2">Product Name</th>
-                    <th className="border px-4 py-2">Quantity</th>
-                    <th className="border px-4 py-2">Created At</th>
-                    <th className="border px-4 py-2">Status</th>
-                    <th className="border px-4 py-2">Actions</th>
+                    <th className="border text-sm px-4 py-2">To Branch</th>
+                    <th className="border text-sm px-4 py-2">Product Name</th>
+                    <th className="border text-sm px-4 py-2">Quantity</th>
+                    <th className="border text-sm px-4 py-2">Created At</th>
+                    <th className="border text-sm px-4 py-2">Status</th>
+                    <th className="border text-sm px-4 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -410,19 +462,19 @@ const RequestInventory = () => {
                     );
 
                     return (
-                      <tr key={request.requestid} className="hover:bg-teal-50">
-                        <td className="border px-4 py-2">
+                      <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-50">
+                        <td className="border text-sm px-4 py-2">
                           {toBranch ? toBranch.bname : "-"}
                         </td>
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">
                           {product ? product.productname : "-"}
                         </td>
-                        <td className="border px-4 py-2">{request.quantity}</td>
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
+                        <td className="border text-sm px-4 py-2">
                           {moment(request.createdat).format("L, HH:mm")}
                         </td>
-                        <td className="border px-4 py-2">{request.status}</td>
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">{request.status}</td>
+                        <td className="border text-sm px-4 py-2">
                           {request.status === "pending" && (
                             <>
                               <button
@@ -478,15 +530,15 @@ const RequestInventory = () => {
             {/* Receiving Shipment  */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold text-teal-600 mb-4">Receiving Shipment</h3>
-              <table className="table-auto w-full border-collapse border border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-teal-600 text-white">
+              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                <thead className="bg-gray-100 text-gray-600">
                   <tr>
-                    <th className="border px-4 py-2">From Branch</th>
-                    <th className="border px-4 py-2">Product Name</th>
-                    <th className="border px-4 py-2">Quantity</th>
-                    <th className="border px-4 py-2">Created At</th>
-                    <th className="border px-4 py-2">Status</th>
-                    <th className="border px-4 py-2">Actions</th>
+                    <th className="border text-sm px-4 py-2">From Branch</th>
+                    <th className="border text-sm px-4 py-2">Product Name</th>
+                    <th className="border text-sm px-4 py-2">Quantity</th>
+                    <th className="border text-sm px-4 py-2">Created At</th>
+                    <th className="border text-sm px-4 py-2">Status</th>
+                    <th className="border text-sm px-4 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -500,17 +552,17 @@ const RequestInventory = () => {
 
                     return (
                       <tr key={request.requestid} className="hover:bg-teal-50">
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">
                           {fromBranch ? fromBranch.bname : "-"}
                         </td>
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">
                           {product ? product.productname : "-"}
                         </td>
-                        <td className="border px-4 py-2">{request.quantity}</td>
-                        <td className="border px-4 py-2">
+                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
+                        <td className="border text-sm px-4 py-2">
                           {moment(request.createdat).format("L, HH:mm")}
                         </td>
-                        <td className="border px-4 py-2">{request.status}</td>
+                        <td className="border text-sm px-4 py-2">{request.status}</td>
                       </tr>
                     );
                   })}
@@ -546,12 +598,12 @@ const RequestInventory = () => {
               <h3 className="text-xl font-semibold text-teal-600 my-4">
                 Products ({branchName})
               </h3>
-              <table className="table-auto w-full border-collapse border border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-teal-600 text-white">
+              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                <thead className="bg-gray-100 text-gray-600">
                   <tr>
-                    <th className="border px-4 py-2">Product Name</th>
-                    <th className="border px-4 py-2">Price</th>
-                    <th className="border px-4 py-2">Quantity</th>
+                    <th className="border text-sm px-4 py-2">Product Name</th>
+                    <th className="border text-sm px-4 py-2">Price</th>
+                    <th className="border text-sm px-4 py-2">Quantity</th>
                   </tr>
                 </thead>
                 <tbody>

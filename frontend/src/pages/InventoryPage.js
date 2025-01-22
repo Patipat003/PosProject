@@ -6,6 +6,8 @@ import RequestInventory from "../components/layout/ui/RequestInventory";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
 import { HiEye } from "react-icons/hi";
+import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -26,7 +28,7 @@ const InventoryPage = () => {
   const [userRole, setUserRole] = useState("");
   const [userBranchId, setUserBranchId] = useState("");
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
   // Function to fetch inventory data
@@ -150,11 +152,26 @@ const InventoryPage = () => {
   ];
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
+          style={{ height: "200px", width: "200px" }}
+        />
+        <span className="text-teal-500 text-lg font-semibold mt-4">Loading...</span>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="flex items-center justify-center h-screen flex-col">
+        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+        <p className="text-red-500 text-xl">{error}</p>
+      </div>
+    );
   }
 
   const totalProductPages = Math.ceil(filteredInventory.length / itemsPerPage);
@@ -184,8 +201,8 @@ const InventoryPage = () => {
     setSelectedInventory(null);
   };
 
-  const columns = ["inventoryid", "productid", "branchid", "quantity", "updatedat"];
-
+  const columns = ["productname", "productid", "quantity", "updatedat"];
+  
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
@@ -193,7 +210,7 @@ const InventoryPage = () => {
 
       <div className="flex space-x-4 mb-4">
         <RequestInventory onProductAdded={fetchInventory} />
-        <ExportButtons filteredTables={filteredInventory} columns={columns} filename="inventory.pdf" />
+        <ExportButtons filteredTables={filteredInventory} columns={columns} filename="pdf" />
       </div>
 
       <div className="mb-4 space-x-6 flex">
@@ -207,7 +224,7 @@ const InventoryPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search by product name"
-            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
 
@@ -219,33 +236,35 @@ const InventoryPage = () => {
         />
       </div>
 
-      <div className="overflow-x-auto space-y-6">
-        {userRole === "Manager" && (
-          <div>
-            <div className="mb-4 text-blue-500">
-              <h2>Manager Privileges</h2>
-            </div>
-
-            <button
-              onClick={handleToggleView}
-              className="btn bg-blue-500 text-white font-medium px-6 py-3 mb-4 rounded-md border-none hover:bg-blue-600 transition duration-300"
-            >
-              {viewAllBranches ? "View My Branch Only" : "View All Branches"}
-            </button>
+      {userRole === "Manager" && (
+        <div>
+          <div className="mb-4 text-blue-500">
+            <h2>Manager Privileges</h2>
           </div>
-        )}
 
+          <button
+            onClick={handleToggleView}
+            className="btn bg-blue-500 text-white font-medium px-6 py-3 mb-4 rounded-md border-none hover:bg-blue-600 transition duration-300"
+          >
+            {viewAllBranches ? "View My Branch Only" : "View All Branches"}
+          </button>
+        </div>
+      )}
+
+      {/* Inventory table */}
+      <div className="overflow-x-auto space-y-6 mt-4">
         {Object.keys(groupedInventory).map((branchName) => {
           const paginatedRequests = getPaginatedRequests(groupedInventory[branchName]);
           return (
             <div key={branchName} className="mb-6">
               <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
-              <table className="table w-full table-striped">
-                <thead>
+              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                <thead className="bg-gray-100 text-gray-600">
                   <tr>
-                    <th className="text-black">Product Name</th>
-                    <th className="text-black">Quantity</th>
-                    <th className="text-black">Updated At</th>
+                    <th className="border text-sm px-4 py-2">Product Name</th>
+                    <th className="border text-sm px-4 py-2">Quantity</th>
+                    <th className="border text-sm px-4 py-2">Updated At</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,7 +316,7 @@ const InventoryPage = () => {
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative">
             <h2 className="text-3xl font-bold mb-6 text-teal-600 text-center">
-              Inventory Details
+              Product Detail
             </h2>
             <div className="space-y-4">
               <p className="text-gray-700">

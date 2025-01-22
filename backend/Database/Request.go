@@ -9,6 +9,69 @@ import (
 	"gorm.io/gorm"
 )
 
+// สร้างคำขอ (Request) อัตโนมัติ
+func AutoCreateRequest(db *gorm.DB, c *fiber.Ctx) error {
+	var req Models.Requests
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid JSON format: " + err.Error(),
+		})
+	}
+
+	// ตรวจสอบว่ามีสินค้าที่ต้องการในสาขาของตัวเอง (tobranchid) หรือไม่
+	var productInventory Models.Inventory
+	if err := db.Where("branch_id = ? AND product_id = ?", req.ToBranchID, req.ProductID).First(&productInventory).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Product not found in your branch",
+		})
+	}
+
+	// ตรวจสอบว่า FromBranchID และ ToBranchID ไม่ใช่สาขาเดียวกัน
+	if req.FromBranchID == req.ToBranchID {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "FromBranchID and ToBranchID cannot be the same",
+		})
+	}
+
+	// หาสาขาที่มีสินค้ามากที่สุด
+	var fromBranch Models.Inventory
+	if err := db.Where("product_id = ?", req.ProductID).Order("quantity desc").First(&fromBranch).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Product not found in any branch",
+		})
+	}
+
+	// สร้างคำขอ
+	req.RequestID = uuid.New().String()
+	req.CreatedAt = time.Now()
+	req.FromBranchID = fromBranch.BranchID // ตั้งค่า fromBranchID เป็นสาขาที่มีสินค้าเยอะที่สุด
+	req.Status = "pending"                 // ตั้งค่าเริ่มต้นเป็น pending
+
+	// ตรวจสอบสินค้าจากสาขาที่ส่งสินค้า (fromBranchID) ว่ามีสินค้าพอหรือไม่
+	var inventoryFrom Models.Inventory
+	if err := db.Where("branch_id = ? AND product_id = ?", req.FromBranchID, req.ProductID).First(&inventoryFrom).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Inventory of sending branch not found",
+		})
+	} else {
+		// ถ้าสินค้าจากสาขาที่ส่งมีไม่พอ
+		if inventoryFrom.Quantity < req.Quantity {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Not enough stock in sending branch",
+			})
+		}
+	}
+
+	// บันทึกคำขอในฐานข้อมูล
+	if err := db.Create(&req).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create request: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+}
+
 // เพิ่ม Request
 func AddRequest(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Requests
@@ -18,14 +81,24 @@ func AddRequest(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// ตรวจสอบว่า FromBranchID และ ToBranchID ไม่ใช่สาขาเดียวกัน
+	if req.FromBranchID == req.ToBranchID {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "FromBranchID and ToBranchID cannot be the same",
+		})
+	}
+
+	// สร้าง Request ID ใหม่
 	req.RequestID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
+	// เพิ่ม Request ลงในฐานข้อมูล
 	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create request: " + err.Error(),
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
 }
 
@@ -162,6 +235,10 @@ func RequestRoutes(app *fiber.App, db *gorm.DB) {
 	})
 	app.Post("/requests", func(c *fiber.Ctx) error {
 		return AddRequest(db, c)
+	})
+	// ใช้ route ใหม่สำหรับสร้างคำขออัตโนมัติ
+	app.Post("/requests/auto", func(c *fiber.Ctx) error {
+		return AutoCreateRequest(db, c)
 	})
 	app.Put("/requests/:id", func(c *fiber.Ctx) error {
 		return UpdateRequest(db, c)

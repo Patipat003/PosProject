@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify"; // Import toast
 
 const ModalStockLow = ({ closeModal }) => {
   const [products, setProducts] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [branchId, setBranchId] = useState(null);
+  const [quantity, setQuantity] = useState(0); // ใช้สำหรับเก็บจำนวนสินค้า
+  const [selectedProduct, setSelectedProduct] = useState(null); // เก็บสินค้าที่เลือก
 
-  // ดึงข้อมูลจาก token
+  // ดึง branch ID จาก token
   const getBranchIdFromToken = () => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -29,7 +32,7 @@ const ModalStockLow = ({ closeModal }) => {
       const response = await axios.get("http://localhost:5050/products", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      console.log("Products data:", response.data); // แสดงข้อมูลผลิตภัณฑ์ในคอนโซล
       setProducts(response.data.Data);
     } catch (err) {
       console.error("Error fetching products:", err);
@@ -48,10 +51,73 @@ const ModalStockLow = ({ closeModal }) => {
       const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      console.log("Inventory data:", response.data); // แสดงข้อมูลสต็อกในคอนโซล
       setInventory(response.data.Data);
     } catch (err) {
       console.error("Error fetching inventory:", err);
+    }
+  };
+
+  // ฟังก์ชันสำหรับส่งคำขอสินค้า
+  const handleRequest = async () => {
+    // ตรวจสอบว่าเลือกสินค้าและจำนวนที่กรอกมีค่าที่ถูกต้อง
+    if (selectedProduct && quantity > 0) {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+  
+      const requestData = {
+        productid: selectedProduct.productid,
+        quantity: parseInt(quantity, 10), // แปลงค่าจำนวนให้เป็นตัวเลข (integer)
+        tobranchid: branchId,
+      };
+  
+      console.log("Request JSON:", requestData); // แสดงข้อมูลที่กำลังจะถูกส่งไป
+  
+      try {
+        const response = await axios.post("http://localhost:5050/requests/auto", requestData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        console.log("Request response:", response.data); // แสดงข้อมูลที่ได้รับจากคำขอสินค้า
+        if (response.status === 200) {
+          toast.success("Request sent successfully!"); // แสดง toast เมื่อสำเร็จ
+          closeModal(); // ปิด modal หลังจากส่งคำขอสำเร็จ
+        } else {
+          toast.error("Failed to send request. Please try again."); // แสดง toast เมื่อคำขอล้มเหลว
+        }
+      } catch (error) {
+        toast.error("Error sending request: " + error.message); // แสดง toast เมื่อเกิดข้อผิดพลาด
+        console.error("Error sending request:", error);
+      }
+    } else {
+      toast.error("Invalid product or quantity. Please check your input."); // แสดง toast เมื่อข้อมูลไม่ถูกต้อง
+      console.error("Invalid product or quantity");
+    }
+  };
+  
+  // การจัดการกรอกข้อมูลใน input
+  <input
+    type="number"
+    value={quantity}
+    onChange={(e) => setQuantity(e.target.value)} // ปรับให้เก็บเป็น string
+    className="input text-gray-600 bg-white p-4 border-gray-300 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-teal-600"
+    min="1"
+  />
+  
+
+  // กรองสินค้าสต็อกต่ำ
+  const filterLowStockProducts = () => {
+    if (branchId && inventory.length > 0 && products.length > 0) {
+      const filtered = products.filter((product) => {
+        const stock = inventory.find(
+          (item) => item.productid === product.productid && item.branchid === branchId
+        );
+        return stock && stock.quantity < 100; // กำหนดสต็อกต่ำเป็น 10
+      });
+      setFilteredProducts(filtered);
     }
   };
 
@@ -62,52 +128,108 @@ const ModalStockLow = ({ closeModal }) => {
 
   useEffect(() => {
     if (branchId) {
-      fetchInventory();  // เรียกข้อมูลสต็อกเมื่อมี branchId
+      fetchInventory();
     }
   }, [branchId]);
 
   useEffect(() => {
-    if (branchId && inventory.length > 0 && products.length > 0) {
-      // กรองสินค้าตาม branchId และ stock ที่ต่ำกว่า 10
-      const filtered = products.filter((product) => {
-        // หาผลิตภัณฑ์ที่มีในสต็อก
-        const stock = inventory.find(item => item.productid === product.productid && item.branchid === branchId);
-        if (stock && stock.quantity <= 10) {
-          return true; // แสดงผลิตภัณฑ์ที่มีสต็อกต่ำกว่า 10
-        }
-        return false;
-      });
-      setFilteredProducts(filtered);
-    }
+    filterLowStockProducts();
   }, [branchId, inventory, products]);
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl text-gray-600 font-semibold mb-4">Low Stock Products</h2>
-        {filteredProducts.length === 0 ? (
-            <p>No products with low stock in your branch.</p>
-            ) : (
-            <ul>
-                {filteredProducts.map((product) => {
-                // หาสินค้าในสต็อก
-                const stock = inventory.find(item => item.productid === product.productid && item.branchid === branchId);
-                return (
-                    <li key={product.productid} className="flex justify-between py-2 border-b">
-                    <span className="text-gray-600">{product.productname}</span>
-                    <span className="text-red-500">{stock ? stock.quantity : 0} left</span> {/* แสดงจำนวนจาก stock */}
-                    </li>
-                );
-                })}
-            </ul>
-            )}
+  useEffect(() => {
+      fetchInventory();
+      fetchProducts();
+    
+      // Poll every 5 seconds
+      const interval = setInterval(() => {
+        fetchInventory();
+        fetchProducts();
+      }, 5000);
+    
+      return () => clearInterval(interval); // Clean up the interval on component unmount
+    }, []); 
 
-        <button
-          onClick={closeModal}
-          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg"
-        >
-          Close
-        </button>
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+      onClick={closeModal} // ปิด Modal เมื่อคลิกด้านนอก
+    >
+      <div
+        className="bg-white p-8 rounded-lg shadow-lg w-3/4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()} // ป้องกันการคลิกด้านในปิด Modal
+      >
+        <h2 className="text-xl text-gray-600 font-semibold mb-4">
+          Low Stock Products
+        </h2>
+  
+        <p className="text-gray-600 mb-6">
+          You are viewing products with low stock in your branch. These are the items with less than 100 units remaining. You can submit a request to replenish stock by clicking on the "Request Inventory" button for each product.
+        </p>
+  
+        {filteredProducts.length === 0 ? (
+          <p className="text-gray-500">No products with low stock in your branch.</p>
+        ) : (
+          <div className="grid grid-cols-4 gap-4">
+            {filteredProducts.map((product) => {
+              const stock = inventory.find(
+                (item) => item.productid === product.productid && item.branchid === branchId
+              );
+              return (
+                <div
+                  key={product.productid}
+                  className="flex flex-col py-4 px-6 border rounded-lg border-gray-300 bg-white h-60"
+                >
+                  <div className="flex-grow flex flex-col items-center justify-center">
+                    <img
+                      src={product.imageurl}
+                      alt={product.productname}
+                      className="w-16 h-16 object-cover mb-2 rounded mx-auto"
+                    />
+                    <span className="block text-gray-700 font-semibold text-center">{product.productname}</span>
+                    <span className="block text-gray-500 text-sm text-center">Stock: {stock ? stock.quantity : 0} units left</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setQuantity(1);
+                    }}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+                  >
+                    Request Inventory
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+  
+        {selectedProduct && (
+          <div className="mt-4 space-x-4">
+            <h3 className="text-gray-700 font-semibold mb-2">Enter Quantity for {selectedProduct.productname}</h3>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="input text-gray-600 bg-white p-4 border-gray-300 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-teal-600"
+              min="1"
+            />
+            <button
+              onClick={handleRequest}
+              className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+            >
+              Submit Request
+            </button>
+          </div>
+        )}
+  
+        <div className="mt-6 flex justify-between items-center">
+          <button
+            onClick={closeModal}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

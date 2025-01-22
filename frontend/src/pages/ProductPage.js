@@ -6,6 +6,8 @@ import ExportButtons from "../components/layout/ui/ExportButtons";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
 import { TrashIcon, PencilIcon } from "@heroicons/react/outline";
+import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
 // ฟังก์ชันสำหรับแปลงวันที่ให้เป็นรูปแบบที่อ่านง่าย (ไม่มีวินาที)
 const formatDate = (dateString) => {
@@ -23,7 +25,7 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const itemsPerPage = 10; // จำนวนรายการต่อหน้า
+  const itemsPerPage = 20; // จำนวนรายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
   // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
@@ -158,11 +160,25 @@ const ProductPage = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
-
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <Player
+            autoplay
+            loop
+            src="https://assets5.lottiefiles.com/packages/lf20_jC6xX7.json" // Lottie animation URL
+            style={{ height: "150px", width: "150px" }}
+          />
+        </div>
+      );
+    }
+  
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="flex items-center justify-center h-screen flex-col">
+        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+        <p className="text-red-500 text-xl">{error}</p>
+      </div>
+    );
   }
 
   const filteredProducts = selectedCategory
@@ -201,7 +217,7 @@ const ProductPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search for products"
-            className="border bg-white border-gray-300 p-2 rounded w-full mr-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="border bg-white border-gray-300 p-2 rounded w-full mr-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
           <button className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
             Search
@@ -241,78 +257,73 @@ const ProductPage = () => {
       </div>
 
       {/* Product Table */}
-      <div className="overflow-x-auto">
+      <div className="min-w-full">
         <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
           <ProductForm onProductAdded={handleProductAdded} />
           <ExportButtons filteredTables={filteredProducts} columns={columns} filename="products.pdf" />
         </div>
 
-        <table className="table w-full table-striped">
-          <thead>
-            <tr>
-              <th className="text-gray-600">Name</th>
-              <th className="text-gray-600">Category</th>
-              <th className="text-gray-600">Description</th>
-              <th className="text-gray-600">Price</th>
-              <th className="text-gray-600">Create Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedProducts
-              .filter((product) =>
-                searchQuery
-                  ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
-                  : true
-              )
-              .map((product) => (
-                <tr key={product.productid}>
-                  <td className="text-gray-600">{product.productname}</td>
-                  <td className="text-gray-600">{getCategoryName(product.categoryid)}</td>
-                  <td className="text-gray-600">{product.description}</td>
-                  <td className="text-gray-600">฿{product.price.toFixed(2)}</td>
-                  <td className="text-gray-600">{formatDate(product.createdat)}</td>
-                  <td className="text-gray-600"></td>
-                  {/* <td>
-                    <button
-                      onClick={() => handleDeleteProduct(product.productid)}
-                      className="hover:border-b-2 border-gray-400 transition duration-30"
-                    >
-                      <TrashIcon className="text-red-600 h-6 w-6" />
-                    </button>
-                  </td> */}
-                  <td>
-                    <EditedProduct
-                      productId={product.productid}
-                      onProductUpdated={fetchProducts}
-                    />
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto mb-6">
+          <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+            <thead className="bg-gray-100 text-gray-600">
+              <tr>
+                <th className="border text-sm px-4 py-2">Name</th>
+                <th className="border text-sm px-4 py-2">Category</th>
+                <th className="border text-sm px-4 py-2">Description</th>
+                <th className="border text-sm px-4 py-2">Price</th>
+                <th className="border text-sm px-4 py-2">Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedProducts
+                .filter((product) =>
+                  searchQuery
+                    ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
+                    : true
+                )
+                .map((product) => (
+                  <tr key={product.productid}>
+                    <td className="text-black">{product.productname}</td>
+                    <td className="text-black">{getCategoryName(product.categoryid)}</td>
+                    <td className="text-black">{product.description}</td>
+                    <td className="text-black">฿{product.price.toFixed(2)}</td>
+                    <td className="text-black">{formatDate(product.createdat)}</td>
+                    <td>
+                      <EditedProduct
+                        productId={product.productid}
+                        onProductUpdated={fetchProducts}
+                      />
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination Controls */}
         <div className="flex justify-center mt-4 space-x-4">
-            <button
-              onClick={handlePreviousPageProduct}
-              disabled={currentProductPage === 1}
-              className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-            >
-              Previous
-            </button>
-            <div className="flex items-center">
-              Page {currentProductPage} of {totalProductPages}
-            </div>
-            <button
-              onClick={handleNextPageProduct}
-              disabled={currentProductPage === totalProductPages}
-              className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-            >
-              Next
-            </button>
+          <button
+            onClick={handlePreviousPageProduct}
+            disabled={currentProductPage === 1}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          >
+            Previous
+          </button>
+          <div className="flex items-center">
+            Page {currentProductPage} of {totalProductPages}
           </div>
+          <button
+            onClick={handleNextPageProduct}
+            disabled={currentProductPage === totalProductPages}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          >
+            Next
+          </button>
+        </div>
       </div>
+
     </div>
   );
 };
