@@ -2,13 +2,25 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
 
-const formatMonthYear = (dateString) => {
+const formatDate = (dateString, type) => {
   const date = new Date(dateString);
   if (isNaN(date)) {
     console.error("Invalid date:", dateString);
     return "Invalid Date";
   }
-  return format(date, "MMMM yyyy");
+
+  switch (type) {
+    case "day":
+      return format(date, "dd MMMM yyyy");
+    case "month":
+      return format(date, "MMMM yyyy");
+    case "year":
+      return format(date, "yyyy");
+    case "time":
+      return format(date, "HH:mm:ss");
+    default:
+      return format(date, "MMMM yyyy");
+  }
 };
 
 const ReportsPage = () => {
@@ -17,6 +29,8 @@ const ReportsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("month"); // Default filter by month
+  const [selectedBranch, setSelectedBranch] = useState(""); // State for selected branch filter
 
   // Fetch sales and branch data
   const fetchSalesData = async () => {
@@ -48,42 +62,43 @@ const ReportsPage = () => {
     return branch ? branch.bname : "Unknown Branch";
   };
 
-  // Group the data by month and branch
+  // Group the data based on the selected filter type
   const groupedSales = salesData.reduce((groups, item) => {
-    const monthYear = formatMonthYear(item.createdat);
+    const formattedDate = formatDate(item.createdat, filterType);
     const branchId = item.branchid;
 
-    if (!groups[monthYear]) {
-      groups[monthYear] = {};
+    if (!groups[formattedDate]) {
+      groups[formattedDate] = {};
     }
 
-    if (!groups[monthYear][branchId]) {
-      groups[monthYear][branchId] = { totalAmount: 0, count: 0 };
+    if (!groups[formattedDate][branchId]) {
+      groups[formattedDate][branchId] = { totalAmount: 0, count: 0 };
     }
 
-    groups[monthYear][branchId].totalAmount += item.totalamount;
-    groups[monthYear][branchId].count += 1;
+    groups[formattedDate][branchId].totalAmount += item.totalamount;
+    groups[formattedDate][branchId].count += 1;
 
     return groups;
   }, {});
 
-  // Filter sales data dynamically based on the search query
-  const filteredSales = Object.keys(groupedSales).reduce((result, monthYear) => {
-    const branchesData = Object.keys(groupedSales[monthYear]).filter((branchId) => {
-      const { totalAmount, count } = groupedSales[monthYear][branchId];
+  // Filter sales data dynamically based on the search query and selected branch
+  const filteredSales = Object.keys(groupedSales).reduce((result, dateKey) => {
+    const branchesData = Object.keys(groupedSales[dateKey]).filter((branchId) => {
+      const { totalAmount, count } = groupedSales[dateKey][branchId];
       const branchName = getBranchName(branchId);
 
-      // Check if any column matches the search query
+      // Check if the branch matches the selected filter and if any column matches the search query
       return (
-        monthYear.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (selectedBranch === "" || selectedBranch === branchId) && // Branch filter check
+        (dateKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
         branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         totalAmount.toFixed(2).includes(searchQuery) ||
-        count.toString().includes(searchQuery)
+        count.toString().includes(searchQuery))
       );
     });
 
     if (branchesData.length > 0) {
-      result[monthYear] = branchesData;
+      result[dateKey] = branchesData;
     }
 
     return result;
@@ -101,13 +116,57 @@ const ReportsPage = () => {
     <div className="p-6 bg-white shadow-lg rounded-lg">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Reports</h1>
 
+      {/* Filter buttons */}
+      <div className="mb-4 flex gap-4">
+        <button
+          onClick={() => setFilterType("day")}
+          className={`p-2 rounded-md ${filterType === "day" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+        >
+          Day
+        </button>
+        <button
+          onClick={() => setFilterType("month")}
+          className={`p-2 rounded-md ${filterType === "month" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+        >
+          Month
+        </button>
+        <button
+          onClick={() => setFilterType("year")}
+          className={`p-2 rounded-md ${filterType === "year" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+        >
+          Year
+        </button>
+        <button
+          onClick={() => setFilterType("time")}
+          className={`p-2 rounded-md ${filterType === "time" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+        >
+          Time
+        </button>
+      </div>
+
+      {/* Branch filter */}
+      <div className="mb-4">
+        <select
+          value={selectedBranch}
+          onChange={(e) => setSelectedBranch(e.target.value)}
+          className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
+        >
+          <option value="">Select Branch</option>
+          {branches.map((branch) => (
+            <option key={branch.branchid} value={branch.branchid}>
+              {branch.bname}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Search input */}
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by Month, Branch, Amount, or Items Sold"
+          placeholder="Search by Date, Branch, Amount, or Items Sold"
           className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
         />
       </div>
@@ -116,20 +175,20 @@ const ReportsPage = () => {
       <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
         <thead className="bg-teal-600 text-white">
           <tr>
-            <th className="border-b-2 p-2 text-left">Month</th>
+            <th className="border-b-2 p-2 text-left">Date</th>
             <th className="border-b-2 p-2 text-left">Branch</th>
             <th className="border-b-2 p-2 text-left">Total Amount</th>
             <th className="border-b-2 p-2 text-left">Items Sold</th>
           </tr>
         </thead>
         <tbody>
-          {Object.keys(filteredSales).map((monthYear) => (
-            <React.Fragment key={monthYear}>
-              {filteredSales[monthYear].map((branchId) => {
-                const { totalAmount, count } = groupedSales[monthYear][branchId];
+          {Object.keys(filteredSales).map((dateKey) => (
+            <React.Fragment key={dateKey}>
+              {filteredSales[dateKey].map((branchId) => {
+                const { totalAmount, count } = groupedSales[dateKey][branchId];
                 return (
                   <tr key={branchId} className="hover:bg-gray-100">
-                    <td className="border-b p-2">{monthYear}</td>
+                    <td className="border-b p-2">{dateKey}</td>
                     <td className="border-b p-2">{getBranchName(branchId)}</td>
                     <td className="border-b p-2">${totalAmount.toFixed(2)}</td>
                     <td className="border-b p-2">{count}</td>

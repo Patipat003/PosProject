@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
+import { FaReceipt, FaPrint } from "react-icons/fa"; // Import receipt and print icons
 import { jwtDecode } from "jwt-decode";
 
 const SalesHistoryPage = () => {
@@ -25,25 +26,24 @@ const SalesHistoryPage = () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-  
+
       const salesResponse = await axios.get("http://localhost:5050/sales", config);
       const employeeResponse = await axios.get("http://localhost:5050/employees", config);
       const receiptResponse = await axios.get("http://localhost:5050/receipts", config);
-  
+
       const salesArray = salesResponse.data.Data || [];
       const employeesArray = employeeResponse.data.Data || [];
       const receiptsArray = receiptResponse.data.Data || [];
-  
-      // กรอง employeesArray ให้ตรงกับ branchid
+
       const filteredEmployees = employeesArray.filter((emp) => emp.branchid === branchId);
       setEmployees(filteredEmployees);
-  
+
       const filteredSales = salesArray
         .filter((sale) => sale.branchid === branchId)
         .map((sale, index) => {
           const employee = filteredEmployees.find((emp) => emp.employeeid === sale.employeeid);
           const receipt = receiptsArray.find((rec) => rec.saleid === sale.saleid);
-  
+
           return {
             index: index + 1,
             saleid: sale.saleid,
@@ -53,7 +53,7 @@ const SalesHistoryPage = () => {
             createdat: format(new Date(sale.createdat), "dd/MM/yyyy"),
           };
         });
-  
+
       setSales(filteredSales);
       setFilteredSales(filteredSales); // Set initial filteredSales
     } catch (error) {
@@ -81,44 +81,39 @@ const SalesHistoryPage = () => {
 
   const filterData = (term, employee, order) => {
     let filtered = [...sales];
-  
+
     if (term) {
       filtered = filtered.filter((sale) =>
         sale.receiptnumber.toLowerCase().includes(term.toLowerCase())
       );
     }
-  
+
     if (employee) {
-      filtered = filtered.filter((sale) => sale.employeename === employee); // Corrected this line
+      filtered = filtered.filter((sale) => sale.employeename === employee);
     }
-  
+
     filtered.sort((a, b) => {
       const dateA = new Date(a.createdat);
       const dateB = new Date(b.createdat);
       return order === "asc" ? dateA - dateB : dateB - dateA;
     });
-  
+
     setFilteredSales(filtered);
-  };  
+  };
 
   const fetchSaleItems = async (saleId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };  // เพิ่มบรรทัดนี้
-  
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
       const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
-      console.log("Sale Items Response:", saleItemsResponse.data);
-    
       const productResponse = await axios.get("http://localhost:5050/products", config);
-      console.log("Product Response:", productResponse.data);
-    
+
       const saleItems = Array.isArray(saleItemsResponse.data.Data)
         ? saleItemsResponse.data.Data.filter((item) => item.saleid === saleId)
         : [];
-  
-      const products = Array.isArray(productResponse.data.Data)
-        ? productResponse.data.Data
-        : [];
+
+      const products = Array.isArray(productResponse.data.Data) ? productResponse.data.Data : [];
       const modalItems = saleItems.map((item) => {
         const product = products.find((prod) => prod.productid === item.productid);
         return {
@@ -128,14 +123,13 @@ const SalesHistoryPage = () => {
           totalprice: item.quantity * item.price,
         };
       });
-  
-      setModalData(modalItems);
+
+      setModalData({ receiptnumber: saleId, items: modalItems });
     } catch (error) {
       console.error("Error fetching sale items:", error);
     }
   };
-  
-  
+
   const openModal = (saleId) => {
     fetchSaleItems(saleId);
   };
@@ -144,11 +138,21 @@ const SalesHistoryPage = () => {
     setModalData(null);
   };
 
+  const handlePrint = () => {
+    const printContent = document.getElementById("print-area");
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(printContent.innerHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   return (
-    <div className="p-4  bg-white">
+    <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales History</h1>
       <p className="text-black mb-4">View your Sales History here.</p>
-      
+
       <div className="flex items-center space-x-4 mb-4">
         <input
           type="text"
@@ -198,10 +202,10 @@ const SalesHistoryPage = () => {
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
               <td className="border border-gray-300 px-4 py-2">
                 <button
-                  className="bg-teal-500 text-white px-4 py-2 rounded"
+                  className="bg-teal-500 text-white px-4 py-2 rounded flex items-center"
                   onClick={() => openModal(sale.saleid)}
                 >
-                  View
+                  <FaReceipt className="mr-2" /> Receipt
                 </button>
               </td>
             </tr>
@@ -211,32 +215,48 @@ const SalesHistoryPage = () => {
 
       {modalData && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-4 rounded shadow-lg w-1/2">
-            <h2 className="text-lg font-bold mb-4">Sale Details</h2>
-            <table className="min-w-full table-auto border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2">Product Name</th>
-                  <th className="border border-gray-300 px-4 py-2">Quantity</th>
-                  <th className="border border-gray-300 px-4 py-2">Total Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {modalData.map((item, index) => (
-                  <tr key={index}>
-                    <td className="border border-gray-300 px-4 py-2">{item.productname}</td>
-                    <td className="border border-gray-300 px-4 py-2">{item.quantity}</td>
-                    <td className="border border-gray-300 px-4 py-2">{item.totalprice}</td>
+          <div className="bg-white p-4 rounded shadow-lg w-1/2" id="print-area">
+            <h2 className="text-lg font-bold mb-4">Receipt #{modalData.receiptnumber}</h2>
+            <div className="border border-gray-300 p-4 rounded">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left">Item</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Price</th>
+                    <th className="text-right">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <button
-              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded"
-              onClick={closeModal}
-            >
-              Close
-            </button>
+                </thead>
+                <tbody>
+                  {modalData.items.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.productname}</td>
+                      <td className="text-right">{item.quantity}</td>
+                      <td className="text-right">{item.price.toFixed(2)}</td>
+                      <td className="text-right">{item.totalprice.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <hr className="my-2" />
+              <div className="text-right font-bold">
+                Total: {modalData.items.reduce((acc, item) => acc + item.totalprice, 0).toFixed(2)}
+              </div>
+            </div>
+            <div className="flex justify-between mt-4">
+              <button
+                className="bg-teal-500 text-white px-4 py-2 rounded"
+                onClick={handlePrint}
+              >
+                <FaPrint className="mr-2" /> Print
+              </button>
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={closeModal}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

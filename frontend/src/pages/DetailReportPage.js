@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
-import { HiEye } from "react-icons/hi";
 
-const SearchBar = ({ query, onSearch }) => (
-  <input
-    type="text"
-    value={query}
-    onChange={(e) => onSearch(e.target.value)}
-    placeholder="Search..."
-    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
-  />
+const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee }) => (
+  <div className="flex space-x-4 items-center">
+    <input
+      type="text"
+      value={query}
+      onChange={(e) => onSearch(e.target.value)}
+      placeholder="Search..."
+      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+    />
+    <select
+      value={selectedEmployee}
+      onChange={(e) => onEmployeeFilter(e.target.value)}
+      className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+    >
+      <option value="">All Employees</option>
+      {employees.map((employee) => (
+        <option key={employee} value={employee}>
+          {employee}
+        </option>
+      ))}
+    </select>
+  </div>
 );
 
 const Modal = ({ title, children, onClose }) => (
@@ -34,6 +47,7 @@ const DetailReportPage = () => {
   const [employeeNames, setEmployeeNames] = useState({});
   const [filteredSaleItems, setFilteredSaleItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -94,21 +108,28 @@ const DetailReportPage = () => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+    filterSaleItems(query, selectedEmployee);
+  };
 
+  const handleEmployeeFilter = (employeeName) => {
+    setSelectedEmployee(employeeName);
+    filterSaleItems(searchQuery, employeeName);
+  };
+
+  const filterSaleItems = (query, employeeName) => {
     const filtered = saleItems.filter((item) => {
-      const employeeName = employeeNames[item.saleid]?.toLowerCase() || "";
+      const employeeNameFromMap = employeeNames[item.saleid] || "Unknown";
       const productName = products[item.productid]?.toLowerCase() || "";
+      const matchesEmployee = employeeName ? employeeNameFromMap === employeeName : true;
 
       return (
-        item.saleitemid.toString().includes(query) ||
-        employeeName.includes(query.toLowerCase()) ||
-        productName.includes(query.toLowerCase()) ||
-        item.quantity.toString().includes(query) ||
-        item.price.toString().includes(query) ||
-        item.totalprice.toString().includes(query)
+        matchesEmployee &&
+        (productName.includes(query.toLowerCase()) ||
+          item.quantity.toString().includes(query) ||
+          item.price.toString().includes(query) ||
+          item.totalprice.toString().includes(query))
       );
     });
-
     setFilteredSaleItems(filtered);
   };
 
@@ -120,6 +141,32 @@ const DetailReportPage = () => {
     setSelectedItem(null);
   };
 
+  const groupItems = () => {
+    const groupedItems = {};
+
+    filteredSaleItems.forEach((item) => {
+      const employeeName = employeeNames[item.saleid] || "Unknown";
+      const productName = products[item.productid] || "Unknown";
+
+      const key = `${employeeName}-${productName}`;
+      if (!groupedItems[key]) {
+        groupedItems[key] = {
+          employeeName,
+          productName,
+          quantity: 0,
+          price: 0,
+          totalprice: 0,
+        };
+      }
+
+      groupedItems[key].quantity += item.quantity;
+      groupedItems[key].price = item.price; // Assuming price is the same for the product
+      groupedItems[key].totalprice += item.totalprice;
+    });
+
+    return Object.values(groupedItems);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -128,17 +175,24 @@ const DetailReportPage = () => {
     return <div>{error}</div>;
   }
 
+  const employeeList = [...new Set(Object.values(employeeNames))].filter((name) => name !== "Unknown");
+
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Detail Report</h1>
 
-      <SearchBar query={searchQuery} onSearch={handleSearch} />
+      <SearchBar
+        query={searchQuery}
+        onSearch={handleSearch}
+        employees={employeeList}
+        onEmployeeFilter={handleEmployeeFilter}
+        selectedEmployee={selectedEmployee}
+      />
 
       <div className="overflow-x-auto mt-4">
         <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
           <thead className="bg-teal-600 text-white">
             <tr>
-              <th className="border-b-2 p-2 text-left">Sale Item ID</th>
               <th className="border-b-2 p-2 text-left">Employee Name</th>
               <th className="border-b-2 p-2 text-left">Product Name</th>
               <th className="border-b-2 p-2 text-left">Quantity</th>
@@ -148,20 +202,19 @@ const DetailReportPage = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredSaleItems.map((item) => (
-              <tr key={item.saleitemid} className="hover:bg-gray-100">
-                <td className="border-b p-2">{item.saleitemid}</td>
-                <td className="border-b p-2">{employeeNames[item.saleid] || "Unknown"}</td>
-                <td className="border-b p-2">{products[item.productid] || "Unknown"}</td>
+            {groupItems().map((item, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="border-b p-2">{item.employeeName}</td>
+                <td className="border-b p-2">{item.productName}</td>
                 <td className="border-b p-2">{item.quantity}</td>
                 <td className="border-b p-2">{item.price.toFixed(2)}</td>
                 <td className="border-b p-2">{item.totalprice.toFixed(2)}</td>
                 <td className="border-b p-2 text-center">
                   <button
                     onClick={() => handleViewDetails(item)}
-                    className="text-blue-600 hover:underline"
+                    className="bg-teal-600 text-white font-medium px-4 py-2 rounded-md hover:bg-teal-700"
                   >
-                    <HiEye className="h-5 w-5 inline" /> View
+                    View
                   </button>
                 </td>
               </tr>
@@ -174,13 +227,10 @@ const DetailReportPage = () => {
         <Modal title="Sale Item Details" onClose={handleCloseModal}>
           <div className="space-y-4">
             <p>
-              <span className="font-semibold">Sale Item ID:</span> {selectedItem.saleitemid}
+              <span className="font-semibold">Employee Name:</span> {selectedItem.employeeName}
             </p>
             <p>
-              <span className="font-semibold">Employee Name:</span> {employeeNames[selectedItem.saleid] || "Unknown"}
-            </p>
-            <p>
-              <span className="font-semibold">Product Name:</span> {products[selectedItem.productid] || "Unknown"}
+              <span className="font-semibold">Product Name:</span> {selectedItem.productName}
             </p>
             <p>
               <span className="font-semibold">Quantity:</span> {selectedItem.quantity}
