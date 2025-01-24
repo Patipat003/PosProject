@@ -3,6 +3,8 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import PromptPayQRCode from "./PromptPayQRCode";
 import { FaCreditCard, FaCashRegister, FaMobileAlt, FaUser, FaStore } from "react-icons/fa";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
     const [paymentMethod, setPaymentMethod] = useState("");
@@ -90,35 +92,35 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
 
     const handleConfirmPayment = () => {
       if (!paymentMethod) {
-        alert("Please select a payment method.");
+        toast.error("Please select a payment method.");
         return;
       }
+    
       if (paymentMethod === "credit-card") {
-        const { cardNumber, expiryDate, cvv, cardHolderName, email } =
-          creditCardInfo;
+        const { cardNumber, expiryDate, cvv, cardHolderName, email } = creditCardInfo;
         if (!cardNumber || !expiryDate || !cvv || !cardHolderName || !email) {
-          alert("Please fill in all credit card details.");
+          toast.error("Please fill in all credit card details.");
           return;
         }
       }
-  
+    
       const totalAmount = cartData.reduce(
         (acc, item) => acc + item.price * item.quantity,
         0
       );
-
+    
       let change = 0;
       if (paymentMethod === "cash" && amountPaid) {
         change = parseFloat(amountPaid) - totalAmount;
       }
-  
+    
       const saleItems = cartData.map((item) => ({
         productid: item.productid,
         quantity: item.quantity,
         price: item.price,
         totalprice: item.price * item.quantity,
       }));
-  
+    
       const saleData = {
         employeeid: employeeId,
         branchid: branchId,
@@ -128,27 +130,27 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         creditCardInfo: paymentMethod === "credit-card" ? creditCardInfo : null,
         change: paymentMethod === "cash" ? change : null, // Only include change for cash payments
       };
-  
+    
       console.log("Sale Data to be posted:", saleData);
-  
+    
       const token = localStorage.getItem("authToken");
       if (!token) {
-        alert("No token found, please log in.");
+        toast.error("No token found, please log in.");
         return;
       }
-  
-      axios
-        .post("http://localhost:5050/sales", saleData, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+    
+      axios.post("http://localhost:5050/sales", saleData, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
         .then(() => {
+          toast.success("Payment successfully processed!");
           onCheckout();
           clearLocalStorage();
           onClose();
         })
         .catch((error) => {
           console.error("Error posting sale:", error);
-          alert("Error processing payment.");
+          toast.error("Error processing payment.");
         });
     };
   

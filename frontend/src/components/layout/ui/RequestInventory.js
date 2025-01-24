@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import moment from "moment";
 import { useLocation } from "react-router-dom";
-
+import { toast } from "react-toastify";
 
 const RequestInventory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +18,7 @@ const RequestInventory = () => {
     status: "pending",
   });
   const [branchName, setBranchName] = useState("");
+  const [warehouse, setWarehouse] = useState([]); // Add state for warehouse
   const [error, setError] = useState(""); // Add error state
   const [itemsPerPage] = useState(10); // จำนวนข้อมูลต่อหน้า
   const location = useLocation();  // ใช้ useLocation เพื่อดึงข้อมูลจาก state ที่ส่งมาจาก Header
@@ -85,11 +86,28 @@ const RequestInventory = () => {
     }
   };
 
+  // Fetch warehouse data
+  const fetchWarehouse = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get("http://localhost:5050/warehouse", config);
+      setWarehouse(response.data.Data || []);
+      console.log("Warehouse data:", response.data);
+    } catch (err) {
+      console.error("Error fetching warehouse:", err);
+    }
+  };
+
   // ดึงข้อมูล Inventory ของ Branch ที่เลือก
   const fetchInventoryForBranch = async (branchid) => {
     try {
-      const response = await axios.get(`/inventory?branchid=${branchid}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchid}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
       });
       setInventory(response.data);
     } catch (error) {
@@ -117,14 +135,15 @@ const RequestInventory = () => {
     fetchProducts();
     fetchRequests();
     fetchInventory();
+    fetchWarehouse();  // เรียกใช้ฟังก์ชัน fetchWarehouse
   }, []);
 
   useEffect(() => {
       if (toBranch) {
         fetchInventoryForBranch(toBranch);
       }
-    }, [toBranch]);
-  
+  }, [toBranch]);
+
   useEffect(() => {
     if (inventory.length > 0) {
       updateProductOptionsWithInventory();
@@ -137,6 +156,7 @@ const RequestInventory = () => {
     const decoded = JSON.parse(atob(token.split('.')[1])); // Decode JWT token
     return decoded.branchid; // Assuming the branch ID is in the token
   };
+  
 
   useEffect(() => {
     const branchid = getBranchFromToken();
@@ -153,6 +173,13 @@ const RequestInventory = () => {
   }, [branches]);
 
   const handleAddRequest = async () => {
+    // ตรวจสอบว่า frombranchid และ tobranchid เป็นตัวเดียวกันหรือไม่
+    if (newRequest.frombranchid === newRequest.tobranchid) {
+      // ถ้าเป็นตัวเดียวกันให้แสดง Toast error
+      toast.error("From branch and To branch cannot be the same!");
+      return; // หยุดการทำงาน
+    }
+
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -160,9 +187,13 @@ const RequestInventory = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-  
+
       // Proceed to create request
       await axios.post("http://localhost:5050/Requests", newRequest, config);
+
+      // แสดง toast เมื่อสำเร็จ
+      toast.success("Request successfully added!");
+
       fetchRequests();
       setNewRequest({
         frombranchid: "",
@@ -174,15 +205,21 @@ const RequestInventory = () => {
       setError(""); // Clear any previous error
     } catch (err) {
       console.error("Error adding request:", err);
+
+      // แสดง toast เมื่อเกิดข้อผิดพลาด
       if (err.response && err.response.status === 400) {
-        // If the response is 400, set the error message
+        toast.error("Failed to create request: Bad Request");
+      } else {
+        toast.error("An error occurred. Please try again.");
+      }
+
+      if (err.response && err.response.status === 400) {
         setError("Failed to create request: Bad Request");
       } else {
         setError("An error occurred. Please try again.");
       }
     }
   };
-  
 
   // Update request status
   const handleUpdateStatus = async (requestId, status) => {
@@ -206,11 +243,6 @@ const RequestInventory = () => {
 
   // Get branch ID from token and filter requests based on that branch ID
   const branchid = getBranchFromToken();
-
-  const filteredRequests = requests.filter(
-    (request) =>
-      request.frombranchid === branchid || request.tobranchid === branchid
-  );
 
   // Filter inventory based on the branch of the user
   const filteredInventory = inventory.filter(
@@ -553,7 +585,7 @@ const RequestInventory = () => {
                     return (
                       <tr key={request.requestid} className="hover:bg-teal-50">
                         <td className="border text-sm px-4 py-2">
-                          {fromBranch ? fromBranch.bname : "-"}
+                          {fromBranch ? fromBranch.bname : "Warehouse"}
                         </td>
                         <td className="border text-sm px-4 py-2">
                           {product ? product.productname : "-"}
@@ -563,6 +595,27 @@ const RequestInventory = () => {
                           {moment(request.createdat).format("L, HH:mm")}
                         </td>
                         <td className="border text-sm px-4 py-2">{request.status}</td>
+                        {fromBranch ? "" : "Warehouse" && request.status === "Pending" && (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleUpdateStatus(request.requestid, "complete")
+                              }
+                              className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
+                            >
+                              Complete
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleUpdateStatus(request.requestid, "reject")
+                              }
+                              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+
                       </tr>
                     );
                   })}

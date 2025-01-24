@@ -17,6 +17,7 @@ import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
 import ReceiptsPage from "./pages/ReceiptsPage";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -159,6 +160,7 @@ function App() {
           />
         </Routes>
       </Router>
+      <ToastContainer />
     </AuthProvider>
   );
 }

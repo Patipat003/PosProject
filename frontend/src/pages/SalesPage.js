@@ -3,6 +3,9 @@ import axios from "axios";
 import { FaTrashAlt } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import PaymentModal from "../components/layout/ui/PaymentModal";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const SalesPage = () => {
   const [products, setProducts] = useState([]);
@@ -100,30 +103,60 @@ const SalesPage = () => {
       setAlertMessage("Please select a branch first");
       return;
     }
-
+  
     const inventoryItem = inventory.find(
       (item) => item.productid === product.productid && item.branchid === selectedBranch
     );
+  
     if (!inventoryItem || inventoryItem.quantity === 0) {
       setAlertMessage("Out of stock");
       return;
     }
+  
+    const existingProduct = cart.find((item) => item.productid === product.productid);
+    const maxQuantity = inventoryItem.quantity;
+  
+    if (existingProduct) {
 
-    setCart((prevCart) => {
-      const existingProduct = prevCart.find((item) => item.productid === product.productid);
-      if (existingProduct) {
-        return prevCart.map((item) =>
+      if (inventoryItem && existingProduct.quantity >= maxQuantity) {
+        toast.error(`Cannot increase quantity beyond ${inventoryItem.quantity}.`, {
+          position: "top-right",
+          autoClose: 2000,  // Toast จะหายหลังจาก 2 วินาที
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return;
+      }
+      setCart((prevCart) =>
+        prevCart.map((item) =>
           item.productid === product.productid
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1, branchid: selectedBranch }];
-    });
+        )
+      );
+    } else {
+      if (maxQuantity === 0) {
+        setAlertMessage("Out of stock");
 
+        // ทำให้ alert หายไปหลังจาก 2 วินาที
+        setTimeout(() => {
+          setAlertMessage("");
+        }, 2000);
+
+        return;
+      }
+      setCart((prevCart) => [
+        ...prevCart,
+        { ...product, quantity: 1, branchid: selectedBranch },
+      ]);
+    }
+  
     setAlertMessage("");
   };
-
+  
   useEffect(() => {
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     setTotalAmount(total);
@@ -132,11 +165,23 @@ const SalesPage = () => {
   const handleCheckout = () => {
     if (!selectedBranch) {
       setAlertMessage("Select branch before checkout");
+
+      // ทำให้ alert หายไปหลังจาก 2 วินาที
+      setTimeout(() => {
+        setAlertMessage("");
+      }, 2000);
+
       return;
     }
   
     if (cart.length === 0) {
       setAlertMessage("Your cart is empty, select some products to checkout");
+
+      // ทำให้ alert หายไปหลังจาก 2 วินาที
+      setTimeout(() => {
+        setAlertMessage("");
+      }, 2000);
+
       return;
     }
   
@@ -147,6 +192,27 @@ const SalesPage = () => {
   
   // ฟังก์ชันสำหรับการเพิ่ม/ลดจำนวนสินค้า
   const handleIncreaseQuantity = (productId) => {
+    const productInCart = cart.find((item) => item.productid === productId);
+  
+    if (!productInCart) return;
+  
+    const inventoryItem = inventory.find(
+      (item) => item.productid === productInCart.productid && item.branchid === selectedBranch
+    );
+  
+    if (inventoryItem && productInCart.quantity >= inventoryItem.quantity) {
+      toast.error(`Cannot increase quantity beyond ${inventoryItem.quantity}.`, {
+        position: "top-right",
+        autoClose: 2000,  // Toast จะหายหลังจาก 2 วินาที
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return;
+    }
+  
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.productid === productId
@@ -155,7 +221,7 @@ const SalesPage = () => {
       )
     );
   };
-
+  
   const handleDecreaseQuantity = (productId) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
@@ -181,9 +247,16 @@ const SalesPage = () => {
   };
 
   const handleContinue = () => {
+    // ตรวจสอบว่า cart มีข้อมูลหรือไม่
+    if (cart.length === 0) {
+      // ถ้าไม่มีสินค้าในตะกร้า ให้แสดง Toast
+      toast.error("Your cart is empty! Please add items before proceeding.");
+      return; // หยุดการทำงานถ้า cart ว่าง
+    }
+  
     // เก็บข้อมูลใน localStorage
     localStorage.setItem("cartData", JSON.stringify(cart));
-
+  
     // เปิด Modal
     setIsModalOpen(true);
   };
@@ -247,6 +320,7 @@ const SalesPage = () => {
                     <div className="text-center my-2">
                       <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
                       <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
+                      <p className="text-sm text-black mt-1">Stock: {stock}</p>
                     </div>
                   </button>
                 );
