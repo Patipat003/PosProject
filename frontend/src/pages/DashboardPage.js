@@ -178,7 +178,7 @@ const DashboardPage = () => {
               <tr key={index}>
                 <td className="border border-gray-300 p-1">{data.bname}</td>
                 <td className="border border-gray-300 p-1">
-                  ${data.sales.toLocaleString()}
+                ฿{data.sales.toLocaleString()}
                 </td>
               </tr>
             ))}

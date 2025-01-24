@@ -120,7 +120,7 @@ const SalesHistoryPage = () => {
     setFilteredSales(filtered);
   };
 
-  const fetchSaleItems = async (saleId) => {
+  const fetchSaleItems = async (saleId, createdAt) => {
     try {
       const token = localStorage.getItem("authToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -143,14 +143,14 @@ const SalesHistoryPage = () => {
         };
       });
 
-      setModalData({ receiptnumber: saleId, items: modalItems });
+      setModalData({ receiptnumber: saleId, createdat: createdAt, items: modalItems });
     } catch (error) {
       console.error("Error fetching sale items:", error);
     }
   };
 
-  const openModal = (saleId) => {
-    fetchSaleItems(saleId);
+  const openModal = (saleId, createdAt) => {
+    fetchSaleItems(saleId, createdAt);
   };
 
   const closeModal = () => {
@@ -221,8 +221,8 @@ const SalesHistoryPage = () => {
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
               <td className="border border-gray-300 px-4 py-2 flex justify-center items-center"> 
                 <button
-                  className="flex hover:border-b-2 border-gray-400 transition duration-300 space-x-2 items-cente"
-                  onClick={() => openModal(sale.saleid)}
+                  className="bg-teal-500 text-white px-4 py-2 rounded flex items-center"
+                  onClick={() => openModal(sale.saleid, sale.createdat)}
                 >
                   <FaReceipt /> Receipt
                 </button>
@@ -236,6 +236,7 @@ const SalesHistoryPage = () => {
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-4 rounded shadow-lg w-1/2" id="print-area">
             <h2 className="text-lg font-bold mb-4">Receipt #{modalData.receiptnumber}</h2>
+            <p className="text-sm mb-4">Created At: {modalData.createdat}</p>
             <div className="border border-gray-300 p-4 rounded">
               <table className="w-full text-sm">
                 <thead>
