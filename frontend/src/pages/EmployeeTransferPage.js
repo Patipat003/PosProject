@@ -105,7 +105,7 @@ const EmployeeTransferPage = () => {
   return (
     <div className="p-8 bg-white min-h-screen">
       <h1 className="text-4xl font-bold text-teal-600 mb-6">Employee Branch Transfer</h1>
-      <p className="text-gray-600 mb-4">Manage employee transfers between branches.</p>
+      
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">Transfer Details</h2>

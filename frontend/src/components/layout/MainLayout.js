@@ -134,7 +134,7 @@ const MainLayout = ({ children }) => {
                 {[
                   { label: "Sales Product", link: "/sales" },
                   { label: "Sales History", link: "/salesHistory" },
-                  { label: "Payment", link: "/payment" },
+                  // { label: "Payment", link: "/payment" },
                   //{ label: "Receipts", link: "/receipts" },
                 ]}
               </SidebarDropdown>
