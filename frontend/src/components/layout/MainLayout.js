@@ -7,7 +7,9 @@ import {
   HiDocumentText,
   HiUser,
   HiArrowLeft,
+  HiCube,
 } from "react-icons/hi";
+import { HiMiniSquare3Stack3D, HiMiniUserGroup  } from "react-icons/hi2";
 import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 import Header from "./ui/Header";
 
@@ -143,14 +145,14 @@ const MainLayout = ({ children }) => {
               <SidebarItem
                 label="Product Management"
                 link="/product"
-                icon={<HiDocumentText />}
+                icon={<HiCube />}
               />
             )}
             {(isManager || isCashier) && (
               <SidebarItem
-                label="Inventory"
+                label="Inventory Magagement"
                 link="/inventory"
-                icon={<HiDocumentText />}
+                icon={<HiMiniSquare3Stack3D />}
               />
             )}
             {(isManager)&& ( 
@@ -162,9 +164,9 @@ const MainLayout = ({ children }) => {
               </SidebarDropdown>
             )}
             {(isManager)&& (
-              <SidebarDropdown label="User Management" icon={<HiUser />}>
+              <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
-                  { label: "User", link: "/userManagement" },
+                  { label: "User", link: "/userManagement", icon: (<HiUser />)},
                   { label: "Employee Transfer", link: "/employeeTransfer" },
                 ]}
               </SidebarDropdown>

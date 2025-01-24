@@ -98,7 +98,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
   };
 
   return (
-    <div>
+    <div className="border-none">
       <button
         onClick={handleOpenModal}
         className="hover:border-b-2 border-gray-400 transition duration-300"

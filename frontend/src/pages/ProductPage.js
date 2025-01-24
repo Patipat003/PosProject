@@ -43,7 +43,7 @@ const ProductPage = () => {
         axios.get("http://localhost:5050/inventory", config),
         axios.get("http://localhost:5050/categories", config),
       ]);
-
+      
       const inventoryMap = {};
       inventoryResponse.data.Data.forEach((item) => {
         inventoryMap[item.productid] = item.quantity; // เก็บข้อมูล quantity ตาม product
@@ -269,12 +269,13 @@ const ProductPage = () => {
           <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
             <thead className="bg-gray-100 text-gray-600">
               <tr>
+                <th className="border text-sm px-4 py-2">#</th>
                 <th className="border text-sm px-4 py-2">Name</th>
                 <th className="border text-sm px-4 py-2">Category</th>
                 <th className="border text-sm px-4 py-2">Description</th>
                 <th className="border text-sm px-4 py-2">Price</th>
                 <th className="border text-sm px-4 py-2">Created</th>
-                <th></th>
+                <th className="border text-sm px-4 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -284,14 +285,15 @@ const ProductPage = () => {
                     ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
                     : true
                 )
-                .map((product) => (
-                  <tr key={product.productid}>
-                    <td className="text-black">{product.productname}</td>
-                    <td className="text-black">{getCategoryName(product.categoryid)}</td>
-                    <td className="text-black">{product.description}</td>
-                    <td className="text-black">฿{product.price.toFixed(2)}</td>
-                    <td className="text-black">{formatDate(product.createdat)}</td>
-                    <td>
+                .map((product, index) => (
+                  <tr key={product.productid} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
+                    <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.description}</td>
+                    <td className="border border-gray-300 px-4 py-2">฿{product.price.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
+                    <td className="border border-gray-300 px-4 py-2 flex justify-center items-center">
                       <EditedProduct
                         productId={product.productid}
                         onProductUpdated={fetchProducts}

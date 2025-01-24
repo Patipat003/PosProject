@@ -164,8 +164,10 @@ const Header = () => {
             <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{lowStockProducts.length}</span>
           </button>
         )}
-
+        
+      <p className="text-white">{branchName || "Loading branch..."}</p>
       <div className="relative ml-auto">
+        
         {/* User Dropdown */}
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}

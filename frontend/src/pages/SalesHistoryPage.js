@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { format } from "date-fns";
+import { toZonedTime, format } from 'date-fns-tz';
 import { FaReceipt, FaPrint } from "react-icons/fa"; // Import receipt and print icons
 import { jwtDecode } from "jwt-decode";
 
@@ -44,13 +44,19 @@ const SalesHistoryPage = () => {
           const employee = filteredEmployees.find((emp) => emp.employeeid === sale.employeeid);
           const receipt = receiptsArray.find((rec) => rec.saleid === sale.saleid);
 
+          // แปลงเวลาเป็น zoned time ตาม UTC
+          const zonedDate = toZonedTime(sale.createdat, 'UTC');
+          
+          // แสดงวันที่ที่ถูกฟอร์แมต
+          const formattedDate = format(zonedDate, "dd/MM/yyyy, HH:mm");
+
           return {
             index: index + 1,
             saleid: sale.saleid,
             receiptnumber: receipt?.receiptnumber || "N/A",
             employeename: employee?.name || "Unknown",
             totalamount: sale.totalamount,
-            createdat: format(new Date(sale.createdat), "dd/MM/yyyy"),
+            createdat: formattedDate,  // ใช้ formattedDate ที่ได้แปลงแล้ว
           };
         });
 
@@ -93,11 +99,24 @@ const SalesHistoryPage = () => {
     }
 
     filtered.sort((a, b) => {
-      const dateA = new Date(a.createdat);
-      const dateB = new Date(b.createdat);
-      return order === "asc" ? dateA - dateB : dateB - dateA;
+      // แปลงวันที่จาก dd/MM/yyyy, HH:mm เป็น Date object
+      const parseDate = (dateStr) => {
+        const [date, time] = dateStr.split(', ');
+        const [day, month, year] = date.split('/');
+        const [hour, minute] = time.split(':');
+    
+        // สร้าง string เป็นรูปแบบ yyyy-MM-ddTHH:mm
+        const isoDateString = `${year}-${month}-${day}T${hour}:${minute}`;
+        return new Date(isoDateString);
+      };
+    
+      const dateA = parseDate(a.createdat);
+      const dateB = parseDate(b.createdat);
+    
+      // เปรียบเทียบวันที่
+      return order === "asc" ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
     });
-
+    
     setFilteredSales(filtered);
   };
 
@@ -181,15 +200,15 @@ const SalesHistoryPage = () => {
         </button>
       </div>
 
-      <table className="min-w-full table-auto border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-2">#</th>
-            <th className="border border-gray-300 px-4 py-2">Receipt Number</th>
-            <th className="border border-gray-300 px-4 py-2">Employee Name</th>
-            <th className="border border-gray-300 px-4 py-2">Total Amount</th>
-            <th className="border border-gray-300 px-4 py-2">Created At</th>
-            <th className="border border-gray-300 px-4 py-2">Action</th>
+      <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+        <thead className="bg-gray-100 text-gray-600">
+          <tr>
+            <th className="border text-sm px-4 py-2">#</th>
+            <th className="border text-sm px-4 py-2">Receipt Number</th>
+            <th className="border text-sm px-4 py-2">Employee Name</th>
+            <th className="border text-sm px-4 py-2">Total Amount</th>
+            <th className="border text-sm px-4 py-2">Created At</th>
+            <th className="border text-sm px-4 py-2">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -200,12 +219,12 @@ const SalesHistoryPage = () => {
               <td className="border border-gray-300 px-4 py-2">{sale.employeename}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.totalamount}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
-              <td className="border border-gray-300 px-4 py-2">
+              <td className="border border-gray-300 px-4 py-2 flex justify-center items-center"> 
                 <button
-                  className="bg-teal-500 text-white px-4 py-2 rounded flex items-center"
+                  className="flex hover:border-b-2 border-gray-400 transition duration-300 space-x-2 items-cente"
                   onClick={() => openModal(sale.saleid)}
                 >
-                  <FaReceipt className="mr-2" /> Receipt
+                  <FaReceipt /> Receipt
                 </button>
               </td>
             </tr>
