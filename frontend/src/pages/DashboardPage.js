@@ -10,6 +10,8 @@ import {
   BarElement,
 } from "chart.js";
 import axios from "axios";
+import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -81,8 +83,28 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+ if (loading) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
+          style={{ height: "200px", width: "200px" }}
+        />
+        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+        <p className="text-red-500 text-xl">{error}</p>
+      </div>
+    );
+  }
 
   // Data for Pie Chart
   const pieData = {

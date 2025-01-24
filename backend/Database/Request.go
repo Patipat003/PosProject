@@ -178,9 +178,9 @@ func UpdateRequest(db *gorm.DB, c *fiber.Ctx) error {
 		// ค้นหา Inventory ของสาขาที่ส่งสินค้า (FromBranchID) และลดจำนวนสินค้า
 		var inventoryFrom Models.Inventory
 		if err := db.Where("branch_id = ? AND product_id = ?", request.FromBranchID, request.ProductID).First(&inventoryFrom).Error; err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Inventory of sending branch not found",
-			})
+			// หากไม่พบ inventory จาก FromBranchID ก็ไม่จำเป็นต้องส่ง error
+			// เพราะต้องการให้ update เป็น "complete" โดยไม่คำนึงถึง inventory ของ FromBranchID
+			// สามารถดำเนินการต่อได้เลย
 		} else {
 			// ลดจำนวนสินค้าในสาขาที่ส่ง
 			if inventoryFrom.Quantity < request.Quantity {
