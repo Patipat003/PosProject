@@ -3,9 +3,9 @@ import axios from "axios";
 import { toZonedTime, format } from 'date-fns-tz';
 import { FaReceipt, FaPrint } from "react-icons/fa"; // Import receipt and print icons
 import { jwtDecode } from "jwt-decode";
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';  // Import html2canvas
-import ReactPrinter from "../components/layout/ui/ReactPrinter";
+import { jsPDF } from 'jspdf';// Import ReactPrinter component
+import html2canvas from 'html2canvas-pro';
+import ReceiptPrinter from "../components/layout/ui/ReceiptPrinter";
 
 const SalesHistoryPage = () => {
   const [sales, setSales] = useState([]);
@@ -187,22 +187,12 @@ const SalesHistoryPage = () => {
   };
 
   const handlePrint = () => {
-    // Select the content of the modal by its ID
-    const printContent = document.getElementById('print-area');
-    console.log(printContent); // ตรวจสอบข้อมูลที่ได้จาก print-area
+    const element = document.getElementById('print-area');
     
-    // Use html2canvas to capture the content as a canvas
-    html2canvas(printContent).then((canvas) => {
-      // Convert the canvas to an image
+    html2canvas(element).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
-      
-      // Create a new jsPDF instance
       const doc = new jsPDF();
-      
-      // Add the captured image to the PDF
-      doc.addImage(imgData, 'PNG', 10, 10);
-      
-      // Save the PDF
+      doc.addImage(imgData, 'PNG', 50, 0);
       doc.save('receipt.pdf');
     });
   };
@@ -311,13 +301,13 @@ const SalesHistoryPage = () => {
       {/* ส่วนของ Modal */}
       {modalData && (
         <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg w-96 max-w-screen-sm" id="print-area">
+          <div className="bg-white p-6 rounded shadow-lg w-96 max-w-screen-sm">
+            <div className="p-6 rounded shadow-lg max-w-screen" id="print-area">
+              {/* Use ReactPrinter to display receipt content */}
+              <ReceiptPrinter modalData={modalData} />
+            </div>
 
-            {/* Use ReactPrinter to display receipt content */}
-            <ReactPrinter modalData={modalData} />
-            console.log(modalData); // ตรวจสอบข้อมูลที่ได้จาก modalData
-
-            {/* ปุ่มสำหรับพิมพ์ใบเสร็จ */} 
+            {/* ปุ่มสำหรับพิมพ์ใบเสร็จ */}
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
@@ -335,6 +325,7 @@ const SalesHistoryPage = () => {
           </div>
         </div>
       )}
+      {console.log(modalData)}
     </div>
   );
 };
