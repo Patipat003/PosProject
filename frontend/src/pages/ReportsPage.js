@@ -32,7 +32,6 @@ const ReportsPage = () => {
   const [filterType, setFilterType] = useState("month"); // Default filter by month
   const [selectedBranch, setSelectedBranch] = useState(""); // State for selected branch filter
 
-  // Fetch sales and branch data
   const fetchSalesData = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -56,13 +55,11 @@ const ReportsPage = () => {
     fetchSalesData();
   }, []);
 
-  // Get branch name by branchid
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
     return branch ? branch.bname : "Unknown Branch";
   };
 
-  // Group the data based on the selected filter type
   const groupedSales = salesData.reduce((groups, item) => {
     const formattedDate = formatDate(item.createdat, filterType);
     const branchId = item.branchid;
@@ -81,19 +78,17 @@ const ReportsPage = () => {
     return groups;
   }, {});
 
-  // Filter sales data dynamically based on the search query and selected branch
   const filteredSales = Object.keys(groupedSales).reduce((result, dateKey) => {
     const branchesData = Object.keys(groupedSales[dateKey]).filter((branchId) => {
       const { totalAmount, count } = groupedSales[dateKey][branchId];
       const branchName = getBranchName(branchId);
 
-      // Check if the branch matches the selected filter and if any column matches the search query
       return (
-        (selectedBranch === "" || selectedBranch === branchId) && // Branch filter check
+        (selectedBranch === "" || selectedBranch === branchId) &&
         (dateKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        totalAmount.toFixed(2).includes(searchQuery) ||
-        count.toString().includes(searchQuery))
+          branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          totalAmount.toFixed(2).includes(searchQuery) ||
+          count.toString().includes(searchQuery))
       );
     });
 
@@ -116,7 +111,6 @@ const ReportsPage = () => {
     <div className="p-6 bg-white shadow-lg rounded-lg">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Reports</h1>
 
-      {/* Filter buttons */}
       <div className="mb-4 flex gap-4">
         <button
           onClick={() => setFilterType("day")}
@@ -144,8 +138,15 @@ const ReportsPage = () => {
         </button>
       </div>
 
-      {/* Branch filter */}
-      <div className="mb-4">
+      {/* Search input and branch dropdown */}
+      <div className="mb-6 flex gap-4 items-center">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by Date, Branch, Amount, or Items Sold"
+          className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
+        />
         <select
           value={selectedBranch}
           onChange={(e) => setSelectedBranch(e.target.value)}
@@ -160,18 +161,6 @@ const ReportsPage = () => {
         </select>
       </div>
 
-      {/* Search input */}
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by Date, Branch, Amount, or Items Sold"
-          className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        />
-      </div>
-
-      {/* Table for displaying the data */}
       <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
         <thead className="bg-teal-600 text-white">
           <tr>
