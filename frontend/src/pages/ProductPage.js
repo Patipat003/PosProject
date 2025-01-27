@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; 
 import ProductForm from "../components/layout/ui/ProductForm";
 import EditedProduct from "../components/layout/ui/EditedProduct";
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
-import { format } from "date-fns";
+import { toZonedTime, format } from 'date-fns-tz';
 import { TrashIcon, PencilIcon } from "@heroicons/react/outline";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
-// ฟังก์ชันสำหรับแปลงวันที่ให้เป็นรูปแบบที่อ่านง่าย (ไม่มีวินาที)
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return format(date, "d/MM/yyyy, HH:mm"); // ใช้ format ที่ไม่มีวินาที
+  // const date = new Date(dateString);
+  const zonedDate = toZonedTime(dateString, 'UTC');
+  return format(zonedDate, "d/MM/yyyy, HH:mm"); 
 };
 
 const ProductPage = () => {
@@ -24,6 +25,7 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userRole, setUserRole] = useState("");
 
   const itemsPerPage = 20; // จำนวนรายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
@@ -32,6 +34,8 @@ const ProductPage = () => {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role);
       const config = {
         headers: {
           Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
@@ -175,10 +179,12 @@ const ProductPage = () => {
   
   if (error) {
     return (
-      <div className="flex items-center justify-center h-42 flex-col">
+      <div className="flex flex-col items-center mt-2">
         <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
         <p className="text-red-500 text-xl">{error}</p>
       </div>
+
+
     );
   }
 
@@ -269,13 +275,17 @@ const ProductPage = () => {
           <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
             <thead className="bg-gray-100 text-gray-600">
               <tr>
-                <th className="border text-sm px-4 py-2">#</th>
+                <th className="border text-sm px-4 py-2 text-left">No.</th>
                 <th className="border text-sm px-4 py-2">Name</th>
-                <th className="border text-sm px-4 py-2">Category</th>
                 <th className="border text-sm px-4 py-2">Description</th>
+                <th className="border text-sm px-4 py-2">Category</th>
                 <th className="border text-sm px-4 py-2">Price</th>
-                <th className="border text-sm px-4 py-2">Created</th>
-                <th className="border text-sm px-4 py-2">Action</th>
+                {userRole === "Manager" && (
+                  <th className="border text-sm px-4 py-2">Created</th>
+                )}
+                {userRole === "Manager" && (
+                  <th className="border border-gray-300 py-2 px-4 text-sm">Action</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -289,16 +299,20 @@ const ProductPage = () => {
                   <tr key={product.productid} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
-                    <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.description}</td>
+                    <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
                     <td className="border border-gray-300 px-4 py-2">฿{product.price.toFixed(2)}</td>
-                    <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
-                    <td className="border border-gray-300 px-4 py-2 flex justify-center items-center">
-                      <EditedProduct
-                        productId={product.productid}
-                        onProductUpdated={fetchProducts}
-                      />
-                    </td>
+                    {userRole === "Manager" && (
+                      <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
+                    )}
+                    {userRole === "Manager" && (
+                      <td className="border border-gray-300 text-center justify-center items-center">
+                        <EditedProduct
+                          productId={product.productid}
+                          onProductUpdated={fetchProducts}
+                        />
+                      </td>
+                    )}  
                   </tr>
                 ))}
             </tbody>

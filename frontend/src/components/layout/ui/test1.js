@@ -1,713 +1,346 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import moment from "moment";
-import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode"; 
+import ExportButtons from "../components/layout/ui/ExportButtons";
+import RequestInventory from "../components/layout/ui/RequestInventory";
+import SortByDropdown from "../components/layout/ui/SortByDropdown";
+import { format } from "date-fns";
+import { HiEye } from "react-icons/hi";
+import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
-const RequestInventory = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [requests, setRequests] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [inventory, setInventory] = useState([]); // Add state for inventory
-  const [newRequest, setNewRequest] = useState({
-    frombranchid: "",
-    tobranchid: "",
-    productid: "",
-    quantity: 0,
-    status: "pending",
-  });
-  const [branchName, setBranchName] = useState("");
-  const [warehouse, setWarehouse] = useState([]); // Add state for warehouse
-  const [error, setError] = useState(""); // Add error state
-  const [itemsPerPage] = useState(10); // จำนวนข้อมูลต่อหน้า
-  const location = useLocation();  // ใช้ useLocation เพื่อดึงข้อมูลจาก state ที่ส่งมาจาก Header
-  const [toBranch, setToBranch] = useState('');
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return format(date, "d/MM/yyyy, HH:mm");
+};
 
-  // Fetch data from API
-  const fetchRequests = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+const InventoryPage = () => {
+  const [inventory, setInventory] = useState([]);
+  const [products, setProducts] = useState({});
+  const [branches, setBranches] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedInventory, setSelectedInventory] = useState(null);
+  const [sortKey, setSortKey] = useState("updatedat");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewAllBranches, setViewAllBranches] = useState(false);
+  const [userRole, setUserRole] = useState("");
+  const [userBranchId, setUserBranchId] = useState("");
 
-      const response = await axios.get("http://localhost:5050/Requests", config);
-      setRequests(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching requests:", err);
-    }
-  };
+  const itemsPerPage = 20;
+  const [currentProductPage, setCurrentProductPage] = useState(1);
 
-  const fetchBranches = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/branches", config);
-      setBranches(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching branches:", err);
-    }
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/products", config);
-      setProducts(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching products:", err);
-    }
-  };
-
+  // Function to fetch inventory data
   const fetchInventory = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/inventory", config);
-      setInventory(response.data.Data || []);
-    } catch (err) {
-      console.error("Error fetching inventory:", err);
-    }
-  };
-
-  // Fetch warehouse data
-  const fetchWarehouse = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get("http://localhost:5050/warehouse", config);
-      setWarehouse(response.data.Data || []);
-      console.log("Warehouse data:", response.data);
-    } catch (err) {
-      console.error("Error fetching warehouse:", err);
-    }
-  };
-
-  // ดึงข้อมูล Inventory ของ Branch ที่เลือก
-  const fetchInventoryForBranch = async (branchid) => {
-    try {
-      const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchid}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
-      });
-      setInventory(response.data);
-    } catch (error) {
-      console.error('Failed to fetch inventory data:', error);
-    }
-  };
-
-  // ฟังก์ชันในการอัปเดตชื่อสินค้าให้แสดงจำนวน
-  const updateProductOptionsWithInventory = () => {
-    const updatedProducts = products.map((product) => {
-      const inventoryItem = inventory.find(
-        (item) => item.productid === product.productid
-      );
-      const quantity = inventoryItem ? inventoryItem.quantity : 0;
-      return {
-        ...product,
-        displayName: `${product.productname} (${quantity})`, // แสดงจำนวนสินค้าด้วย
-      };
-    });
-    setProducts(updatedProducts);
-  };
-
-  useEffect(() => {
-    fetchBranches();
-    fetchProducts();
-    fetchRequests();
-    fetchInventory();
-    fetchWarehouse();  // เรียกใช้ฟังก์ชัน fetchWarehouse
-  }, []);
-
-  useEffect(() => {
-      if (toBranch) {
-        fetchInventoryForBranch(toBranch);
-      }
-  }, [toBranch]);
-
-  useEffect(() => {
-    if (inventory.length > 0) {
-      updateProductOptionsWithInventory();
-    }
-  }, [inventory]);
-
-  // Extract the branch ID from the token (assuming it's stored in the payload)
-  const getBranchFromToken = () => {
-    const token = localStorage.getItem("authToken");
-    const decoded = JSON.parse(atob(token.split('.')[1])); // Decode JWT token
-    return decoded.branchid; // Assuming the branch ID is in the token
-  };
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role);
+      setUserBranchId(decodedToken.branchid);
   
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+  
+      const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
+        axios.get("http://localhost:5050/inventory", config),
+        axios.get("http://localhost:5050/products", config),
+        axios.get("http://localhost:5050/branches", config),
+      ]);
+  
+      const productMap = {};
+      productResponse.data.Data.forEach((product) => {
+        productMap[product.productid] = product.productname;
+      });
+  
+      const branchMap = {};
+      branchResponse.data.Data.forEach((branch) => {
+        branchMap[branch.branchid] = {
+          bname: branch.bname,
+          location: branch.location,
+        };
+      });
+  
+      let newInventory = inventoryResponse.data.Data;
+  
+      // เรียงลำดับค่าเริ่มต้นตาม `updatedat` ในลำดับ `desc`
+      newInventory = newInventory.sort((a, b) => {
+        const aValue = new Date(a.updatedat);
+        const bValue = new Date(b.updatedat);
+  
+        if (aValue < bValue) return -1;
+        if (aValue > bValue) return 1;
+        return 0;
+      }).reverse();
+  
+      setInventory(newInventory);
+      setProducts(productMap);
+      setBranches(branchMap);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load inventory data");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const branchid = getBranchFromToken();
-    setNewRequest((prevRequest) => ({
-      ...prevRequest,
-      tobranchid: branchid, // Set the branch as "to branch" from token
-    }));
+    fetchInventory();
+  
+    // Poll every 5 seconds
+    const interval = setInterval(() => {
+      fetchInventory();
+    }, 5000);
+  
+    return () => clearInterval(interval); // Clean up the interval on component unmount
+  }, []);  
 
-    // Get branch name using the branch ID from token
-    const branch = branches.find((branch) => branch.branchid === branchid);
-    if (branch) {
-      setBranchName(branch.bname);
-    }
-  }, [branches]);
-
-  const handleAddRequest = async () => {
-    // ตรวจสอบว่า frombranchid และ tobranchid เป็นตัวเดียวกันหรือไม่
-    if (newRequest.frombranchid === newRequest.tobranchid) {
-      // ถ้าเป็นตัวเดียวกันให้แสดง Toast error
-      toast.error("From branch and To branch cannot be the same!");
-      return; // หยุดการทำงาน
-    }
-
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      // Proceed to create request
-      await axios.post("http://localhost:5050/Requests", newRequest, config);
-
-      // แสดง toast เมื่อสำเร็จ
-      toast.success("Request successfully added!");
-
-      fetchRequests();
-      setNewRequest({
-        frombranchid: "",
-        tobranchid: "",
-        productid: "",
-        quantity: 0,
-        status: "pending",
-      });
-      setError(""); // Clear any previous error
-    } catch (err) {
-      console.error("Error adding request:", err);
-
-      // แสดง toast เมื่อเกิดข้อผิดพลาด
-      if (err.response && err.response.status === 400) {
-        toast.error("Failed to create request: Bad Request");
-      } else {
-        toast.error("An error occurred. Please try again.");
-      }
-
-      if (err.response && err.response.status === 400) {
-        setError("Failed to create request: Bad Request");
-      } else {
-        setError("An error occurred. Please try again.");
-      }
-    }
+  const handleSortChange = (key, direction) => {
+    setSortKey(key);
+    setSortDirection(direction);
+  
+    const sortedData = [...inventory].sort((a, b) => {
+      const aValue =
+        key === "productid" ? products[a[key]] : key === "branchid" ? branches[a[key]]?.bname : a[key];
+      const bValue =
+        key === "productid" ? products[b[key]] : key === "branchid" ? branches[b[key]]?.bname : b[key];
+  
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  
+    setInventory(sortedData);
   };
 
-  // Update request status
-  const handleUpdateStatus = async (requestId, status) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      await axios.put(
-        `http://localhost:5050/Requests/${requestId}`,
-        { status },
-        config
-      );
-      fetchRequests();
-    } catch (err) {
-      console.error("Error updating status:", err);
-    }
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
   };
 
-  // Get branch ID from token and filter requests based on that branch ID
-  const branchid = getBranchFromToken();
+  const handleToggleView = () => {
+    setViewAllBranches(!viewAllBranches);
+  };
 
-  const filteredRequests = requests.filter((request) => {
-    // หาข้อมูลสาขาจาก request โดยใช้จาก frombranchid
-    const branch = branches.find((branch) => branch.branchid === request.frombranchid);
-    return branch && branch.bname === "WS" && request.status === "complete";
+  const filteredInventory = inventory.filter((item) => {
+    const matchesSearch = searchQuery
+      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+
+    if (userRole === "Manager" && viewAllBranches) {
+      return matchesSearch;
+    }
+
+    return item.branchid === userBranchId && matchesSearch;
   });
 
-  // Filter inventory based on the branch of the user
-  const filteredInventory = inventory.filter(
-    (item) => item.branchid === branchid
-  );
+  const groupedInventory = filteredInventory.reduce((groups, item) => {
+    const branchName = branches[item.branchid]?.bname || "Unknown";
+    if (!groups[branchName]) {
+      groups[branchName] = [];
+    }
+    groups[branchName].push(item);
+    return groups;
+  }, {});
 
-  // แยก currentPage สำหรับ Sent และ Received
-  const [currentSentPage, setCurrentSentPage] = useState(1);
-  const [currentReceivedPage, setCurrentReceivedPage] = useState(1);
-  const [currentProductPage, setCurrentProductPage] = useState(1);
+  const sortOptions = [
+    { key: "productid", label: "Product Name" },
+    { key: "branchid", label: "Branch Name" },
+    { key: "quantity", label: "Quantity" },
+    { key: "updatedat", label: "Updated At" },
+  ];
 
-  // Filter and sort requests for Sent and Received Requests
-  const sentRequests = requests
-    .filter(request => request.frombranchid === branchid)
-    .sort((a, b) => new Date(b.createdat) - new Date(a.createdat)); // เรียงลำดับใหม่ก่อน
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
+          style={{ height: "200px", width: "200px" }}
+        />
+        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+      </div>
+    );
+  }
 
-  const receivedRequests = requests
-    .filter(request => request.tobranchid === branchid)
-    .sort((a, b) => new Date(b.createdat) - new Date(a.createdat)); // เรียงลำดับใหม่ก่อน
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+        <p className="text-red-500 text-xl">{error}</p>
+      </div>
+    );
+  }
 
-  // Pagination logic
-  const getPaginatedRequests = (requests, currentPage) => {
-    const indexOfLastRequest = currentPage * itemsPerPage;
-    const indexOfFirstRequest = indexOfLastRequest - itemsPerPage;
-    return requests.slice(indexOfFirstRequest, indexOfLastRequest);
-  };
-
-  // Get paginated data
-  const currentSentRequests = getPaginatedRequests(sentRequests, currentSentPage);
-  const currentReceivedRequests = getPaginatedRequests(receivedRequests, currentReceivedPage);
-  const currentProductRequests = getPaginatedRequests(filteredInventory, currentProductPage);
-
-  // Calculate total pages
-  const totalSentPages = Math.ceil(sentRequests.length / itemsPerPage);
-  const totalReceivedPages = Math.ceil(receivedRequests.length / itemsPerPage);
   const totalProductPages = Math.ceil(filteredInventory.length / itemsPerPage);
 
-  // Handle Previous Page for Sent Requests
-  const handlePreviousPageSent = () => {
-    if (currentSentPage > 1) {
-      setCurrentSentPage(currentSentPage - 1);
-    }
+  const getPaginatedRequests = (requests) => {
+    const startIndex = (currentProductPage - 1) * itemsPerPage;
+    return requests.slice(startIndex, startIndex + itemsPerPage);
   };
 
-  // Handle Previous Page for Received Requests
-  const handlePreviousPageReceived = () => {
-    if (currentReceivedPage > 1) {
-      setCurrentReceivedPage(currentReceivedPage - 1);
-    }
-  };
-
-  // Handle Next Page for Sent Requests
-  const handleNextPageSent = () => {
-    if (currentSentPage < totalSentPages) {
-      setCurrentSentPage(currentSentPage + 1);
-    }
-  };
-
-  // Handle Next Page for Received Requests
-  const handleNextPageReceived = () => {
-    if (currentReceivedPage < totalReceivedPages) {
-      setCurrentReceivedPage(currentReceivedPage + 1);
-    }
-  };
-
-  // Handle Previous Page for Products
   const handlePreviousPageProduct = () => {
     if (currentProductPage > 1) {
       setCurrentProductPage(currentProductPage - 1);
     }
   };
 
-  // Handle Next Page for Products
   const handleNextPageProduct = () => {
     if (currentProductPage < totalProductPages) {
       setCurrentProductPage(currentProductPage + 1);
     }
   };
 
-  useEffect(() => {
-    if (location.state?.openModal) {
-      setIsModalOpen(true);  // ถ้ามี openModal ใน state ให้เปิด modal ทันที
-    }
-  }, [location.state]);
+  const handleViewDetails = (inventory) => {
+    setSelectedInventory(inventory);
+  };
 
-  useEffect(() => {
-    if (!branchid) {
-      return; // ถ้าไม่มีข้อมูลของ user หรือ branchid ก็ไม่ทำการ polling
-    }
-  
-    const intervalId = setInterval(() => {
-      fetchRequests();
-      fetchInventory();
-    }, 2000); // Polling ทุกๆ 2 วินาที
-  
-    // Cleanup function เพื่อหยุดการ Polling เมื่อ Component ถูก unmount
-    return () => clearInterval(intervalId);
-  }, [fetchRequests],{fetchInventory});
+  const handleCloseModal = () => {
+    setSelectedInventory(null);
+  };
+
+  const columns = ["productname", "productid", "quantity", "updatedat"];
   
   return (
-    <div>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
-      >
-        Request Inventory
-      </button>
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
+      <p className="text-black mb-4">Manage your Inventory here.</p>
 
-      {/* Add Request Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-          onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}
-        >
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-7xl w-full relative z-60 overflow-y-auto max-h-screen mt-10">
-            <h2 className="text-3xl font-bold text-center text-teal-600 mb-6">
-              Request Inventory Management
-            </h2>
+      <div className="flex space-x-4 mb-4">
+        <RequestInventory onProductAdded={fetchInventory} />
+        <ExportButtons filteredTables={filteredInventory} columns={columns} filename="pdf" />
+      </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="text-red-500 text-sm mb-4">
-                <strong>{error}</strong>
-              </div>
-            )}
+      <div className="mb-4 space-x-6 flex">
+        <div className="flex items-center space-x-4 m-2 w-full">
+          <label htmlFor="searchInput" className=" text-black font-semibold w-1/2">
+            Search by Product Name
+          </label>
+          <input
+            id="searchInput"
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by product name"
+            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
+        </div>
 
-            {/* Add Request Form */}
-            <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Add New Request
-            </h3>
-            <form>
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    From Branch ({branchName})
-                  </label>
-                  <select
-                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={newRequest.tobranchid}
-                    disabled
-                  >
-                    <option value="">Your Branch</option>
-                  </select>
-                </div>
+        <SortByDropdown
+          onSortChange={handleSortChange}
+          currentSortKey={sortKey}
+          currentSortDirection={sortDirection}
+          sortOptions={sortOptions}
+        />
+      </div>
 
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    To Branch
-                  </label>
-                  <select
-                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={newRequest.frombranchid}
-                    onChange={(e) =>
-                      setNewRequest({ ...newRequest, frombranchid: e.target.value })
-                    }
-                  >
-                    <option value="">Select Branch</option>
-                    {branches
-                      .filter((branch) => branch.branchid !== branchid) // Filter out our own branch
-                      .map((branch) => (
-                        <option key={branch.branchid} value={branch.branchid}>
-                          {branch.bname}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Product
-                  </label>
-                  <select
-                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={newRequest.productid}
-                    onChange={(e) =>
-                      setNewRequest({ ...newRequest, productid: e.target.value })
-                    }
-                  >
-                    <option value="">Select Product</option>
-                    {products.map((product) => {
-                      // Find the inventory for this product in the selected "To Branch"
-                      const branchInventory = inventory.find(
-                        (item) => item.productid === product.productid && item.branchid === newRequest.frombranchid
-                      );
-                      const quantity = branchInventory ? branchInventory.quantity : 0;
-
-                      return (
-                        <option key={product.productid} value={product.productid}>
-                          {product.productname} ({quantity})
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Quantity
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={newRequest.quantity}
-                    onChange={(e) =>
-                      setNewRequest({
-                        ...newRequest,
-                        quantity: parseInt(e.target.value),
-                      })
-                    }
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              <button
-                className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
-                onClick={handleAddRequest}
-              >
-                Add Request
-              </button>
-            </form>
+      {userRole === "Manager" && (
+        <div>
+          <div className="mb-4 text-blue-500">
+            <h2>Manager Privileges</h2>
           </div>
 
+          <button
+            onClick={handleToggleView}
+            className="btn bg-blue-500 text-white font-medium px-6 py-3 mb-4 rounded-md border-none hover:bg-blue-600 transition duration-300"
+          >
+            {viewAllBranches ? "View My Branch Only" : "View All Branches"}
+          </button>
+        </div>
+      )}
 
-            {/* Sending Shipment */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-4">Sending Shipment</h3>
+      {/* Inventory table */}
+      <div className="overflow-x-auto space-y-6 mt-4">
+        {Object.keys(groupedInventory).map((branchName) => {
+          const paginatedRequests = getPaginatedRequests(groupedInventory[branchName]);
+          return (
+            <div key={branchName} className="mb-6">
+              <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
               <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
                 <thead className="bg-gray-100 text-gray-600">
                   <tr>
-                    <th className="border text-sm px-4 py-2">To Branch</th>
                     <th className="border text-sm px-4 py-2">Product Name</th>
                     <th className="border text-sm px-4 py-2">Quantity</th>
-                    <th className="border text-sm px-4 py-2">Created At</th>
-                    <th className="border text-sm px-4 py-2">Status</th>
-                    <th className="border text-sm px-4 py-2">Actions</th>
+                    <th className="border text-sm px-4 py-2">Updated At</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentSentRequests.map((request) => {
-                    const toBranch = branches.find(
-                      (branch) => branch.branchid === request.tobranchid
-                    );
-                    const product = products.find(
-                      (product) => product.productid === request.productid
-                    );
-
-                    return (
-                      <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-50">
-                        <td className="border text-sm px-4 py-2">
-                          {toBranch ? toBranch.bname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {moment(request.createdat).format("L, HH:mm")}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.status}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {request.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleUpdateStatus(request.requestid, "complete")
-                                }
-                                className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
-                              >
-                                Complete
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleUpdateStatus(request.requestid, "reject")
-                                }
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {paginatedRequests.map((item) => (
+                    <tr key={item.inventoryid}>
+                      <td className="text-black">{products[item.productid]}</td>
+                      <td className="text-black">{item.quantity}</td>
+                      <td className="text-black">{formatDate(item.updatedat)}</td>
+                      <td className="text-black">
+                        <button
+                          onClick={() => handleViewDetails(item)}
+                          className="hover:border-b-2 border-gray-400 transition duration-30"
+                        >
+                          <HiEye className="text-blue-600 h-6 w-6" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            </div>
 
-            {/* Pagination Controls for Sent Requests */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageSent}
-                disabled={currentSentPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentSentPage}</span>
-                <span className="ml-2">of {totalSentPages}</span>
+              <div className="flex justify-center mt-4 space-x-4">
+                <button
+                  onClick={handlePreviousPageProduct}
+                  disabled={currentProductPage === 1}
+                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center">
+                  <span className="mr-2">Page</span>
+                  <span>{currentProductPage}</span>
+                  <span className="ml-2">of {totalProductPages}</span>
+                </div>
+                <button
+                  onClick={handleNextPageProduct}
+                  disabled={currentProductPage === totalProductPages}
+                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Next
+                </button>
               </div>
-              <button
-                onClick={handleNextPageSent}
-                disabled={currentSentPage === totalSentPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
             </div>
+          );
+        })}
+      </div>
 
-
-            {/* Receiving Shipment  */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-4">Receiving Shipment</h3>
-              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">From Branch</th>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                    <th className="border text-sm px-4 py-2">Created At</th>
-                    <th className="border text-sm px-4 py-2">Status</th>
-                    <th className="border text-sm px-4 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentReceivedRequests.map((request) => {
-                    const fromBranch = branches.find(
-                      (branch) => branch.branchid === request.frombranchid
-                    );
-                    const product = products.find(
-                      (product) => product.productid === request.productid
-                    );
-
-                    return (
-                      <tr key={request.requestid} className="hover:bg-teal-50">
-                        <td className="border text-sm px-4 py-2">
-                          {fromBranch ? fromBranch.bname : "Warehouse"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {moment(request.createdat).format("L, HH:mm")}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.status}</td>
-                        {fromBranch ? "" : "Warehouse" && request.status === "pending" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleUpdateStatus(request.requestid, "complete")
-                              }
-                              className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
-                            >
-                              Complete
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleUpdateStatus(request.requestid, "reject")
-                              }
-                              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+      {selectedInventory && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative">
+            <h2 className="text-3xl font-bold mb-6 text-teal-600 text-center">
+              Product Detail
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                <span className="font-semibold">Product Name:</span> {products[selectedInventory.productid]}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Branch Name:</span> {branches[selectedInventory.branchid]?.bname}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Location:</span> {branches[selectedInventory.branchid]?.location}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Quantity:</span> {selectedInventory.quantity}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Updated At:</span> {formatDate(selectedInventory.updatedat)}
+              </p>
             </div>
-
-            {/* Pagination Controls for Received Requests */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageReceived}
-                disabled={currentReceivedPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentReceivedPage}</span>
-                <span className="ml-2">of {totalReceivedPages}</span>
-              </div>
-              <button
-                onClick={handleNextPageReceived}
-                disabled={currentReceivedPage === totalReceivedPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
-
-            {/* Products Table */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 my-4">
-                Products ({branchName})
-              </h3>
-              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Price</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentProductRequests.map((item) => {
-                    const product = products.find(
-                      (product) => product.productid === item.productid
-                    );
-                    return (
-                      <tr key={item.inventoryid}>
-                        <td className="border px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {product ? product.price : "-"}
-                        </td>
-                        <td className="border px-4 py-2">{item.quantity}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>           
-            </div>
-
-            {/* Pagination Controls for Products */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageProduct}
-                disabled={currentProductPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentProductPage}</span>
-                <span className="ml-2">of {totalProductPages}</span>
-              </div>
-              <button
-                onClick={handleNextPageProduct}
-                disabled={currentProductPage === totalProductPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
+            <button
+              onClick={handleCloseModal}
+              className="btn w-full bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md border-none hover:bg-teal-600 transition duration-300"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -715,4 +348,4 @@ const RequestInventory = () => {
   );
 };
 
-export default RequestInventory;
+export default InventoryPage;

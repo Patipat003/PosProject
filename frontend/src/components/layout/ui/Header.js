@@ -11,7 +11,7 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [salesNotifications, setSalesNotifications] = useState([]);
-  const [lowStockProducts, setLowStockProducts] = useState([]);
+    const [lowStockProducts, setLowStockProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // For managing modal state
   const navigate = useNavigate();
 
@@ -88,7 +88,7 @@ const Header = () => {
       );
 
       const requests = response.data.Data;
-      const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending");
+      const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending" || request.tobranchid === branchid && request.status === "Pending");
       setSalesNotifications(notifications);
     } catch (err) {
       console.error("Error fetching requests:", err);
