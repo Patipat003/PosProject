@@ -10,17 +10,29 @@ import {
   BarElement,
 } from "chart.js";
 import axios from "axios";
-import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
+import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
+import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
+import { HiOutlineCurrencyDollar  , HiOutlineShoppingCart, HiOutlineCube  } from 'react-icons/hi'; // Heroicons
+
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+
+const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
 
 const DashboardPage = () => {
   const [salesSummary, setSalesSummary] = useState([]);
   const [keyMetrics, setKeyMetrics] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [inventoryData, setInventoryData] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]); // For low stock items
+  const [saleRecents, setSaleRecents] = useState([]);  // สำหรับรายการการขายล่าสุด
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState("all");
+  const [userBranchId, setUserBranchId] = useState(null); // State for storing branchid
+  const [showModal, setShowModal] = useState(false); // สำหรับเปิด/ปิด modal
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,15 +44,58 @@ const DashboardPage = () => {
           },
         };
 
-        // Fetch sales data
+        const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
         const salesResponse = await axios.get("http://localhost:5050/sales", config);
-        const salesData = salesResponse.data.Data;
-
-        // Fetch branches data
+        const productsResponse = await axios.get("http://localhost:5050/products", config);
         const branchesResponse = await axios.get("http://localhost:5050/branches", config);
-        const branchesData = branchesResponse.data.Data;
+        const inventoryResponse = await axios.get("http://localhost:5050/inventory", config);
 
-        // Calculate sales summary by branch
+        const saleItemsData = saleItemsResponse.data.Data;
+        const salesData = salesResponse.data.Data;
+        const productsData = productsResponse.data.Data;
+        const branchesData = branchesResponse.data.Data;
+        const inventory = inventoryResponse.data.Data;
+
+        // Decode token to get user branchid and set it in state
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        const branchid = decodedToken.branchid; // Get the branchid from token
+        setUserBranchId(branchid); // Store branchid in state
+
+        // Filter sales based on userBranchId
+        const filteredSales = selectedBranch === "all"
+          ? salesData
+          : salesData.filter(sale => sale.branchid === branchid);
+
+        const saleItemsForBranch = saleItemsData.filter(saleItem =>
+          filteredSales.some(sale => sale.saleid === saleItem.saleid)
+        );
+
+        const totalQuantity = saleItemsForBranch.reduce((sum, item) => sum + item.quantity, 0);
+        const totalSales = filteredSales.reduce((sum, sale) => sum + sale.totalamount, 0);
+
+        const productSales = saleItemsForBranch.reduce((acc, saleItem) => {
+          const { productid, quantity } = saleItem;
+          if (acc[productid]) {
+            acc[productid].quantity += quantity;
+          } else {
+            acc[productid] = { quantity, productid };
+          }
+          return acc;
+        }, {});
+
+        const topSellingProducts = Object.values(productSales)
+          .sort((a, b) => b.quantity - a.quantity)
+          .slice(0, 5);
+
+        const topProductsWithDetails = topSellingProducts.map(item => {
+          const product = productsData.find(p => p.productid === item.productid);
+          return {
+            ...item,
+            productname: product ? product.productname : "Unknown",
+            imageurl: product ? product.imageurl : "",
+          };
+        });
+
         const branchSales = salesData.reduce((acc, sale) => {
           const branch = acc.find((b) => b.branchid === sale.branchid);
           if (branch) {
@@ -51,27 +106,30 @@ const DashboardPage = () => {
           return acc;
         }, []);
 
-        // Merge branch names with sales summary and include all branches
         const salesWithBranchNames = branchesData.map((branch) => {
           const sale = branchSales.find((b) => b.branchid === branch.branchid);
           return {
             branchid: branch.branchid,
             bname: branch.bname,
-            sales: sale ? sale.sales : 0, // Include branches with zero sales
+            sales: sale ? sale.sales : 0,
           };
         });
 
-        // Calculate key metrics
-        const totalSales = salesData.reduce((sum, sale) => sum + sale.totalamount, 0);
-        const activeUsers = new Set(salesData.map((sale) => sale.userid)).size; // Example: Count unique users
-        const lowStockAlerts = 10; // Replace this with dynamic data if available
-
+        setBranches(branchesData);
         setSalesSummary(salesWithBranchNames);
-        setKeyMetrics([
-          { label: "Total Sales", value: totalSales },
-          { label: "Active Users", value: activeUsers },
-          { label: "Low Stock Alerts", value: lowStockAlerts },
-        ]);
+        setTopProducts(topProductsWithDetails);
+        setInventoryData(inventory);
+        setKeyMetrics([ { label: "Total Sales", value: totalSales }, { label: "Total Quantity", value: totalQuantity } ]);
+
+        const lowStock = inventory.filter(item => item.quantity < 100 && (selectedBranch === "all" || item.branchid === branchid)); 
+        setLowStockProducts(lowStock);
+
+        // Fetch sale recents
+        const saleRecentsData = selectedBranch === "all"
+          ? salesData.slice(0, 10) // แสดงแค่ 5 รายการล่าสุดสำหรับทุกสาขา
+          : salesData.filter(sale => sale.branchid === branchid).slice(0, 5); // สำหรับสาขาของผู้ใช้
+        setSaleRecents(saleRecentsData);
+
         setLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -81,15 +139,24 @@ const DashboardPage = () => {
     };
 
     fetchData();
-  }, []);
+    const intervalId = setInterval(fetchData, POLLING_INTERVAL);
+    return () => clearInterval(intervalId); // Clean up interval
+  }, [selectedBranch]);
+  
+  const handleCloseModal = () => setShowModal(false);
 
- if (loading) {
+  const soldProducts = topProducts.map(product => ({
+    productname: product.productname,
+    quantity: product.quantity,
+  }));
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-42 flex-col">
         <Player
           autoplay
           loop
-          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
           style={{ height: "200px", width: "200px" }}
         />
         <span className="text-teal-500 text-lg font-semibold">Loading...</span>
@@ -106,19 +173,50 @@ const DashboardPage = () => {
     );
   }
 
-  // Data for Pie Chart
+  const filteredSales = selectedBranch === "all"
+    ? salesSummary
+    : salesSummary.filter(sale => sale.branchid === selectedBranch);
+
   const pieData = {
-    labels: salesSummary.map((data) => data.bname),
+    labels: filteredSales.map((data) => data.bname),
     datasets: [
       {
-        data: salesSummary.map((data) => data.sales),
+        data: filteredSales.map((data) => data.sales),
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
       },
     ],
   };
 
-  // Data for Bar Chart
+  const pieOptions = {
+    maintainAspectRatio: false,
+    responsive: true,
+    cutout: '50%', // เปลี่ยนจาก pie เป็น donut
+    plugins: {
+      tooltip: {
+        enabled: true,
+        backgroundColor: "#333",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+      },
+      legend: {
+        position: 'right', // ตั้ง legend ไว้ที่ด้านบน
+        labels: {
+          font: {
+            size: 14, // ปรับขนาดฟอนต์ของ label
+            padding: 10, // ระยะห่างของ label
+          },
+          boxWidth: 20, // ขนาดกล่องสีของ legend
+        },
+      },
+    },
+    elements: {
+      arc: {
+        borderWidth: 2, // เพิ่มขนาดขอบ
+      },
+    },
+  };
+
   const barData = {
     labels: keyMetrics.map((metric) => metric.label),
     datasets: [
@@ -130,61 +228,158 @@ const DashboardPage = () => {
     ],
   };
 
+  const topProductsData = {
+    labels: topProducts.map((product) => product.productname),
+    datasets: [
+      {
+        data: topProducts.map((product) => product.quantity),
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+      },
+    ],
+  };
+
+  const handleViewAllClick = () => {
+    setSelectedBranch(prevState => (prevState === "all" ? userBranchId : "all"));
+  };
+  
   return (
-    <div className="p-6 bg-gray-100 min-h-screen text-black">
+    <div className="p-4 min-h-screen text-black">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        {keyMetrics.map((metric, index) => (
-          <div
-            key={index}
-            className="bg-white shadow rounded-lg p-3 flex flex-col items-center justify-center text-center text-sm"
-          >
-            <h2 className="font-semibold">{metric.label}</h2>
-            <p className="text-blue-500 font-bold">{metric.value}</p>
+      {/* View All Button */}
+      <button
+        onClick={handleViewAllClick}
+        className="btn border-none bg-teal-500 text-white p-2 rounded mb-6"
+      >
+        {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
+      </button>
+
+      {/* Sales and Top Selling Products */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
+
+        {/* Total Sales (THB) */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
+          <HiOutlineCurrencyDollar  className="text-teal-500 text-6xl" />
+          <div className="text-right">
+            <h2 className="font-semibold mb-4">Total Sales (THB)</h2>
+            <div className="text-2xl font-bold text-teal-500">
+              ฿{keyMetrics[0]?.value.toLocaleString()}
+            </div>
           </div>
-        ))}
+        </div>
+
+        {/* Total Sales (Pieces) */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
+          <HiOutlineShoppingCart  className="text-teal-500 text-6xl" />
+          <div className="text-right">
+            <h2 className="font-semibold mb-4">Total Sales (Pieces)</h2>
+            <div className="text-2xl font-bold text-teal-500">
+              {keyMetrics[1]?.value.toLocaleString()} Pieces
+            </div>
+          </div>
+        </div>
+
+        {/* Low Stock Section */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
+          <HiOutlineCube  className="text-red-500 text-6xl" />
+          <div className="text-right">
+            <h2 className="font-semibold mb-4">Low Stock (Products)</h2>
+            <div className="text-2xl font-bold text-red-500">
+              {lowStockProducts.length} Low on Stock
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      {/* Pie Chart */}
-      <div className="bg-white shadow rounded-lg p-4 mb-4">
-        <h2 className="text-sm font-semibold mb-2">Sales Summary (Pie Chart)</h2>
-        <div className="w-200 mx-auto">
-          <Pie data={pieData} options={{ maintainAspectRatio: false }} />
+      {/* Top Selling Products */}
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
+        <h2 className="font-semibold mb-4">Top Sale Products</h2>
+        <div className="w-72 mx-auto">
+          <Pie data={topProductsData} options={{ ...pieOptions, maintainAspectRatio: false }} />
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="btn border-none bg-teal-500 text-white p-2 rounded mt-4"
+        >
+          View Sold Products
+        </button>
+      </div>
+
+      {/* Show Modal */}
+      <SoldProductsModal
+        show={showModal}
+        closeModal={handleCloseModal}
+        products={soldProducts}
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 text-gray-600">
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <h2 className="font-semibold mb-4">Sales Summary (Pie Chart)</h2>
+          <div className="w-72 mx-auto">
+            <Pie data={pieData} options={{ ...pieOptions, maintainAspectRatio: false }} />
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <h2 className="font-semibold mb-4">Key Metrics (Bar Chart)</h2>
+          <div className="w-72 mx-auto">
+            <Bar data={barData} options={{ maintainAspectRatio: false }} />
+          </div>
         </div>
       </div>
-
-      {/* Bar Chart */}
-      <div className="bg-white shadow rounded-lg p-4 mb-4">
-        <h2 className="text-sm font-semibold mb-2">Key Metrics (Bar Chart)</h2>
-        <div className="w-60 mx-auto">
-          <Bar data={barData} options={{ maintainAspectRatio: false }} />
-        </div>
-      </div>
-
-      {/* Sales Summary Table */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="text-sm font-semibold mb-2">Sales Summary (Table)</h2>
-        <table className="w-full text-sm border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border border-gray-300 p-1 text-left">Branch Name</th>
-              <th className="border border-gray-300 p-1 text-left">Total Sales</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salesSummary.map((data, index) => (
-              <tr key={index}>
-                <td className="border border-gray-300 p-1">{data.bname}</td>
-                <td className="border border-gray-300 p-1">
-                ฿{data.sales.toLocaleString()}
-                </td>
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6 text-gray-600">
+        {/* Sales Summary Table */}
+        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
+          <h2 className="font-semibold mb-4">Sales Summary (Table)</h2>
+          <table className="w-full text-sm border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
+                <th className="border border-gray-300 p-1 text-left">Total Sales</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredSales.map((data, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-300 p-1">{data.bname}</td>
+                  <td className="border border-gray-300 p-1">฿{data.sales.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Sale Recents Table */}
+        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
+          <h2 className="font-semibold mb-4">Sale Recents</h2>
+          <table className="w-full text-sm border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 p-1 text-left">Sale ID</th>
+                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
+                <th className="border border-gray-300 p-1 text-left">Employee Name</th>
+                <th className="border border-gray-300 p-1 text-left">Total Sales (THB)</th>
+                <th className="border border-gray-300 p-1 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {saleRecents.map((sale, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-300 p-1">{sale.saleid}</td>
+                  <td className="border border-gray-300 p-1">
+                    {branches.find(branch => branch.branchid === sale.branchid)?.bname}
+                  </td>
+                  <td className="border border-gray-300 p-1">{sale.employeeid}</td>
+                  <td className="border border-gray-300 p-1">{sale.totalamount.toLocaleString()}</td>
+                  <td className="border border-gray-300 p-1">{new Date(sale.createdat).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>  
     </div>
   );
 };

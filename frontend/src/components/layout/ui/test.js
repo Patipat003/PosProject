@@ -1,369 +1,378 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Pie, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from "chart.js";
 import axios from "axios";
-import { toZonedTime, format } from 'date-fns-tz';
-import { FaReceipt, FaPrint } from "react-icons/fa"; // Import receipt and print icons
-import { jwtDecode } from "jwt-decode";
+import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
+import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
+import ModalStockLow from "../components/layout/ui/ModalStockLow"; // Modal for low stock alert
 
-const SalesHistoryPage = () => {
-  const [sales, setSales] = useState([]);
-  const [filteredSales, setFilteredSales] = useState([]);
-  const [paginatedSales, setPaginatedSales] = useState([]);
-  const [modalData, setModalData] = useState(null);
-  const [branchId, setBranchId] = useState("");
-  const [employees, setEmployees] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc"); // asc or desc
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
+
+const DashboardPage = () => {
+  const [salesSummary, setSalesSummary] = useState([]);
+  const [keyMetrics, setKeyMetrics] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [inventoryData, setInventoryData] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]); // For low stock items
+  const [saleRecents, setSaleRecents] = useState([]);  // สำหรับรายการการขายล่าสุด
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState("all");
+  const [userBranchId, setUserBranchId] = useState(null); // State for storing branchid
+  const [showModal, setShowModal] = useState(false); // สำหรับเปิด/ปิด modal
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const decoded = jwtDecode(token);
-    setBranchId(decoded.branchid);
-    fetchSalesData(decoded.branchid);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
 
-  const fetchSalesData = async (branchId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+        const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
+        const salesResponse = await axios.get("http://localhost:5050/sales", config);
+        const productsResponse = await axios.get("http://localhost:5050/products", config);
+        const branchesResponse = await axios.get("http://localhost:5050/branches", config);
+        const inventoryResponse = await axios.get("http://localhost:5050/inventory", config);
 
-      const salesResponse = await axios.get("http://localhost:5050/sales", config);
-      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
-      const receiptResponse = await axios.get("http://localhost:5050/receipts", config);
+        const saleItemsData = saleItemsResponse.data.Data;
+        const salesData = salesResponse.data.Data;
+        const productsData = productsResponse.data.Data;
+        const branchesData = branchesResponse.data.Data;
+        const inventory = inventoryResponse.data.Data;
 
-      const salesArray = salesResponse.data.Data || [];
-      const employeesArray = employeeResponse.data.Data || [];
-      const receiptsArray = receiptResponse.data.Data || [];
+        // Decode token to get user branchid and set it in state
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        const branchid = decodedToken.branchid; // Get the branchid from token
+        setUserBranchId(branchid); // Store branchid in state
 
-      const filteredEmployees = employeesArray.filter((emp) => emp.branchid === branchId);
-      setEmployees(filteredEmployees);
+        // Filter sales based on userBranchId
+        const filteredSales = selectedBranch === "all"
+          ? salesData
+          : salesData.filter(sale => sale.branchid === branchid);
 
-      const filteredSales = salesArray
-        .filter((sale) => sale.branchid === branchId)
-        .map((sale, index) => {
-          const employee = filteredEmployees.find((emp) => emp.employeeid === sale.employeeid);
-          const receipt = receiptsArray.find((rec) => rec.saleid === sale.saleid);
+        const saleItemsForBranch = saleItemsData.filter(saleItem =>
+          filteredSales.some(sale => sale.saleid === saleItem.saleid)
+        );
 
-          const zonedDate = toZonedTime(sale.createdat, 'UTC');
-          const formattedDate = format(zonedDate, "dd/MM/yyyy, HH:mm");
+        const totalQuantity = saleItemsForBranch.reduce((sum, item) => sum + item.quantity, 0);
+        const totalSales = filteredSales.reduce((sum, sale) => sum + sale.totalamount, 0);
 
+        const productSales = saleItemsForBranch.reduce((acc, saleItem) => {
+          const { productid, quantity } = saleItem;
+          if (acc[productid]) {
+            acc[productid].quantity += quantity;
+          } else {
+            acc[productid] = { quantity, productid };
+          }
+          return acc;
+        }, {});
+
+        const topSellingProducts = Object.values(productSales)
+          .sort((a, b) => b.quantity - a.quantity)
+          .slice(0, 5);
+
+        const topProductsWithDetails = topSellingProducts.map(item => {
+          const product = productsData.find(p => p.productid === item.productid);
           return {
-            index: index + 1,
-            saleid: sale.saleid,
-            receiptnumber: receipt?.receiptnumber || "N/A",
-            employeename: employee?.name || "Unknown",
-            role: employee?.role || "Unknown",
-            totalamount: sale.totalamount,
-            createdat: formattedDate,
+            ...item,
+            productname: product ? product.productname : "Unknown",
+            imageurl: product ? product.imageurl : "",
           };
         });
 
-      setSales(filteredSales);
-      setFilteredSales(filteredSales);
-      setPaginatedSales(filteredSales.slice(0, itemsPerPage));
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    }
-  };
+        const branchSales = salesData.reduce((acc, sale) => {
+          const branch = acc.find((b) => b.branchid === sale.branchid);
+          if (branch) {
+            branch.sales += sale.totalamount;
+          } else {
+            acc.push({ branchid: sale.branchid, sales: sale.totalamount });
+          }
+          return acc;
+        }, []);
 
-  const handleSearch = (event) => {
-    const term = event.target.value;
-    setSearchTerm(term);
-    filterData(term, selectedEmployee, sortOrder);
-  };
+        const salesWithBranchNames = branchesData.map((branch) => {
+          const sale = branchSales.find((b) => b.branchid === branch.branchid);
+          return {
+            branchid: branch.branchid,
+            bname: branch.bname,
+            sales: sale ? sale.sales : 0,
+          };
+        });
 
-  const handleEmployeeFilter = (event) => {
-    const employee = event.target.value;
-    setSelectedEmployee(employee);
-    filterData(searchTerm, employee, sortOrder);
-  };
+        setBranches(branchesData);
+        setSalesSummary(salesWithBranchNames);
+        setTopProducts(topProductsWithDetails);
+        setInventoryData(inventory);
+        setKeyMetrics([ { label: "Total Sales", value: totalSales }, { label: "Total Quantity", value: totalQuantity } ]);
 
-  const handleDateFilter = (event) => {
-    const date = event.target.value;
-    setSelectedDate(date);
-    filterData(searchTerm, selectedEmployee, sortOrder, date);
-  };
+        const lowStock = inventory.filter(item => item.quantity < 10 && (selectedBranch === "all" || item.branchid === branchid)); 
+        setLowStockProducts(lowStock);
+
+        // Fetch sale recents
+        const saleRecentsData = selectedBranch === "all"
+          ? salesData.slice(0, 10) // แสดงแค่ 5 รายการล่าสุดสำหรับทุกสาขา
+          : salesData.filter(sale => sale.branchid === branchid).slice(0, 5); // สำหรับสาขาของผู้ใช้
+        setSaleRecents(saleRecentsData);
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, POLLING_INTERVAL);
+    return () => clearInterval(intervalId); // Clean up interval
+  }, [selectedBranch]);
   
+  const handleCloseModal = () => setShowModal(false);
 
-  const handleSort = () => {
-    const order = sortOrder === "asc" ? "desc" : "asc";
-    setSortOrder(order);
-    filterData(searchTerm, selectedEmployee, order);
-  };
+  const soldProducts = topProducts.map(product => ({
+    productname: product.productname,
+    quantity: product.quantity,
+  }));
 
-  const filterData = (term, employee, order, date) => {
-    let filtered = [...sales];
-  
-    if (term) {
-      filtered = filtered.filter((sale) =>
-        sale.receiptnumber.toLowerCase().includes(term.toLowerCase())
-      );
-    }
-  
-    if (employee) {
-      filtered = filtered.filter((sale) => sale.employeename === employee);
-    }
-  
-    if (date) {
-      filtered = filtered.filter((sale) => {
-        const saleDate = sale.createdat.split(", ")[0]; // Extract "dd/MM/yyyy"
-        return saleDate === format(new Date(date), "dd/MM/yyyy");
-      });
-    }
-  
-    filtered.sort((a, b) => {
-      const parseDate = (dateStr) => {
-        const [date, time] = dateStr.split(", ");
-        const [day, month, year] = date.split("/");
-        return new Date(`${year}-${month}-${day}T${time}`);
-      };
-  
-      const dateA = parseDate(a.createdat);
-      const dateB = parseDate(b.createdat);
-  
-      return order === "asc" ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-    });
-  
-    setFilteredSales(filtered);
-    setCurrentPage(1);
-    setPaginatedSales(filtered.slice(0, itemsPerPage));
-  };
-
-  const fetchSaleItems = async (saleId, createdAt) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
-      const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
-      const productResponse = await axios.get("http://localhost:5050/products", config);
-
-      const saleItems = Array.isArray(saleItemsResponse.data.Data)
-        ? saleItemsResponse.data.Data.filter((item) => item.saleid === saleId)
-        : [];
-
-      const products = Array.isArray(productResponse.data.Data) ? productResponse.data.Data : [];
-      const modalItems = saleItems.map((item) => {
-        const product = products.find((prod) => prod.productid === item.productid);
-        return {
-          productname: product?.productname || "Unknown",
-          quantity: item.quantity,
-          price: item.price,
-          totalprice: item.quantity * item.price,
-        };
-      });
-
-      setModalData({ receiptnumber: saleId, receiptnumber: saleId, createdat: createdAt, items: modalItems });
-    } catch (error) {
-      console.error("Error fetching sale items:", error);
-    }
-  };
-
-  const openModal = (saleId, createdAt) => {
-    fetchSaleItems(saleId, createdAt);
-  };
-
-  const closeModal = () => {
-    setModalData(null);
-  };
-
-  const handlePrint = () => {
-    const printContent = document.getElementById("print-area");
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(printContent.innerHTML);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    const startIndex = (page - 1) * itemsPerPage;
-    setPaginatedSales(filteredSales.slice(startIndex, startIndex + itemsPerPage));
-  };
-
-  const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
-
-  return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales History</h1>
-      <p className="text-black mb-4">View your Sales History here.</p>
-
-      <div className="flex items-center space-x-4 mb-4">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearch}
-          placeholder="Search by Receipt Number"
-          className="border bg-white border-gray-300 px-6 w-3/4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
+          style={{ height: "200px", width: "200px" }}
         />
-        <select
-          value={selectedEmployee}
-          onChange={handleEmployeeFilter}
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-        >
-          <option value="">Filter by Employee Name</option>
-          {employees.map((employee) => (
-            <option key={employee.employeeid} value={employee.employeename}>
-              {employee.name}
-            </option>
-          ))}
-        </select>
-
-          {/* New Date Filter */}
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={handleDateFilter}
-            className="btn btn-none border-none bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-
-          <button
-            onClick={handleSort}
-            className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
-          >
-            Sort by Date {sortOrder === "asc" ? "↑" : "↓"}
-          </button>
-        </div>
-
-
-      <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
-        <thead className="bg-gray-100 text-gray-600">
-          <tr>
-            <th className="border text-sm px-4 py-2">#</th>
-            <th className="border text-sm px-4 py-2">Receipt Number</th>
-            <th className="border text-sm px-4 py-2">Employee Name</th>
-            <th className="border text-sm px-4 py-2">Role</th>
-            <th className="border text-sm px-4 py-2">Total Amount</th>
-            <th className="border text-sm px-4 py-2">Created At</th>
-            <th className="border text-sm px-4 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedSales.map((sale) => (
-            <tr key={sale.saleid} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">{sale.index}</td>
-              <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
-              <td className="border border-gray-300 px-4 py-2">{sale.employeename}</td>
-              <td className="border border-gray-300 px-4 py-2">{sale.role}</td>
-              <td className="border border-gray-300 px-4 py-2">{sale.totalamount}</td>
-              <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
-              <td className="border border-gray-300 px-4 py-2">
-                <button
-                  className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
-                  onClick={() => openModal(sale.saleid, sale.createdat)}
-                >
-                  <FaReceipt /> Receipt
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="flex justify-center space-x-2">
-        {Array.from({ length: totalPages }, (_, index) => (
-          <button
-            key={index}
-            className={`px-3 py-1 rounded ${
-              currentPage === index + 1
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
-            onClick={() => handlePageChange(index + 1)}
-          >
-            {index + 1}
-          </button>
-        ))}
+        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
       </div>
+    );
+  }
 
-      {modalData && (
-        <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg w-96 max-w-screen-sm" id="print-area">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold">Store ({modalData.bname})</h1>
-              <p className="text-sm">{modalData.branchlocation}</p>
-              <p className="text-sm">Employee: {modalData.employeeName}</p>
-              <p className="text-sm">Phone: 123-456-7890</p>
-              <p className="text-sm">www.storewebsite.com</p>
-            </div>
-            
-            <div className="border-t border-gray-300 pt-4 mb-6">
-              <h2 className="text-lg font-bold mb-2">Receipt #{modalData.receiptnumber}</h2>
-              <p className="text-sm mb-2">Created At: {modalData.createdat}</p>
-            </div>
-            
-            <div className="border border-gray-300 p-4 rounded">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="text-left">Item</th>
-                    <th className="text-right">Qty</th>
-                    <th className="text-right">Price</th>
-                    <th className="text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {modalData.items.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.productname}</td>
-                      <td className="text-right">{item.quantity}</td>
-                      <td className="text-right">{item.price.toFixed(2)}</td>
-                      <td className="text-right">
-                        {(item.quantity * item.price).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td className="font-bold">Total</td>
-                    <td></td>
-                    <td></td>
-                    <td className="font-bold text-right">
-                      {modalData.items
-                        .reduce(
-                          (total, item) => total + item.quantity * item.price,
-                          0
-                        )
-                        .toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            
-            <div className="border-t border-gray-300 pt-4 mt-6">
-              <div className="flex justify-between">
-                <span className="text-sm">Thank you for shopping with us!</span>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-2 mt-4">
-              <button
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
-                onClick={handlePrint}
-              >
-                <FaPrint className="mr-1" /> Print Receipt
-              </button>
-              <button
-                className="btn bg-gray-500 text-white border-none hover:bg-gray-600 rounded"
-                onClick={() => setModalData(null)}
-              >
-                Close
-              </button>
-            </div>
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+        <p className="text-red-500 text-xl">{error}</p>
+      </div>
+    );
+  }
+
+  const filteredSales = selectedBranch === "all"
+    ? salesSummary
+    : salesSummary.filter(sale => sale.branchid === selectedBranch);
+
+  const pieData = {
+    labels: filteredSales.map((data) => data.bname),
+    datasets: [
+      {
+        data: filteredSales.map((data) => data.sales),
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+      },
+    ],
+  };
+
+  const pieOptions = {
+    maintainAspectRatio: false,
+    responsive: true,
+    cutout: '50%', // เปลี่ยนจาก pie เป็น donut
+    plugins: {
+      tooltip: {
+        enabled: true,
+        backgroundColor: "#333",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+      },
+      legend: {
+        position: 'right', // ตั้ง legend ไว้ที่ด้านบน
+        labels: {
+          font: {
+            size: 14, // ปรับขนาดฟอนต์ของ label
+            padding: 10, // ระยะห่างของ label
+          },
+          boxWidth: 20, // ขนาดกล่องสีของ legend
+        },
+      },
+    },
+    elements: {
+      arc: {
+        borderWidth: 2, // เพิ่มขนาดขอบ
+      },
+    },
+  };
+
+  const barData = {
+    labels: keyMetrics.map((metric) => metric.label),
+    datasets: [
+      {
+        label: "Metrics",
+        data: keyMetrics.map((metric) => metric.value),
+        backgroundColor: "#36A2EB",
+      },
+    ],
+  };
+
+  const topProductsData = {
+    labels: topProducts.map((product) => product.productname),
+    datasets: [
+      {
+        data: topProducts.map((product) => product.quantity),
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+      },
+    ],
+  };
+
+  const handleViewAllClick = () => {
+    setSelectedBranch(prevState => (prevState === "all" ? userBranchId : "all"));
+  };
+  
+  return (
+    <div className="p-4 min-h-screen text-black">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
+      <p className="text-black mb-4">View your Dashboard here.</p>
+
+      {/* View All Button */}
+      <button
+        onClick={handleViewAllClick}
+        className="btn border-none bg-teal-500 text-white p-2 rounded mb-6"
+      >
+        {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
+      </button>
+
+      
+
+      {/* Sales and Top Selling Products */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
+
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+          <h2 className="font-semibold mb-4">Total Sales (THB)</h2>
+          <div className="text-2xl font-bold text-teal-500">
+            ฿{keyMetrics[0]?.value.toLocaleString()}
           </div>
         </div>
-      )}
 
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+          <h2 className="font-semibold mb-4">Total Sales (Pieces)</h2>
+          <div className="text-2xl font-bold text-teal-500">
+            {keyMetrics[1]?.value.toLocaleString()} Pieces
+          </div>
+        </div>
 
+        {/* Low Stock Section */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+          <h2 className="font-semibold mb-4">Low Stock</h2>
+          <div className="text-2xl font-bold text-teal-500">
+            {lowStockProducts.length} Products Low on Stock
+          </div>
+        </div>
+
+      </div>
+
+      {/* Top Selling Products */}
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
+        <h2 className="font-semibold mb-4 text-gray-600">Top Selling Products</h2>
+        <div className="w-72 mx-auto">
+          <Pie data={topProductsData} options={{ ...pieOptions, maintainAspectRatio: false }} />
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-teal-500 text-white p-2 rounded mt-4"
+        >
+          View Sold Products
+        </button>
+      </div>
+
+      {/* Show Modal */}
+      <SoldProductsModal
+        show={showModal}
+        closeModal={handleCloseModal}
+        products={soldProducts}
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 text-gray-600">
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <h2 className="font-semibold mb-4">Sales Summary (Pie Chart)</h2>
+          <div className="w-72 mx-auto">
+            <Pie data={pieData} options={{ ...pieOptions, maintainAspectRatio: false }} />
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <h2 className="font-semibold mb-4">Key Metrics (Bar Chart)</h2>
+          <div className="w-72 mx-auto">
+            <Bar data={barData} options={{ maintainAspectRatio: false }} />
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6 text-gray-600">
+        {/* Sales Summary Table */}
+        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
+          <h2 className="font-semibold mb-4">Sales Summary (Table)</h2>
+          <table className="w-full text-sm border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
+                <th className="border border-gray-300 p-1 text-left">Total Sales</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSales.map((data, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-300 p-1">{data.bname}</td>
+                  <td className="border border-gray-300 p-1">฿{data.sales.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Sale Recents Table */}
+        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
+          <h2 className="font-semibold mb-4">Sale Recents</h2>
+          <table className="w-full text-sm border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 p-1 text-left">Sale ID</th>
+                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
+                <th className="border border-gray-300 p-1 text-left">Employee Name</th>
+                <th className="border border-gray-300 p-1 text-left">Total Sales (THB)</th>
+                <th className="border border-gray-300 p-1 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {saleRecents.map((sale, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-300 p-1">{sale.saleid}</td>
+                  <td className="border border-gray-300 p-1">
+                    {branches.find(branch => branch.branchid === sale.branchid)?.bname}
+                  </td>
+                  <td className="border border-gray-300 p-1">{sale.employeeid}</td>
+                  <td className="border border-gray-300 p-1">{sale.totalamount.toLocaleString()}</td>
+                  <td className="border border-gray-300 p-1">{new Date(sale.createdat).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>  
     </div>
   );
 };
 
-export default SalesHistoryPage;
+export default DashboardPage;
