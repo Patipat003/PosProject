@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ExportButtons from "../components/layout/ui/ExportButtons";
-import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { format } from "date-fns";
 import { FaPencilAlt } from "react-icons/fa"; // Pencil icon import
 
@@ -30,6 +29,7 @@ const UserManagementPage = () => {
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortByDate, setSortByDate] = useState(false); // New state for sorting by date
 
   const fetchData = async () => {
     try {
@@ -78,12 +78,12 @@ const UserManagementPage = () => {
 
   const handleAddEmployee = async (e) => {
     e.preventDefault();
-  
+
     if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role || !newEmployee.branched) {
       alert("All fields are required.");
       return;
     }
-  
+
     try {
       const token = localStorage.getItem("authToken");
       const config = {
@@ -91,32 +91,23 @@ const UserManagementPage = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-  
+
       const payload = {
         ...newEmployee,
         branchid: newEmployee.branched, // Assuming backend uses 'branchid'
       };
-  
-      console.log("Payload to backend:", payload);
-  
+
       const response = await axios.post("http://localhost:5050/employees", payload, config);
-  
-      console.log("Employee added successfully:", response.data);
-  
-      // Reset form and close modal
+
       setShowAddModal(false);
       setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
-  
-      // Refresh data
+
       fetchData();
     } catch (err) {
       console.error("Failed to add employee:", err);
       alert("Failed to add employee. Please try again.");
     }
   };
-  
-
-  
 
   const handleRoleChange = async () => {
     try {
@@ -127,24 +118,37 @@ const UserManagementPage = () => {
         },
       };
 
-      await axios.patch(
+      const response = await axios.patch(
         `http://localhost:5050/employees/${employeeid}`,
         { role: roleToUpdate },
         config
       );
 
-      // Update the local state
-      const updatedEmployees = employees.map((employee) =>
-        employee.employeeid === employeeid ? { ...employee, role: roleToUpdate } : employee
-      );
-      setEmployees(updatedEmployees);
-      setShowRoleModal(false); // Close the modal after updating
+      if (response.status === 200) {
+        const updatedEmployees = employees.map((employee) =>
+          employee.employeeid === employeeid ? { ...employee, role: roleToUpdate } : employee
+        );
+        setEmployees(updatedEmployees);
+        setShowRoleModal(false);
+      } else {
+        console.error("Failed to update role:", response.data);
+        alert("Failed to update role. Please check your permissions.");
+      }
     } catch (err) {
       console.error("Failed to update role:", err);
+      alert("Failed to update role. Please check your permissions.");
     }
   };
 
-  
+  const handleSortByDate = () => {
+    const sortedByDate = [...employees].sort((a, b) => {
+      const aDate = new Date(a.createdat);
+      const bDate = new Date(b.createdat);
+      return sortByDate ? bDate - aDate : aDate - bDate;
+    });
+    setSortByDate(!sortByDate);
+    setEmployees(sortedByDate);
+  };
 
   const filteredEmployees = employees.filter((item) => {
     const branchName = getBranchName(item.branchid).toLowerCase();
@@ -185,56 +189,55 @@ const UserManagementPage = () => {
             placeholder="Search by name, email, role, or branch"
             className="border p-2 rounded w-full"
           />
-          <SortByDropdown
-            onSortChange={handleSortChange}
-            currentSortKey={sortKey}
-            currentSortDirection={sortDirection}
-            sortOptions={[
-              { key: "employeeid", label: "Employee ID" },
-              { key: "name", label: "Name" },
-              { key: "email", label: "Email" },
-              { key: "role", label: "Role" },
-            ]}
-          />
+          <div>
+            <button
+              onClick={() => handleSortByDate()}
+              className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+            >
+              Sort by Date {sortByDate === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
         </div>
       </div>
 
-      <table className="table-auto w-full border-collapse border border-gray-200">
+      <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
         <thead>
-          <tr className="bg-teal-600 text-white">
-            <th className="border border-gray-300 px-4 py-2">Email</th>
-            <th className="border border-gray-300 px-4 py-2">Name</th>
-            <th className="border border-gray-300 px-4 py-2">Role</th>
-            <th className="border border-gray-300 px-4 py-2">Branch</th>
-            <th className="border border-gray-300 px-4 py-2">Created At</th>
-            <th className="border border-gray-300 px-4 py-2">Action</th>
+          <tr className="bg-gray-100 text-gray-600">
+            <th className="border text-sm px-4 py-2">No.</th>
+            <th className="border text-sm px-4 py-2">Email</th>
+            <th className="border text-sm px-4 py-2">Name</th>
+            <th className="border text-sm px-4 py-2">Role</th>
+            <th className="border text-sm px-4 py-2">Branch</th>
+            <th className="border text-sm px-4 py-2">Created At</th>
+            <th className="border text-sm px-4 py-2">Action</th>
           </tr>
         </thead>
         <tbody>
-          {filteredEmployees.map((employee, index) => (
-            <tr
-              key={employee.employeeid}
-              className={
-                index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
-              }
-            >
-              <td className="border border-gray-300 px-4 py-2 text-center">{employee.email}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">{employee.name}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">{employee.role}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">{getBranchName(employee.branchid)}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">{formatDate(employee.createdat)}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <FaPencilAlt
-                  className="cursor-pointer text-teal-500"
-                  onClick={() => {
-                    setemployeeid(employee.employeeid);
-                    setRoleToUpdate(employee.role);
-                    setShowRoleModal(true);
-                  }}
-                />
-              </td>
-            </tr>
-          ))}
+        {filteredEmployees.map((employee, index) => (
+          <tr
+            key={employee.employeeid}
+            className={
+              index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
+            }
+          >
+            <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
+            <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
+            <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
+            <td className="border border-gray-300 px-4 py-2 flex justify-center items-center">
+              <FaPencilAlt
+                className="cursor-pointer text-teal-700"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setRoleToUpdate(employee.role);
+                  setShowRoleModal(true);
+                }}
+              />
+            </td>
+          </tr>
+        ))}
         </tbody>
       </table>
 
@@ -326,13 +329,13 @@ const UserManagementPage = () => {
             <div className="flex justify-between">
               <button
                 onClick={handleRoleChange}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
               >
-                Update Role
+                Update
               </button>
               <button
                 onClick={() => setShowRoleModal(false)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md"
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
               >
                 Cancel
               </button>

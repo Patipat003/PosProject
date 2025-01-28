@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
 
-const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee }) => (
+const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
   <div className="flex space-x-4 items-center">
     <input
       type="text"
@@ -11,6 +11,12 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       placeholder="Search..."
       className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
+    <button
+      onClick={onSort}
+      className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+    >
+      Sort by Total Price {sortOrder === "asc" ? "↑" : "↓"}
+    </button>
     <select
       value={selectedEmployee}
       onChange={(e) => onEmployeeFilter(e.target.value)}
@@ -51,6 +57,7 @@ const DetailReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const fetchData = async () => {
     try {
@@ -167,6 +174,19 @@ const DetailReportPage = () => {
     return Object.values(groupedItems);
   };
 
+  const handleSort = () => {
+    const sortedItems = [...filteredSaleItems].sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.totalprice - b.totalprice;
+      } else {
+        return b.totalprice - a.totalprice;
+      }
+    });
+
+    setFilteredSaleItems(sortedItems);
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -187,32 +207,36 @@ const DetailReportPage = () => {
         employees={employeeList}
         onEmployeeFilter={handleEmployeeFilter}
         selectedEmployee={selectedEmployee}
+        onSort={handleSort}
+        sortOrder={sortOrder}
       />
 
       <div className="overflow-x-auto mt-4">
-        <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
-          <thead className="bg-teal-600 text-white">
+        <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+          <thead className="bg-gray-100 text-gray-600">
             <tr>
-              <th className="border-b-2 p-2 text-left">Employee Name</th>
-              <th className="border-b-2 p-2 text-left">Product Name</th>
-              <th className="border-b-2 p-2 text-left">Quantity</th>
-              <th className="border-b-2 p-2 text-left">Price</th>
-              <th className="border-b-2 p-2 text-left">Total Price</th>
-              <th className="border-b-2 p-2 text-left">Actions</th>
+              <th className="border text-sm px-4 py-2">No.</th>
+              <th className="border text-sm px-4 py-2">Employee Name</th>
+              <th className="border text-sm px-4 py-2">Product Name</th>
+              <th className="border text-sm px-4 py-2">Quantity</th>
+              <th className="border text-sm px-4 py-2">Price</th>
+              <th className="border text-sm px-4 py-2">Total Price</th>
+              <th className="border text-sm px-4 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             {groupItems().map((item, index) => (
-              <tr key={index} className="hover:bg-gray-100">
-                <td className="border-b p-2">{item.employeeName}</td>
-                <td className="border-b p-2">{item.productName}</td>
-                <td className="border-b p-2">{item.quantity}</td>
-                <td className="border-b p-2">{item.price.toFixed(2)}</td>
-                <td className="border-b p-2">{item.totalprice.toFixed(2)}</td>
-                <td className="border-b p-2 text-center">
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                <td className="border border-gray-300 px-4 py-2">{item.employeeName}</td>
+                <td className="border border-gray-300 px-4 py-2">{item.productName}</td>
+                <td className="border border-gray-300 px-4 py-2">{item.quantity}</td>
+                <td className="border border-gray-300 px-4 py-2">{item.price.toFixed(2)}</td>
+                <td className="border border-gray-300 px-4 py-2">{item.totalprice.toFixed(2)}</td>
+                <td className="border border-gray-300 px-4 py-2 flex justify-center">
                   <button
                     onClick={() => handleViewDetails(item)}
-                    className="bg-teal-600 text-white font-medium px-4 py-2 rounded-md hover:bg-teal-700"
+                    className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
                   >
                     View
                   </button>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const formatDate = (dateString, type) => {
   const date = new Date(dateString);
@@ -29,8 +31,9 @@ const ReportsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("month"); // Default filter by month
-  const [selectedBranch, setSelectedBranch] = useState(""); // State for selected branch filter
+  const [filterType, setFilterType] = useState("month");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const fetchSalesData = async () => {
     try {
@@ -85,7 +88,10 @@ const ReportsPage = () => {
 
       return (
         (selectedBranch === "" || selectedBranch === branchId) &&
-        (dateKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (!selectedDate ||
+          dateKey === format(selectedDate, filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy")) &&
+        (searchQuery === "" ||
+          dateKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
           branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           totalAmount.toFixed(2).includes(searchQuery) ||
           count.toString().includes(searchQuery))
@@ -138,7 +144,7 @@ const ReportsPage = () => {
         </button>
       </div>
 
-      {/* Search input and branch dropdown */}
+      {/* Search input, branch dropdown, and calendar picker */}
       <div className="mb-6 flex gap-4 items-center">
         <input
           type="text"
@@ -159,28 +165,43 @@ const ReportsPage = () => {
             </option>
           ))}
         </select>
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          placeholderText="Select Date"
+          className="border p-3 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400 text-lg flex items-center"
+          dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
+          showMonthYearPicker={filterType === "month"}
+          showYearPicker={filterType === "year"}
+          todayButton="Today"
+          isClearable
+          clearButtonClassName="absolute right-2 top-2 bg-teal-400 text-white rounded-full p-1"
+          style={{ position: "relative" }}
+        />
       </div>
-
-      <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
-        <thead className="bg-teal-600 text-white">
+      
+      <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+        <thead className="bg-gray-100 text-gray-600">
           <tr>
-            <th className="border-b-2 p-2 text-left">Date</th>
-            <th className="border-b-2 p-2 text-left">Branch</th>
-            <th className="border-b-2 p-2 text-left">Total Amount</th>
-            <th className="border-b-2 p-2 text-left">Items Sold</th>
+            <th className="border text-sm px-4 py-2">No.</th>
+            <th className="border text-sm px-4 py-2">Date</th>
+            <th className="border text-sm px-4 py-2">Branch</th>
+            <th className="border text-sm px-4 py-2">Total Amount</th>
+            <th className="border text-sm px-4 py-2">Items Sold</th>
           </tr>
         </thead>
         <tbody>
-          {Object.keys(filteredSales).map((dateKey) => (
+          {Object.keys(filteredSales).map((dateKey, index) => (
             <React.Fragment key={dateKey}>
               {filteredSales[dateKey].map((branchId) => {
                 const { totalAmount, count } = groupedSales[dateKey][branchId];
                 return (
-                  <tr key={branchId} className="hover:bg-gray-100">
-                    <td className="border-b p-2">{dateKey}</td>
-                    <td className="border-b p-2">{getBranchName(branchId)}</td>
-                    <td className="border-b p-2">${totalAmount.toFixed(2)}</td>
-                    <td className="border-b p-2">{count}</td>
+                  <tr key={branchId} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{dateKey}</td>
+                    <td className="border border-gray-300 px-4 py-2">{getBranchName(branchId)}</td>
+                    <td className="border border-gray-300 px-4 py-2">${totalAmount.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-4 py-2">{count}</td>
                   </tr>
                 );
               })}
