@@ -83,7 +83,7 @@ func main() {
 	// ตัวอย่างการใช้ warehouseDB
 	var branchFromWarehouse Models.Branches
 	// ดึงข้อมูลจาก WarehouseDB โดยใช้ warehouseDB
-	if err := warehouseDB.Where("branch_id = ?", "2b746c74-5ce6-49fd-8344-2ac641f5ef8c").First(&branchFromWarehouse).Error; err != nil {
+	if err := warehouseDB.Where("branch_id = ?", "61e3cfd3-c448-4d51-9c3c-37c837a625ec").First(&branchFromWarehouse).Error; err != nil {
 		log.Fatalf("Failed to fetch branch from WarehouseDB: %v", err)
 	}
 	log.Printf("Branch from Warehouse: %+v", branchFromWarehouse)
