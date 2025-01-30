@@ -23,6 +23,7 @@ const RequestInventory = () => {
   const [itemsPerPage] = useState(10); // จำนวนข้อมูลต่อหน้า
   const location = useLocation();  // ใช้ useLocation เพื่อดึงข้อมูลจาก state ที่ส่งมาจาก Header
   const [toBranch, setToBranch] = useState('');
+  const [activeSection, setActiveSection] = useState("products"); // Default to "sending"
 
   // Fetch data from API
   const fetchRequests = async () => {
@@ -235,6 +236,11 @@ const RequestInventory = () => {
         { status },
         config
       );
+
+      toast.success(
+        `Quantity updated completed!`
+      );
+
       fetchRequests();
     } catch (err) {
       console.error("Error updating status:", err);
@@ -321,6 +327,23 @@ const RequestInventory = () => {
       setCurrentProductPage(currentProductPage + 1);
     }
   };
+
+  /// ดึง branchid ของผู้ใช้ปัจจุบัน
+  const userBranchId = getBranchFromToken();
+
+  // นับจำนวน pending requests ใน Sending Shipment (กรองเฉพาะ frombranchid เป็นของตัวเอง)
+  const pendingSentRequestsCount = requests.filter(
+    (request) =>
+      request.frombranchid === userBranchId && // กรองเฉพาะ frombranchid เป็นของตัวเอง
+      request.status === "pending" // กรองเฉพาะสถานะ pending
+  ).length;
+
+  // นับจำนวน pending requests ใน Receiving Shipment (กรองเฉพาะ tobranchid เป็นของตัวเอง)
+  const pendingReceivedRequestsCount = requests.filter(
+    (request) =>
+      request.tobranchid === userBranchId && // กรองเฉพาะ tobranchid เป็นของตัวเอง
+      request.status === "Pending" // กรองเฉพาะสถานะ pending
+  ).length;
 
   useEffect(() => {
     if (location.state?.openModal) {
@@ -469,239 +492,293 @@ const RequestInventory = () => {
             </form>
           </div>
 
+          {/* Buttons to switch between sections */}
+          <div className="flex justify-center space-x-4 mb-6">
+            {/* ปุ่ม Sending Shipment */}
+            <button
+              onClick={() => setActiveSection("sending")}
+              className={`btn border-none ${
+                activeSection === "sending" ? "bg-teal-600" : "bg-teal-500"
+              } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 relative`}
+            >
+              Sending Shipment
+              {pendingSentRequestsCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
+                  {pendingSentRequestsCount}
+                </span>
+              )}
+            </button>
 
-            {/* Sending Shipment */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-4">Sending Shipment</h3>
-              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">To Branch</th>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                    <th className="border text-sm px-4 py-2">Created At</th>
-                    <th className="border text-sm px-4 py-2">Status</th>
-                    <th className="border text-sm px-4 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentSentRequests.map((request) => {
-                    const toBranch = branches.find(
-                      (branch) => branch.branchid === request.tobranchid
-                    );
-                    const product = products.find(
-                      (product) => product.productid === request.productid
-                    );
+            {/* ปุ่ม Receiving Shipment */}
+            <button
+              onClick={() => setActiveSection("receiving")}
+              className={`btn border-none ${
+                activeSection === "receiving" ? "bg-teal-600" : "bg-teal-500"
+              } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 relative`}
+            >
+              Receiving Shipment
+              {pendingReceivedRequestsCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
+                  {pendingReceivedRequestsCount}
+                </span>
+              )}
+            </button>
 
-                    return (
-                      <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-50">
-                        <td className="border text-sm px-4 py-2">
-                          {toBranch ? toBranch.bname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {moment(request.createdat).format("L, HH:mm")}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.status}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {request.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleUpdateStatus(request.requestid, "complete")
-                                }
-                                className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
-                              >
-                                Complete
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleUpdateStatus(request.requestid, "reject")
-                                }
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {/* ปุ่ม Products */}
+            <button
+              onClick={() => setActiveSection("products")}
+              className={`btn border-none ${
+                activeSection === "products" ? "bg-teal-600" : "bg-teal-500"
+              } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300`}
+            >
+              Products
+            </button>
+          </div>       
+          
+          {/* Conditionally render the active section */}
+          {activeSection === "sending" && (
+            <>
+              {/* Sending Shipment Table */}
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-teal-600 mb-4">Sending Shipment</h3>
+                <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                  <thead className="bg-gray-100 text-gray-600">
+                    <tr>
+                      <th className="border text-sm px-4 py-2">To Branch</th>
+                      <th className="border text-sm px-4 py-2">Product Name</th>
+                      <th className="border text-sm px-4 py-2">Quantity</th>
+                      <th className="border text-sm px-4 py-2">Created At</th>
+                      <th className="border text-sm px-4 py-2">Status</th>
+                      <th className="border text-sm px-4 py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentSentRequests.map((request) => {
+                      const toBranch = branches.find(
+                        (branch) => branch.branchid === request.tobranchid
+                      );
+                      const product = products.find(
+                        (product) => product.productid === request.productid
+                      );
 
-            {/* Pagination Controls for Sent Requests */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageSent}
-                disabled={currentSentPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentSentPage}</span>
-                <span className="ml-2">of {totalSentPages}</span>
+                      return (
+                        <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-50">
+                          <td className="border text-sm px-4 py-2">
+                            {toBranch ? toBranch.bname : "-"}
+                          </td>
+                          <td className="border text-sm px-4 py-2">
+                            {product ? product.productname : "-"}
+                          </td>
+                          <td className="border text-sm px-4 py-2">{request.quantity}</td>
+                          <td className="border text-sm px-4 py-2">
+                            {moment(request.createdat).format("L, HH:mm")}
+                          </td>
+                          <td className="border text-sm px-4 py-2">{request.status}</td>
+                          <td className="border text-sm px-4 py-2">
+                            {request.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleUpdateStatus(request.requestid, "complete")
+                                  }
+                                  className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
+                                >
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleUpdateStatus(request.requestid, "reject")
+                                  }
+                                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-              <button
-                onClick={handleNextPageSent}
-                disabled={currentSentPage === totalSentPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
 
-
-            {/* Receiving Shipment  */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-4">Receiving Shipment</h3>
-              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">From Branch</th>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                    <th className="border text-sm px-4 py-2">Created At</th>
-                    <th className="border text-sm px-4 py-2">Status</th>
-                    <th className="border text-sm px-4 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentReceivedRequests.map((request) => {
-                    const fromBranch = branches.find(
-                      (branch) => branch.branchid === request.frombranchid
-                    );
-                    const product = products.find(
-                      (product) => product.productid === request.productid
-                    );
-
-                    return (
-                      <tr key={request.requestid} className="hover:bg-teal-50">
-                        <td className="border text-sm px-4 py-2">
-                          {fromBranch ? fromBranch.bname : "Warehouse"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.quantity}</td>
-                        <td className="border text-sm px-4 py-2">
-                          {moment(request.createdat).format("L, HH:mm")}
-                        </td>
-                        <td className="border text-sm px-4 py-2">{request.status}</td>
-                        {fromBranch ? "" : "Warehouse" && request.status === "Pending" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleUpdateStatus(request.requestid, "complete")
-                              }
-                              className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
-                            >
-                              Complete
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleUpdateStatus(request.requestid, "reject")
-                              }
-                              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls for Received Requests */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageReceived}
-                disabled={currentReceivedPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentReceivedPage}</span>
-                <span className="ml-2">of {totalReceivedPages}</span>
+              {/* Pagination Controls for Sent Requests */}
+              <div className="flex justify-center mt-4 space-x-4">
+                <button
+                  onClick={handlePreviousPageSent}
+                  disabled={currentSentPage === 1}
+                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center">
+                  <span className="mr-2">Page</span>
+                  <span>{currentSentPage}</span>
+                  <span className="ml-2">of {totalSentPages}</span>
+                </div>
+                <button
+                  onClick={handleNextPageSent}
+                  disabled={currentSentPage === totalSentPages}
+                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                >
+                  Next
+                </button>
               </div>
-              <button
-                onClick={handleNextPageReceived}
-                disabled={currentReceivedPage === totalReceivedPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
+            </>
+          )}
 
-            {/* Products Table */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 my-4">
-                Products ({branchName})
-              </h3>
-              <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Price</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentProductRequests.map((item) => {
-                    const product = products.find(
-                      (product) => product.productid === item.productid
-                    );
-                    return (
-                      <tr key={item.inventoryid}>
-                        <td className="border px-4 py-2">
-                          {product ? product.productname : "-"}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {product ? product.price : "-"}
-                        </td>
-                        <td className="border px-4 py-2">{item.quantity}</td>
+          {activeSection === "receiving" && (
+              <>
+                {/* Receiving Shipment Table */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-teal-600 mb-4">Receiving Shipment</h3>
+                  <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                    <thead className="bg-gray-100 text-gray-600">
+                      <tr>
+                        <th className="border text-sm px-4 py-2">From Branch</th>
+                        <th className="border text-sm px-4 py-2">Product Name</th>
+                        <th className="border text-sm px-4 py-2">Quantity</th>
+                        <th className="border text-sm px-4 py-2">Created At</th>
+                        <th className="border text-sm px-4 py-2">Status</th>
+                        <th className="border text-sm px-4 py-2">Actions</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>           
-            </div>
+                    </thead>
+                    <tbody>
+                      {currentReceivedRequests.map((request) => {
+                        const fromBranch = branches.find(
+                          (branch) => branch.branchid === request.frombranchid
+                        );
+                        const product = products.find(
+                          (product) => product.productid === request.productid
+                        );
 
-            {/* Pagination Controls for Products */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <button
-                onClick={handlePreviousPageProduct}
-                disabled={currentProductPage === 1}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Previous
-              </button>
-              <div className="flex items-center">
-                <span className="mr-2">Page</span>
-                <span>{currentProductPage}</span>
-                <span className="ml-2">of {totalProductPages}</span>
-              </div>
-              <button
-                onClick={handleNextPageProduct}
-                disabled={currentProductPage === totalProductPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
+                        return (
+                          <tr key={request.requestid} className="hover:bg-teal-50">
+                            <td className="border text-sm px-4 py-2">
+                              {fromBranch ? fromBranch.bname : "Warehouse"}
+                            </td>
+                            <td className="border text-sm px-4 py-2">
+                              {product ? product.productname : "-"}
+                            </td>
+                            <td className="border text-sm px-4 py-2">{request.quantity}</td>
+                            <td className="border text-sm px-4 py-2">
+                              {moment(request.createdat).format("L, HH:mm")}
+                            </td>
+                            <td className="border text-sm px-4 py-2">{request.status}</td>
+                            {fromBranch ? "" : "Warehouse" && request.status === "Pending" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleUpdateStatus(request.requestid, "complete")
+                                  }
+                                  className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition duration-300"
+                                >
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleUpdateStatus(request.requestid, "reject")
+                                  }
+                                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ml-2"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls for Received Requests */}
+                <div className="flex justify-center mt-4 space-x-4">
+                  <button
+                    onClick={handlePreviousPageReceived}
+                    disabled={currentReceivedPage === 1}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  >
+                    Previous
+                  </button>
+                  <div className="flex items-center">
+                    <span className="mr-2">Page</span>
+                    <span>{currentReceivedPage}</span>
+                    <span className="ml-2">of {totalReceivedPages}</span>
+                  </div>
+                  <button
+                    onClick={handleNextPageReceived}
+                    disabled={currentReceivedPage === totalReceivedPages}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+
+            {activeSection === "products" && (
+              <>
+                {/* Products Table */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-teal-600 my-4">
+                    Products ({branchName})
+                  </h3>
+                  <table className="table-auto table-xs w-full border-separate border-4 border-gray-300 mb-4 text-gray-800">
+                    <thead className="bg-gray-100 text-gray-600">
+                      <tr>
+                        <th className="border text-sm px-4 py-2">Product Name</th>
+                        <th className="border text-sm px-4 py-2">Price</th>
+                        <th className="border text-sm px-4 py-2">Quantity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentProductRequests.map((item) => {
+                        const product = products.find(
+                          (product) => product.productid === item.productid
+                        );
+                        return (
+                          <tr key={item.inventoryid}>
+                            <td className="border px-4 py-2">
+                              {product ? product.productname : "-"}
+                            </td>
+                            <td className="border px-4 py-2">
+                              {product ? product.price : "-"}
+                            </td>
+                            <td className="border px-4 py-2">{item.quantity}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>           
+                </div>
+
+                {/* Pagination Controls for Products */}
+                <div className="flex justify-center mt-4 space-x-4">
+                  <button
+                    onClick={handlePreviousPageProduct}
+                    disabled={currentProductPage === 1}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  >
+                    Previous
+                  </button>
+                  <div className="flex items-center">
+                    <span className="mr-2">Page</span>
+                    <span>{currentProductPage}</span>
+                    <span className="ml-2">of {totalProductPages}</span>
+                  </div>
+                  <button
+                    onClick={handleNextPageProduct}
+                    disabled={currentProductPage === totalProductPages}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

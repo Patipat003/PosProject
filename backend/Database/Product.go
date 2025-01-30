@@ -1,6 +1,8 @@
 package Database
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Product พร้อมสร้าง Inventory สำหรับทุกสาขา
+// เพิ่ม Product พร้อม SKU อิงตาม CategoryID และสร้าง Inventory สำหรับทุกสาขา
 func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Product
 	if err := c.BodyParser(&req); err != nil {
@@ -26,7 +28,10 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	req.ProductID = uuid.New().String()
+	// สร้าง SKU อิงตาม CategoryID (ใช้ CategoryName เพื่อสร้างรหัส)
+	categoryCode := getCategoryCode(category.CategoryName)
+	req.ProductID = uuid.New().String()             // UUID สำหรับ ProductID
+	req.ProductCode = generateSKU(categoryCode, db) // สร้าง SKU ที่ไม่ซ้ำกัน
 	req.CreatedAt = time.Now()
 
 	// สร้าง Product
@@ -62,6 +67,56 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
 }
 
+// ฟังก์ชันช่วยในการดึงรหัสหมวดหมู่ (Category Code) เช่น "SPP" จากชื่อหมวดหมู่
+func getCategoryCode(categoryName string) string {
+	// แปลงชื่อหมวดหมู่ให้เป็นรหัสที่สามารถใช้ใน SKU ได้
+	switch strings.ToLower(categoryName) {
+	case "specialty products":
+		return "SPP"
+	case "Seasonal Products":
+		return "SSP"
+	case "Pharmaceutical and Health Products":
+		return "PHAR"
+	case "Fresh Produce":
+		return "FRS"
+	case "Electronics":
+		return "ELEC"
+	case "Fashion":
+		return "FASH"
+	case "Toys and Kids' Products":
+		return "TNK"
+	case "Stationery and Office Supplies":
+		return "STOFF"
+	case "Personal Care":
+		return "PSNC"
+	case "Fruits and Vegetables":
+		return "FNV"
+	case "Consumer Goods":
+		return "CSM"
+	case "Food and Beverages":
+		return "FNB"
+	// เพิ่มกรณีอื่น ๆ ได้ที่นี่
+	default:
+		return "GEN" // ใช้รหัส "GEN" หากไม่พบหมวดหมู่ที่ตรง
+	}
+}
+
+// ฟังก์ชันช่วยในการสร้าง SKU โดยใช้ category code และหมายเลขที่ไม่ซ้ำกัน
+func generateSKU(categoryCode string, db *gorm.DB) string {
+	// ค้นหา product ล่าสุดจาก categoryCode นี้
+	var lastProduct Models.Product
+	if err := db.Where("product_code LIKE ?", fmt.Sprintf("%s-%%", categoryCode)).Order("created_at desc").First(&lastProduct).Error; err != nil {
+		return fmt.Sprintf("%s-10001", categoryCode) // ถ้าไม่พบสินค้าก่อนหน้านี้ ให้เริ่มต้นที่ 10001
+	}
+
+	// ดึงหมายเลข SKU ล่าสุดและเพิ่มขึ้น 1
+	var lastSKU int
+	fmt.Sscanf(lastProduct.ProductCode, fmt.Sprintf("%s-%d", categoryCode, &lastSKU))
+	nextSKU := fmt.Sprintf("%s-%d", categoryCode, lastSKU+1)
+
+	return nextSKU
+}
+
 // ดู Products ทั้งหมด
 func LookProducts(db *gorm.DB, c *fiber.Ctx) error {
 	var products []Models.Product
@@ -73,11 +128,13 @@ func LookProducts(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"Data": products})
 }
 
-// หา Product ตาม ID
+// หา Product ตาม ID หรือ ProductCode
 func FindProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var product Models.Product
-	if err := db.Where("product_id = ?", id).First(&product).Error; err != nil {
+
+	// ค้นหาได้ทั้ง product_id และ product_code
+	if err := db.Where("product_id = ? OR product_code = ?", id, id).First(&product).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
 		})
@@ -110,7 +167,18 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
+	// ตรวจสอบว่า ProductCode ใหม่ซ้ำหรือไม่
+	if req.ProductCode != product.ProductCode {
+		var existing Models.Product
+		if err := db.Where("product_code = ?", req.ProductCode).First(&existing).Error; err == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "ProductCode already exists",
+			})
+		}
+	}
+
 	// อัปเดตฟิลด์
+	product.ProductCode = req.ProductCode
 	product.ProductName = req.ProductName
 	product.Description = req.Description
 	product.Price = req.Price
