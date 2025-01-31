@@ -4,6 +4,7 @@ import { PencilIcon } from "@heroicons/react/outline"; // Import icon
 
 const EditedProduct = ({ productId, onProductUpdated }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [productCode, setProductCode] = useState("");
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -39,6 +40,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
       try {
         const response = await axios.get(`http://localhost:5050/Products/${productId}`, config);
         const product = response.data.Data;
+        setProductCode(product.productcode);
         setProductName(product.productname);
         setDescription(product.description);
         setPrice(product.price);
@@ -80,6 +82,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
         },
       };
       const response = await axios.put(`http://localhost:5050/products/${productId}`, {
+        productcode: productCode,
         productname: productName,
         description: description,
         price: numericPrice,
@@ -119,6 +122,18 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
               Edit Product
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex flex-col w-full">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Product Code
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter product Code"
+                  value={productCode}
+                  onChange={(e) => setProductCode(e.target.value)}
+                />
+              </div>
               <div className="flex flex-col w-full">
                 <label className="block text-gray-700 font-medium mb-2">
                   Product Name
