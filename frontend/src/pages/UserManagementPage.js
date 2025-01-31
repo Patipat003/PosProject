@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import { format } from "date-fns";
-import { FaPencilAlt } from "react-icons/fa"; // Pencil icon import
+import { FaPencilAlt, FaUser } from "react-icons/fa"; // Pencil icon import
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -23,17 +24,24 @@ const UserManagementPage = () => {
     role: "",
     branched: "",
   });
-  const [showRoleModal, setShowRoleModal] = useState(false); // New state for role modal
-  const [roleToUpdate, setRoleToUpdate] = useState(""); // State for role to update
-  const [employeeid, setemployeeid] = useState(""); // State for employee ID to update
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [roleToUpdate, setRoleToUpdate] = useState("");
+  const [employeeid, setemployeeid] = useState("");
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortByDate, setSortByDate] = useState(false); // New state for sorting by date
+  const [sortByDate, setSortByDate] = useState(false);
+  const [userBranchId, setUserBranchId] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false); // New state for password modal
+  const [newPassword, setNewPassword] = useState(""); // New state for the new password
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authToken");
+      const decodedToken = jwtDecode(token);
+      const branchIdFromToken = decodedToken.branchid;
+      setUserBranchId(branchIdFromToken);
+
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -43,7 +51,7 @@ const UserManagementPage = () => {
       const employeeResponse = await axios.get("http://localhost:5050/employees", config);
       const branchResponse = await axios.get("http://localhost:5050/branches", config);
 
-      setEmployees(employeeResponse.data.Data);
+      setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken));
       setBranches(branchResponse.data.Data);
       setLoading(false);
     } catch (err) {
@@ -94,7 +102,7 @@ const UserManagementPage = () => {
 
       const payload = {
         ...newEmployee,
-        branchid: newEmployee.branched, // Assuming backend uses 'branchid'
+        branchid: newEmployee.branched, 
       };
 
       const response = await axios.post("http://localhost:5050/employees", payload, config);
@@ -140,14 +148,38 @@ const UserManagementPage = () => {
     }
   };
 
-  const handleSortByDate = () => {
-    const sortedByDate = [...employees].sort((a, b) => {
-      const aDate = new Date(a.createdat);
-      const bDate = new Date(b.createdat);
-      return sortByDate ? bDate - aDate : aDate - bDate;
-    });
-    setSortByDate(!sortByDate);
-    setEmployees(sortedByDate);
+  const handlePasswordChange = async () => {
+    if (!newPassword) {
+      alert("Please enter a new password.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.patch(
+        `http://localhost:5050/employees/${employeeid}`,
+        { password: newPassword },
+        config
+      );
+
+      if (response.status === 200) {
+        alert("Password updated successfully.");
+        setShowPasswordModal(false);
+        fetchData();
+      } else {
+        console.error("Failed to update password:", response.data);
+        alert("Failed to update password.");
+      }
+    } catch (err) {
+      console.error("Failed to update password:", err);
+      alert("Failed to update password.");
+    }
   };
 
   const filteredEmployees = employees.filter((item) => {
@@ -189,14 +221,6 @@ const UserManagementPage = () => {
             placeholder="Search by name, email, role, or branch"
             className="border p-2 rounded w-full"
           />
-          <div>
-            <button
-              onClick={() => handleSortByDate()}
-              className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
-            >
-              Sort by Date {sortByDate === "asc" ? "↑" : "↓"}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -226,8 +250,8 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border border-gray-300 px-4 py-2 flex justify-center items-center">
-              <FaPencilAlt
+            <td className="border border-gray-300 px-4 py-2 flex justify-center items-center space-x-2">
+              <FaUser
                 className="cursor-pointer text-teal-700"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
@@ -235,14 +259,52 @@ const UserManagementPage = () => {
                   setShowRoleModal(true);
                 }}
               />
+              <button
+                className="text-teal-700"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setShowPasswordModal(true);
+                }}
+              >
+                <FaPencilAlt className="text-teal-700" />
+              </button>
             </td>
           </tr>
         ))}
         </tbody>
       </table>
 
-      {/* Add Employee Modal */}
-      {showAddModal && (
+      {/* Password Update Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Update Password</h2>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New Password"
+              className="border p-2 mb-4 w-full"
+            />
+            <div className="flex justify-between">
+              <button
+                onClick={handlePasswordChange}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Update
+              </button>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+       {/* Add Employee Modal */}
+       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-md shadow-md w-96">
             <h2 className="text-xl font-bold mb-4">Add Employee</h2>
@@ -310,7 +372,7 @@ const UserManagementPage = () => {
           </div>
         </div>
       )}
-
+      
       {/* Role Update Modal */}
       {showRoleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
