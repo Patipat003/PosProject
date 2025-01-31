@@ -47,6 +47,7 @@ func (s *Branches) BeforeCreate(tx *gorm.DB) (err error) {
 // Product struct
 type Product struct {
 	ProductID   string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"productid"`
+	ProductCode string    `gorm:"type:varchar(50);unique;not null" json:"productcode"` // รหัสสินค้า (SKU)
 	ProductName string    `gorm:"type:varchar(100);not null" json:"productname"`
 	Description string    `gorm:"type:varchar(255);not null" json:"description"`
 	Price       float64   `gorm:"type:numeric(10,2);not null" json:"price"`

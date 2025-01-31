@@ -276,6 +276,7 @@ const ProductPage = () => {
             <thead className="bg-gray-100 text-gray-600">
               <tr>
                 <th className="border text-sm px-4 py-2 text-left">No.</th>
+                <th className="border text-sm px-4 py-2 text-left">Product Code</th>
                 <th className="border text-sm px-4 py-2">Name</th>
                 <th className="border text-sm px-4 py-2">Description</th>
                 <th className="border text-sm px-4 py-2">Category</th>
@@ -298,6 +299,7 @@ const ProductPage = () => {
                 .map((product, index) => (
                   <tr key={product.productid} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.productcode}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.description}</td>
                     <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>

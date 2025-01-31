@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pie, Bar } from "react-chartjs-2";
+import { Pie, Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -10,7 +10,6 @@ import {
   BarElement,
 } from "chart.js";
 import axios from "axios";
-import { Flowbite } from "flowbite";
 import { toZonedTime, format } from 'date-fns-tz';
 import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
@@ -462,7 +461,7 @@ const DashboardPage = () => {
           </div>
 
           <div className="w-full h-96 px-4">
-            <Bar data={salesByTimeData} options={salesByTimeOptions} />
+            <Line data={salesByTimeData} options={salesByTimeOptions} />
           </div>
         </div>
 
