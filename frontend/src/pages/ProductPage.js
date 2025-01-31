@@ -6,7 +6,7 @@ import EditedProduct from "../components/layout/ui/EditedProduct";
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { toZonedTime, format } from 'date-fns-tz';
-import { TrashIcon, PencilIcon } from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/outline";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 
@@ -72,7 +72,16 @@ const ProductPage = () => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        const response = await axios.delete(`http://localhost:5050/products/${productId}`);
+        const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
+        const decodedToken = jwtDecode(token);
+        setUserRole(decodedToken.role);
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+          },
+        };
+
+        const response = await axios.delete(`http://localhost:5050/products/${productId}`, config);
         if (response.status === 200) {
           // หากการลบสำเร็จ รีเฟรชข้อมูลสินค้า
           fetchProducts();
@@ -275,7 +284,7 @@ const ProductPage = () => {
           <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
             <thead className="bg-gray-100 text-gray-600">
               <tr>
-                <th className="border text-sm px-4 py-2 text-left">No.</th>
+                {/* <th className="border text-sm px-4 py-2 text-left">No.</th> */}
                 <th className="border text-sm px-4 py-2 text-left">Product Code</th>
                 <th className="border text-sm px-4 py-2">Name</th>
                 <th className="border text-sm px-4 py-2">Description</th>
@@ -298,23 +307,35 @@ const ProductPage = () => {
                 )
                 .map((product, index) => (
                   <tr key={product.productid} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                    {/* <td className="border border-gray-300 px-4 py-2">{index + 1}</td> */}
                     <td className="border border-gray-300 px-4 py-2">{product.productcode}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.description}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <div className="truncate max-w-xs">{product.description}</div>
+                    </td>
                     <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
                     <td className="border border-gray-300 px-4 py-2">฿{product.price.toFixed(2)}</td>
                     {userRole === "Manager" && (
                       <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
                     )}
                     {userRole === "Manager" && (
-                      <td className="border border-gray-300 text-center justify-center items-center">
-                        <EditedProduct
-                          productId={product.productid}
-                          onProductUpdated={fetchProducts}
-                        />
-                      </td>
-                    )}  
+                      <>
+                        <td className="border border-gray-300 text-center justify-center items-center">
+                          <EditedProduct
+                            productId={product.productid}
+                            onProductUpdated={fetchProducts}
+                          />
+                        </td>
+                        {/* <td className="border border-gray-300 text-center justify-center items-center">
+                          <button
+                            onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
+                        </td> */}
+                      </>
+                    )}
                   </tr>
                 ))}
             </tbody>

@@ -2,6 +2,7 @@ package Database
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -23,8 +24,8 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	// ตรวจสอบ CategoryID
 	var category Models.Category
 	if err := db.Where("category_id = ?", req.CategoryID).First(&category).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid CategoryID: " + err.Error(),
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Category not found for CategoryID: " + req.CategoryID,
 		})
 	}
 
@@ -70,32 +71,33 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 // ฟังก์ชันช่วยในการดึงรหัสหมวดหมู่ (Category Code) เช่น "SPP" จากชื่อหมวดหมู่
 func getCategoryCode(categoryName string) string {
 	// แปลงชื่อหมวดหมู่ให้เป็นรหัสที่สามารถใช้ใน SKU ได้
-	switch strings.ToLower(categoryName) {
+	categoryName = strings.ToLower(categoryName) // แปลงเป็นพิมพ์เล็ก
+
+	switch categoryName {
 	case "specialty products":
 		return "SPP"
-	case "Seasonal Products":
+	case "seasonal products":
 		return "SSP"
-	case "Pharmaceutical and Health Products":
+	case "pharmaceutical and health products":
 		return "PHAR"
-	case "Fresh Produce":
+	case "fresh produce":
 		return "FRS"
-	case "Electronics":
+	case "electronics":
 		return "ELEC"
-	case "Fashion":
+	case "fashion":
 		return "FASH"
-	case "Toys and Kids' Products":
+	case "toys and kids' products":
 		return "TNK"
-	case "Stationery and Office Supplies":
+	case "stationery and office supplies":
 		return "STOFF"
-	case "Personal Care":
+	case "personal care":
 		return "PSNC"
-	case "Fruits and Vegetables":
+	case "fruits and vegetables":
 		return "FNV"
-	case "Consumer Goods":
+	case "consumer goods":
 		return "CSM"
-	case "Food and Beverages":
+	case "food and beverages":
 		return "FNB"
-	// เพิ่มกรณีอื่น ๆ ได้ที่นี่
 	default:
 		return "GEN" // ใช้รหัส "GEN" หากไม่พบหมวดหมู่ที่ตรง
 	}
@@ -103,18 +105,22 @@ func getCategoryCode(categoryName string) string {
 
 // ฟังก์ชันช่วยในการสร้าง SKU โดยใช้ category code และหมายเลขที่ไม่ซ้ำกัน
 func generateSKU(categoryCode string, db *gorm.DB) string {
-	// ค้นหา product ล่าสุดจาก categoryCode นี้
-	var lastProduct Models.Product
-	if err := db.Where("product_code LIKE ?", fmt.Sprintf("%s-%%", categoryCode)).Order("created_at desc").First(&lastProduct).Error; err != nil {
-		return fmt.Sprintf("%s-10001", categoryCode) // ถ้าไม่พบสินค้าก่อนหน้านี้ ให้เริ่มต้นที่ 10001
+	// สร้างหมายเลขสุ่มในช่วง 10001 ถึง 99999
+	rand.Seed(time.Now().UnixNano())         // กำหนด seed สำหรับการสุ่ม
+	randomNumber := rand.Intn(90000) + 10001 // สุ่มระหว่าง 10001 ถึง 99999
+
+	// สร้าง SKU จาก categoryCode และหมายเลขสุ่ม
+	randomSKU := fmt.Sprintf("%s-%d", categoryCode, randomNumber)
+
+	// ตรวจสอบว่า SKU นี้ซ้ำหรือไม่
+	var existingProduct Models.Product
+	if err := db.Where("product_code = ?", randomSKU).First(&existingProduct).Error; err == nil {
+		// หากพบ SKU ซ้ำ ให้เรียกใช้ฟังก์ชันนี้อีกครั้ง
+		return generateSKU(categoryCode, db)
 	}
 
-	// ดึงหมายเลข SKU ล่าสุดและเพิ่มขึ้น 1
-	var lastSKU int
-	fmt.Sscanf(lastProduct.ProductCode, fmt.Sprintf("%s-%d", categoryCode, &lastSKU))
-	nextSKU := fmt.Sprintf("%s-%d", categoryCode, lastSKU+1)
-
-	return nextSKU
+	// ส่งคืน SKU ที่ไม่ซ้ำ
+	return randomSKU
 }
 
 // ดู Products ทั้งหมด
@@ -194,20 +200,40 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
-// ลบ Product
+// ลบ Product และ Inventory ที่เกี่ยวข้องทั้งหมด
 func DeleteProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
+
+	// เริ่มต้น transaction
+	tx := db.Begin()
+
+	// ลบ Inventory ที่เกี่ยวข้องทั้งหมดก่อน
+	if err := tx.Where("product_id = ?", id).Delete(&Models.Inventory{}).Error; err != nil {
+		tx.Rollback() // หากลบ Inventory ไม่สำเร็จ ย้อนกลับการทำงานทั้งหมด
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete inventory: " + err.Error(),
+		})
+	}
+
+	// ลบ Product
 	var product Models.Product
-	if err := db.Where("product_id = ?", id).First(&product).Error; err != nil {
+	if err := tx.Where("product_id = ?", id).First(&product).Error; err != nil {
+		tx.Rollback() // หากไม่พบ Product ให้ย้อนกลับ
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
 		})
 	}
-	if err := db.Delete(&product).Error; err != nil {
+
+	if err := tx.Delete(&product).Error; err != nil {
+		tx.Rollback() // หากลบ Product ไม่สำเร็จ ย้อนกลับการทำงานทั้งหมด
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete product: " + err.Error(),
 		})
 	}
+
+	// Commit การลบทั้งสองตาราง
+	tx.Commit()
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
