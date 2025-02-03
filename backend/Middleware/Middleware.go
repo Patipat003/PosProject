@@ -39,7 +39,7 @@ func IsAuthenticated() fiber.Handler {
 
 		// ตรวจสอบ role และกำหนดการเข้าถึง route
 		switch role {
-		case "admin":
+		case "Super Admin":
 			// Admin สามารถเข้าถึงทุกอย่าง
 			return c.Next()
 		case "Manager":

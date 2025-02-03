@@ -157,6 +157,7 @@ const DashboardPage = () => {
   const [error, setError] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState("!all");
   const [userBranchId, setUserBranchId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [salesByTime, setSalesByTime] = useState([]);
   const [timeRange, setTimeRange] = useState("day"); // ค่าเริ่มต้นเป็น "day"
@@ -165,7 +166,9 @@ const DashboardPage = () => {
     const token = localStorage.getItem("authToken");
     const decodedToken = JSON.parse(atob(token.split('.')[1]));
     const branchid = decodedToken.branchid;
+    const userRole = decodedToken.role; // ดึง role ของ user
     setUserBranchId(branchid);
+    setUserRole(userRole);
   
     const loadData = async () => {
       try {
@@ -352,15 +355,17 @@ const DashboardPage = () => {
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
       <div className="flex items-center justify-between mb-6">
         <p className="text-black mb-4">View Overall Dashboard here.</p>
-        <button
-          onClick={handleViewAllClick}
-          className="btn btn-outline border-2 border-teal-600 bg-white text-teal-600 p-2 rounded fixed top-20 right-2 z-5"
-        >
-          {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
-        </button>
+        {/* แสดงปุ่ม View All เฉพาะ Super Admin */}
+        {userRole === "Super Admin" && (
+          <button
+            onClick={handleViewAllClick}
+            className="btn btn-outline border-2 border-teal-600 bg-white text-teal-600 p-2 rounded fixed top-20 right-2 z-5"
+          >
+            {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
+          </button>
+        )}
       </div>
-
-
+      
       <div className="bg-gray-100 p-6 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">

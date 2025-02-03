@@ -19,6 +19,7 @@ import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
 import ReceiptsPage from "./pages/ReceiptsPage";
 import { ToastContainer } from "react-toastify";
+import SelectBranchPage from "./pages/SelectBranchPage";
 
 function App() {
   return (
@@ -27,6 +28,16 @@ function App() {
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<LoginPage />} />
+
+          <Route 
+            path="/select-branch"
+            element={
+              <ProtectedRoute allowedRoles={['Super Admin']}> {/* Define allowed roles */}
+                <SelectBranchPage />
+              </ProtectedRoute>
+            }
+          />
+
 
           {/* Protected Routes */}
           <Route

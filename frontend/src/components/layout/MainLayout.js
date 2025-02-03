@@ -103,6 +103,7 @@ const MainLayout = ({ children }) => {
   }, []);
 
   // Check if the user has access based on their role
+  const isSuperAdmin = userRole === "Super Admin"; // Super Admin can access everything
   const isCashier = userRole === "Cashier"; // Only Cashier can access Sales pages
   const isManager = userRole === "Manager"; // Manager can access everything
 
@@ -138,7 +139,7 @@ const MainLayout = ({ children }) => {
           >
           <nav className="p-5 list-none">
             <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
-            {(isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier) && (
               <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
                 {[
                   { label: "Sales Product", link: "/sales" },
@@ -146,13 +147,13 @@ const MainLayout = ({ children }) => {
                 ]}
               </SidebarDropdown>
             )}
-            {(isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier) && (
               <SidebarItem label="Product Management" link="/product" icon={<HiCube />} />
             )}
-            {(isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier) && (
               <SidebarItem label="Inventory Management" link="/inventory" icon={<HiMiniSquare3Stack3D />} />
             )}
-            {isManager && (
+            {isSuperAdmin || isManager && (
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
                   { label: "New Item", link: "/reports" },
@@ -160,7 +161,7 @@ const MainLayout = ({ children }) => {
                 ]}
               </SidebarDropdown>
             )}
-            {isManager && (
+            {isSuperAdmin || isManager && (
               <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
                   { label: "User", link: "/userManagement", icon: <HiUser /> },

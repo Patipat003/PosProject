@@ -26,17 +26,21 @@ const LoginPage = () => {
       const decodedToken = jwtDecode(token);
       console.log(decodedToken);
 
-      // ใช้ navigate เพื่อ redirect ไปหน้า Dashboard
-      navigate("/");  // เปลี่ยนจาก window.location.href
+      // ถ้าเป็น Super Admin และ branchid เป็น null ให้ไปที่หน้า Dashboard
+      if (decodedToken.role === "Super Admin" && !decodedToken.branchid) {
+        navigate("/select-branch");  // เปลี่ยนไปหน้า select-branch
+      } else {
+        navigate("/");  // ไปที่หน้า Dashboard
+      }
     } catch (err) {
       setError("Login failed: " + (err.response?.data?.error || err.message));
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 py-20 px-6 lg:px-8">  {/* เพิ่ม py-20 เพื่อเพิ่มพื้นที่ */}
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 py-20 px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-10 rounded-lg shadow-lg"> {/* เพิ่ม p-10 เพื่อเพิ่มพื้นที่ฟอร์ม */}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-10 rounded-lg shadow-lg">
           <div className="text-center text-white">
             <img
               alt="POS"

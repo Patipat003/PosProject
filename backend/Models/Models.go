@@ -13,8 +13,8 @@ type Employees struct {
 	Email      string    `gorm:"type:varchar(20);not null;unique" json:"email"`
 	Password   string    `gorm:"type:varchar(100);not null" json:"password"`
 	Name       string    `gorm:"type:varchar(40);not null" json:"name"`
-	Role       string    `gorm:"type:varchar(8);not null;check:role IN ('Cashier', 'Manager', 'Audit')" json:"role"`
-	BranchID   string    `gorm:"type:uuid;foreignKey:BranchID" json:"branchid"`
+	Role       string    `gorm:"type:varchar(12);not null;check:role IN ('Cashier', 'Manager', 'Audit', 'Super Admin')" json:"role"`
+	BranchID   *string   `gorm:"type:uuid;foreignKey:BranchID" json:"branchid"` // เปลี่ยนเป็น *string เพื่อให้สามารถเป็น NULL ได้
 	CreatedAt  time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
 }
 

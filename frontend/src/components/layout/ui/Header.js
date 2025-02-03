@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell, HiTruck  } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell, HiTruck } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
-import ModalStockLow from "./ModalStockLow"; // Import modal component
+import { jwtDecode } from "jwt-decode"; // Ensure jwtEncode is imported for updating the token
+import ModalStockLow from "./ModalStockLow";
 
 const Header = () => {
   const [branchName, setBranchName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [salesNotifications, setSalesNotifications] = useState([]);
-    const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // For managing modal state
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState(null);
   const navigate = useNavigate();
 
   const getUserDataFromToken = useCallback(() => {
@@ -20,119 +24,95 @@ const Header = () => {
     if (token) {
       const decodedToken = jwtDecode(token);
       setUserData(decodedToken);
+      setIsSuperAdmin(decodedToken.role === "Super Admin");
     }
   }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get("http://localhost:5050/branches");
+      setBranches(response.data);
+    } catch (err) {
+      console.error("Error fetching branches:", err);
+    }
+  };
 
   const fetchBranchName = useCallback(async (branchid) => {
     try {
       const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-      const response = await axios.get(
-        `http://localhost:5050/branches/${branchid}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const branch = response.data.Data;
-      setBranchName(branch.bname);
+      if (!token) return;
+      const response = await axios.get(`http://localhost:5050/branches/${branchid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBranchName(response.data.Data.bname);
     } catch (err) {
       console.error("Error fetching branch:", err);
     }
   }, []);
 
-  // ฟังก์ชันเพื่อดึงข้อมูลสินค้าในสต็อกจาก API
-  const fetchInventory = useCallback(async (branchid) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
+  const handleBranchSelect = (branchid) => {
+    setSelectedBranch(branchid);
+  };
 
-      const response = await axios.get(
-        `http://localhost:5050/inventory?branchid=${branchid}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const inventory = response.data.Data;
-
-      // Filter products by branchid and quantity less than 100
-      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 100);
-      setLowStockProducts(lowStockItems); // Update state with filtered products
-    } catch (err) {
-      console.error("Error fetching inventory:", err);
+  const handleBranchConfirmation = () => {
+    if (!selectedBranch) {
+      alert("Please select a branch.");
+      return;
     }
-  }, []);
-
-  const fetchRequests = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-
+    const token = localStorage.getItem("authToken");
+    if (token) {
       const decodedToken = jwtDecode(token);
-      const branchid = decodedToken.branchid;
-
-      const response = await axios.get(
-        `http://localhost:5050/requests`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const requests = response.data.Data;
-      const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending" || request.tobranchid === branchid && request.status === "Pending");
-      setSalesNotifications(notifications);
-    } catch (err) {
-      console.error("Error fetching requests:", err);
+      decodedToken.branchid = selectedBranch;
+      const newToken = jwtEncode(decodedToken, "yourSecretKey");
+      localStorage.setItem("authToken", newToken);
+      fetchBranchName(selectedBranch);
+      setIsBranchModalOpen(false);
     }
-  }, []);
-
-  useEffect(() => {
-    getUserDataFromToken();
-  }, [getUserDataFromToken]);
-
-  useEffect(() => {
-    if (userData && userData.branchid) {
-      fetchBranchName(userData.branchid);  // ดึงชื่อสาขา
-      fetchRequests();  // ดึงข้อมูลการร้องขอ
-    }
-  }, [userData, fetchBranchName, fetchRequests]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (userData && userData.branchid) {
-        fetchRequests();
-        fetchInventory(userData.branchid);
-      }
-    }, 2000); // Polling every 2 seconds
-
-    return () => clearInterval(intervalId);
-  }, [userData, fetchRequests, fetchInventory]);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/login");
   };
 
+  const fetchInventory = useCallback(async (branchid) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const inventory = response.data.Data;
+      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 100);
+      setLowStockProducts(lowStockItems);
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    getUserDataFromToken();
+    if (isSuperAdmin) fetchBranches();
+  }, [getUserDataFromToken, isSuperAdmin]);
+
+  useEffect(() => {
+    if (userData?.branchid) fetchBranchName(userData.branchid);
+  }, [userData, fetchBranchName]);
+
+  useEffect(() => {
+    if (userData?.branchid) fetchInventory(userData.branchid);
+  }, [userData, fetchInventory]);
+
   const handleNotificationClick = () => {
     navigate("/inventory", { state: { openModal: true } });
   };
 
   const handleNotificationClick1 = () => {
-    setIsModalOpen(true); // Open modal on notification click
+    setIsModalOpen(true);
   };
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
-      {/* Left: Logo */}
       <div className="flex-shrink-0 ml-5">
         <Link to="/" className="flex items-center">
           <img
@@ -143,10 +123,7 @@ const Header = () => {
         </Link>
       </div>
 
-      {/* Right: Notification Icons */}
-      
       <div className="flex items-center space-x-4">
-
         {salesNotifications.length > 0 && (
           <button
             onClick={handleNotificationClick}
@@ -169,7 +146,6 @@ const Header = () => {
 
         <p className="text-white">{branchName || "Loading branch..."}</p>
         <div className="relative ml-auto">
-          {/* User Dropdown */}
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
@@ -207,14 +183,40 @@ const Header = () => {
           )}
         </div>
 
-        {/* Modal for Low Stock Products */}
-        {isModalOpen && (
-          <ModalStockLow 
-            products={lowStockProducts} 
-            closeModal={() => setIsModalOpen(false)} 
-          />
+        {isBranchModalOpen && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg">
+              <h3 className="text-lg font-semibold">Select Branch</h3>
+              <select
+                onChange={(e) => handleBranchSelect(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+              >
+                <option value="">Please select a branch</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-4">
+                <button
+                  onClick={handleBranchConfirmation}
+                  className="w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
+                >
+                  Confirm Selection
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <ModalStockLow 
+          products={lowStockProducts} 
+          closeModal={() => setIsModalOpen(false)} 
+        />
+      )}
     </header>
   );
 };
