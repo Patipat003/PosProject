@@ -8,6 +8,8 @@ import {
   HiUser,
   HiArrowLeft,
   HiCube,
+  HiMenu,
+  HiX,
 } from "react-icons/hi";
 import { HiMiniSquare3Stack3D, HiMiniUserGroup  } from "react-icons/hi2";
 import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
@@ -90,6 +92,7 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for sidebar visibility
 
   useEffect(() => {
       const token = localStorage.getItem("authToken"); // Retrieve the token from local storage
@@ -129,7 +132,11 @@ const MainLayout = ({ children }) => {
       <div className="flex flex-1 pt-6">
         {/* Sidebar */}
         {!isSalesProductPage && (
-        <aside className="w-64 bg-teal-600 shadow-md h-full fixed top-16 left-0 overflow-y-auto">
+        <aside
+          className={`fixed top-16 left-0 w-64 bg-teal-600 shadow-md h-full overflow-y-auto transition-transform duration-300 ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <nav className="p-5 list-none">
             <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
             {(isSuperAdmin || isManager || isCashier) && (
@@ -138,7 +145,7 @@ const MainLayout = ({ children }) => {
                   { label: "Sales Product", link: "/sales" },
                   { label: "Sales History", link: "/salesHistory" },
                   // { label: "Payment", link: "/payment" },
-                  //{ label: "Receipts", link: "/receipts" },
+                  // { label: "Receipts", link: "/receipts" },
                 ]}
               </SidebarDropdown>
             )}
@@ -148,7 +155,7 @@ const MainLayout = ({ children }) => {
             {(isSuperAdmin || isManager || isCashier) && (
               <SidebarItem label="Inventory Management" link="/inventory" icon={<HiMiniSquare3Stack3D />} />
             )}
-            {isSuperAdmin || isManager && (
+            {(isSuperAdmin || isManager) && (
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
                   { label: "Sales Reports", link: "/reports" },
@@ -156,7 +163,7 @@ const MainLayout = ({ children }) => {
                 ]}
               </SidebarDropdown>
             )}
-            {isSuperAdmin || isManager && (
+            {(isSuperAdmin || isManager) && (
               <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
                   { label: "User", link: "/userManagement", icon: (<HiUser />)},
@@ -168,9 +175,22 @@ const MainLayout = ({ children }) => {
         </aside>
         )}
       </div>
+      
+      {/* Burger Icon */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-2 left-1 z-20 text-white bg-teal-600 pl-3 pt-3"
+      >
+        {isSidebarOpen ? <HiX size={30} /> : <HiMenu size={30} />}
+      </button>
 
       {/* Main Content */}
-      <main className={`flex-1 p-6 bg-white ${isSalesProductPage ? "pt-28" : "ml-64 pt-16"}`}>
+      <main
+        onClick={() => isSidebarOpen && setIsSidebarOpen(false)} 
+        className={`flex-1 p-6 bg-white transition-all duration-300 ${
+          isSalesProductPage ? "pt-28" : isSidebarOpen ? "ml-64 pt-16" : "ml-0 pt-16"
+        }`}
+      >
         {children}
       </main>
     </div>

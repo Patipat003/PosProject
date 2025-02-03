@@ -1,420 +1,435 @@
-import React, { useEffect, useState } from "react";
-import { Pie, Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from "chart.js";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toZonedTime, format } from 'date-fns-tz';
-import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
-import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
-import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
-import { HiOutlineCurrencyDollar  , HiOutlineShoppingCart, HiOutlineCube  } from 'react-icons/hi'; // Heroicons
-
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
-
-const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
+import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
+import ExportButtons from "../components/layout/ui/ExportButtons";
+import { format } from "date-fns";
+import { FaPencilAlt, FaUser } from "react-icons/fa"; // Pencil icon import
 
 const formatDate = (dateString) => {
-  // const date = new Date(dateString);
-  const zonedDate = toZonedTime(dateString, 'UTC');
-  return format(zonedDate, "d/MM/yyyy, HH:mm"); 
+  const date = new Date(dateString);
+  return format(date, "d/MM/yyyy, HH:mm");
 };
 
-const DashboardPage = () => {
-  const [salesSummary, setSalesSummary] = useState([]);
-  const [keyMetrics, setKeyMetrics] = useState([]);
+const UserManagementPage = () => {
+  const [employees, setEmployees] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
-  const [inventoryData, setInventoryData] = useState([]);
-  const [lowStockProducts, setLowStockProducts] = useState([]); // For low stock items
-  const [saleRecents, setSaleRecents] = useState([]);  // สำหรับรายการการขายล่าสุด
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState("all");
-  const [userBranchId, setUserBranchId] = useState(null); // State for storing branchid
-  const [showModal, setShowModal] = useState(false); // สำหรับเปิด/ปิด modal
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    email: "",
+    password: "",
+    name: "",
+    role: "",
+    branched: "",
+  });
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [roleToUpdate, setRoleToUpdate] = useState("");
+  const [employeeid, setemployeeid] = useState("");
+  const [sortKey, setSortKey] = useState("employeeid");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortByDate, setSortByDate] = useState(false);
+  const [userBranchId, setUserBranchId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false); // New state for password modal
+  const [newPassword, setNewPassword] = useState(""); // New state for the new password
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const decodedToken = jwtDecode(token);
+      const branchIdFromToken = decodedToken.branchid;
+      const userRole = decodedToken.role; // ดึง role จาก token
+  
+      setUserBranchId(branchIdFromToken);
+      setUserRole(userRole);
+    
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+  
+      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
+      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+  
+      if (userRole === "Super Admin") {
+        setEmployees(employeeResponse.data.Data);
+      } else {
+        setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken));
+      }
+  
+      setBranches(branchResponse.data.Data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load data");
+      setLoading(false);
+    }
+  };  
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-    
-        const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
-        const salesResponse = await axios.get("http://localhost:5050/sales", config);
-        const productsResponse = await axios.get("http://localhost:5050/products", config);
-        const branchesResponse = await axios.get("http://localhost:5050/branches", config);
-        const inventoryResponse = await axios.get("http://localhost:5050/inventory", config);
-        const receiptsResponse = await axios.get("http://localhost:5050/receipts", config);
-        const employeesResponse = await axios.get("http://localhost:5050/employees", config);
-    
-        const saleItemsData = saleItemsResponse.data.Data;
-        const salesData = salesResponse.data.Data;
-        const productsData = productsResponse.data.Data;
-        const branchesData = branchesResponse.data.Data;
-        const inventory = inventoryResponse.data.Data;
-        const receiptsData = receiptsResponse.data.Data;
-        const employeesData = employeesResponse.data.Data;
-    
-        const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        const branchid = decodedToken.branchid;
-        setUserBranchId(branchid);
-    
-        const filteredSales = selectedBranch === "all"
-          ? salesData
-          : salesData.filter(sale => sale.branchid === branchid);
-    
-        const saleItemsForBranch = saleItemsData.filter(saleItem =>
-          filteredSales.some(sale => sale.saleid === saleItem.saleid)
-        );
-    
-        const totalQuantity = saleItemsForBranch.reduce((sum, item) => sum + item.quantity, 0);
-        const totalSales = filteredSales.reduce((sum, sale) => sum + sale.totalamount, 0);
-    
-        const productSales = saleItemsForBranch.reduce((acc, saleItem) => {
-          const { productid, quantity } = saleItem;
-          if (acc[productid]) {
-            acc[productid].quantity += quantity;
-          } else {
-            acc[productid] = { quantity, productid };
-          }
-          return acc;
-        }, {});
-    
-        const topSellingProducts = Object.values(productSales)
-          .sort((a, b) => b.quantity - a.quantity)
-          .slice(0, 5);
-    
-        const topProductsWithDetails = topSellingProducts.map(item => {
-          const product = productsData.find(p => p.productid === item.productid);
-          return {
-            ...item,
-            productname: product ? product.productname : "Unknown",
-            imageurl: product ? product.imageurl : "",
-          };
-        });
-    
-        const branchSales = salesData.reduce((acc, sale) => {
-          const branch = acc.find((b) => b.branchid === sale.branchid);
-          if (branch) {
-            branch.sales += sale.totalamount;
-          } else {
-            acc.push({ branchid: sale.branchid, sales: sale.totalamount });
-          }
-          return acc;
-        }, []);
-    
-        const salesWithBranchNames = branchesData.map((branch) => {
-          const sale = branchSales.find((b) => b.branchid === branch.branchid);
-          return {
-            branchid: branch.branchid,
-            bname: branch.bname,
-            sales: sale ? sale.sales : 0,
-          };
-        });
-    
-        setBranches(branchesData);
-        setSalesSummary(salesWithBranchNames);
-        setTopProducts(topProductsWithDetails);
-        setInventoryData(inventory);
-        setKeyMetrics([{ label: "Total Sales", value: totalSales }, { label: "Total Quantity", value: totalQuantity }]);
-    
-        const lowStock = inventory.filter(item => item.quantity < 100 && (selectedBranch === "all" || item.branchid === branchid)); 
-        setLowStockProducts(lowStock);
-    
-        // Fetch sale recents
-          const saleRecentsData = selectedBranch === "all"
-          ? salesData // สำหรับแสดงข้อมูลทั้งหมดจากทุกสาขา
-          : salesData.filter(sale => sale.branchid === branchid); // สำหรับสาขาของผู้ใช้
-
-          // Map saleid to receiptnumber and employeeid to name
-          const saleRecentsWithDetails = saleRecentsData.map(sale => {
-          const receipt = receiptsData.find(receipt => receipt.saleid === sale.saleid);
-          const employee = employeesData.find(employee => employee.employeeid === sale.employeeid);
-          return {
-            ...sale,
-            receiptnumber: receipt ? receipt.receiptnumber : "N/A",
-            employeename: employee ? employee.name : "Unknown",
-          };
-          });
-
-          // เรียงลำดับข้อมูลจากวันที่ล่าสุดไปเก่าสุด
-          const sortedSaleRecents = saleRecentsWithDetails
-          .sort((a, b) => new Date(b.createdat) - new Date(a.createdat)); // เรียงจากล่าสุด -> เก่าสุด
-
-          // เลือกเฉพาะ 10 รายการล่าสุด
-          const topSaleRecents = sortedSaleRecents.slice(0, 10); 
-
-          setSaleRecents(topSaleRecents); // ตั้งค่า state ด้วยข้อมูลที่เรียงลำดับแล้ว
-
-    
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
-        setLoading(false);
-      }
-    };
-    
-  
     fetchData();
-    const intervalId = setInterval(fetchData, POLLING_INTERVAL);
-    return () => clearInterval(intervalId); // Clean up interval
-  }, [selectedBranch]);
+  }, []);
   
-  const handleCloseModal = () => setShowModal(false);
 
-  const soldProducts = topProducts.map(product => ({
-    productname: product.productname,
-    quantity: product.quantity,
-  }));
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-42 flex-col">
-        <Player
-          autoplay
-          loop
-          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
-          style={{ height: "200px", width: "200px" }}
-        />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-42 flex-col">
-        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
-        <p className="text-red-500 text-xl">{error}</p>
-      </div>
-    );
-  }
-
-  const filteredSales = selectedBranch === "all"
-    ? salesSummary
-    : salesSummary.filter(sale => sale.branchid === selectedBranch);
-
-  const pieData = {
-    labels: filteredSales.map((data) => data.bname),
-    datasets: [
-      {
-        data: filteredSales.map((data) => data.sales),
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-      },
-    ],
+  const getBranchName = (branchId) => {
+    const branch = branches.find((b) => b.branchid === branchId);
+    return branch ? branch.bname : "Unknown Branch";
   };
 
-  const pieOptions = {
-    maintainAspectRatio: false,
-    responsive: true,
-    cutout: '50%', // เปลี่ยนจาก pie เป็น donut
-    plugins: {
-      tooltip: {
-        enabled: true,
-        backgroundColor: "#333",
-        titleColor: "#fff",
-        bodyColor: "#fff",
-      },
-      legend: {
-        position: 'right', // ตั้ง legend ไว้ที่ด้านบน
-        labels: {
-          font: {
-            size: 14, // ปรับขนาดฟอนต์ของ label
-            padding: 10, // ระยะห่างของ label
-          },
-          boxWidth: 20, // ขนาดกล่องสีของ legend
+  const handleSortChange = (key, direction) => {
+    setSortKey(key);
+    setSortDirection(direction);
+    const sortedData = [...employees].sort((a, b) => {
+      const aValue = a[key];
+      const bValue = b[key];
+      return direction === "asc" ? (aValue < bValue ? -1 : 1) : aValue > bValue ? -1 : 1;
+    });
+    setEmployees(sortedData);
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleAddEmployee = async (e) => {
+    e.preventDefault();
+
+    if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role || !newEmployee.branched) {
+      alert("All fields are required.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      },
-    },
-    elements: {
-      arc: {
-        borderWidth: 2, // เพิ่มขนาดขอบ
-      },
-    },
+      };
+
+      const payload = {
+        ...newEmployee,
+        branchid: newEmployee.branched, 
+      };
+
+      const response = await axios.post("http://localhost:5050/employees", payload, config);
+
+      setShowAddModal(false);
+      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
+
+      fetchData();
+    } catch (err) {
+      console.error("Failed to add employee:", err);
+      alert("Failed to add employee. Please try again.");
+    }
   };
 
-  const barData = {
-    labels: keyMetrics.map((metric) => metric.label),
-    datasets: [
-      {
-        label: "Metrics",
-        data: keyMetrics.map((metric) => metric.value),
-        backgroundColor: "#36A2EB",
-      },
-    ],
+  const handleRoleChange = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.patch(
+        `http://localhost:5050/employees/${employeeid}`,
+        { role: roleToUpdate },
+        config
+      );
+
+      if (response.status === 200) {
+        const updatedEmployees = employees.map((employee) =>
+          employee.employeeid === employeeid ? { ...employee, role: roleToUpdate } : employee
+        );
+        setEmployees(updatedEmployees);
+        setShowRoleModal(false);
+      } else {
+        console.error("Failed to update role:", response.data);
+        alert("Failed to update role. Please check your permissions.");
+      }
+    } catch (err) {
+      console.error("Failed to update role:", err);
+      alert("Failed to update role. Please check your permissions.");
+    }
   };
 
-  const topProductsData = {
-    labels: topProducts.map((product) => product.productname),
-    datasets: [
-      {
-        data: topProducts.map((product) => product.quantity),
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-      },
-    ],
+  const handlePasswordChange = async () => {
+    if (!newPassword) {
+      alert("Please enter a new password.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.patch(
+        `http://localhost:5050/employees/${employeeid}`,
+        { password: newPassword },
+        config
+      );
+
+      if (response.status === 200) {
+        alert("Password updated successfully.");
+        setShowPasswordModal(false);
+        fetchData();
+      } else {
+        console.error("Failed to update password:", response.data);
+        alert("Failed to update password.");
+      }
+    } catch (err) {
+      console.error("Failed to update password:", err);
+      alert("Failed to update password.");
+    }
   };
 
-  const handleViewAllClick = () => {
-    setSelectedBranch(prevState => (prevState === "all" ? userBranchId : "all"));
-  };
-  
+  const filteredEmployees = employees.filter((item) => {
+    const branchName = getBranchName(item.branchid).toLowerCase();
+    return (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      branchName.includes(searchQuery.toLowerCase())
+    );
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
-    <div className="p-4 min-h-screen text-black">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
-
-      <div className="sticky top-0 right-0 p-4 mb-6 z-10">
-        {/* View All Button */}
+    <div className="p-4 bg-white">
+      <h1 className="text-3xl font-bold text-teal-600 mb-6">User Management</h1>
+      <div className="flex justify-between mb-4">
         <button
-          onClick={handleViewAllClick}
-          className="btn border-none bg-teal-500 text-white p-2 rounded mb-6"
+          onClick={() => setShowAddModal(true)}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
         >
-          {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
+          + Add Employee
         </button>
+        <ExportButtons
+          filteredTables={filteredEmployees.map(employee => ({
+            email: employee.email,
+            name: employee.name,
+            role: employee.role,
+            branch: getBranchName(employee.branchid),
+          }))}
+          columns={["email", "name", "role", "branch", "createdAt"]} // Define the column headers accordingly
+          filename="employees_report.pdf" // Filename for export
+        />
       </div>
 
+      <div className="mb-4 space-x-6 flex">
+        <div className="flex items-center space-x-4 w-full">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by name, email, role, or branch"
+            className="border p-2 rounded w-full"
+          />
+        </div>
+      </div>
 
-      {/* Sales and Top Selling Products */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
+      <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+        <thead>
+          <tr className="bg-gray-100 text-gray-600">
+            <th className="border text-sm px-4 py-2">No.</th>
+            <th className="border text-sm px-4 py-2">Email</th>
+            <th className="border text-sm px-4 py-2">Name</th>
+            <th className="border text-sm px-4 py-2">Role</th>
+            <th className="border text-sm px-4 py-2">Branch</th>
+            <th className="border text-sm px-4 py-2">Created At</th>
+            <th className="border text-sm px-4 py-2">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {filteredEmployees.map((employee, index) => (
+          <tr
+            key={employee.employeeid}
+            className={
+              index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
+            }
+          >
+            <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
+            <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
+            <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
+            <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
+            <td className="border border-gray-300 px-4 py-2 flex justify-center items-center space-x-2">
+              <FaUser
+                className="cursor-pointer text-teal-700"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setRoleToUpdate(employee.role);
+                  setShowRoleModal(true);
+                }}
+              />
+              <button
+                className="text-teal-700"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setShowPasswordModal(true);
+                }}
+              >
+                <FaPencilAlt className="text-teal-700" />
+              </button>
+            </td>
+          </tr>
+        ))}
+        </tbody>
+      </table>
 
-        {/* Total Sales (THB) */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
-          <HiOutlineCurrencyDollar  className="text-teal-500 text-6xl" />
-          <div className="text-right">
-            <h2 className="font-semibold mb-4">Total Sales (THB)</h2>
-            <div className="text-2xl font-bold text-teal-500">
-              ฿{keyMetrics[0]?.value.toLocaleString()}
+      {/* Password Update Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Update Password</h2>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New Password"
+              className="border p-2 mb-4 w-full"
+            />
+            <div className="flex justify-between">
+              <button
+                onClick={handlePasswordChange}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Update
+              </button>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
+      )}
+       {/* Add Employee Modal */}
+       {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Add Employee</h2>
+            <form onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="text"
+                value={newEmployee.name}
+                onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                placeholder="Name"
+                className="border p-2 mb-2 w-full"
+              />
+              <input
+                type="email"
+                value={newEmployee.email}
+                onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                placeholder="Email"
+                className="border p-2 mb-2 w-full"
+              />
+              <input
+                type="password"
+                value={newEmployee.password}
+                onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                placeholder="Password"
+                className="border p-2 mb-2 w-full"
+              />
+              <select
+                value={newEmployee.role}
+                onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                className="border p-2 mb-2 w-full"
+              >
+                <option value="" disabled>
+                  Select Role
+                </option>
+                <option value="Manager">Manager</option>
+                <option value="Cashier">Cashier</option>
+                <option value="Audit">Audit</option>
+              </select>
+              {userRole === "Super Admin" ? (
+                <select
+                  value={newEmployee.branched}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                  className="w-full px-4 py-2 rounded border border-gray-300"
+                >
+                  <option value="">Select Branch</option>
+                  {branches.map((branch) => (
+                    <option key={branch.branchid} value={branch.branchid}>
+                      {branch.bname}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={getBranchName(userBranchId)}
+                  readOnly
+                  className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-200"
+                />
+              )}
 
-        {/* Total Sales (Pieces) */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
-          <HiOutlineShoppingCart  className="text-teal-500 text-6xl" />
-          <div className="text-right">
-            <h2 className="font-semibold mb-4">Total Sales (Pieces)</h2>
-            <div className="text-2xl font-bold text-teal-500">
-              {keyMetrics[1]?.value.toLocaleString()} Pieces
+              <button
+                onClick={handleAddEmployee}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full"
+              >
+                Submit
+              </button>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-full mt-2"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Role Update Modal */}
+      {showRoleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">Update Role</h2>
+            <select
+              value={roleToUpdate}
+              onChange={(e) => setRoleToUpdate(e.target.value)}
+              className="border p-2 mb-4 w-full"
+            >
+              <option value="" disabled>Select Role</option>
+              <option value="Manager">Manager</option>
+              <option value="Cashier">Cashier</option>
+              <option value="Audit">Audit</option>
+            </select>
+            <div className="flex justify-between">
+              <button
+                onClick={handleRoleChange}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Update
+              </button>
+              <button
+                onClick={() => setShowRoleModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Low Stock Section */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
-          <HiOutlineCube  className="text-red-500 text-6xl" />
-          <div className="text-right">
-            <h2 className="font-semibold mb-4">Low Stock (Products)</h2>
-            <div className="text-2xl font-bold text-red-500">
-              {lowStockProducts.length} Low on Stock
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Top Selling Products */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
-        <h2 className="font-semibold mb-4">Top Sale Products</h2>
-        <div className="w-72 mx-auto">
-          <Pie data={topProductsData} options={{ ...pieOptions, maintainAspectRatio: false }} />
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn border-none bg-teal-500 text-white p-2 rounded mt-4"
-        >
-          View Sales Products
-        </button>
-      </div>
-
-      {/* Show Modal */}
-      <SoldProductsModal
-        show={showModal}
-        closeModal={handleCloseModal}
-        products={soldProducts}
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 text-gray-600">
-        <div className="bg-white shadow-lg rounded-lg p-4">
-          <h2 className="font-semibold mb-4">Sales Summary (Pie Chart)</h2>
-          <div className="w-72 mx-auto">
-            <Pie data={pieData} options={{ ...pieOptions, maintainAspectRatio: false }} />
-          </div>
-        </div>
-
-        <div className="bg-white shadow-lg rounded-lg p-4">
-          <h2 className="font-semibold mb-4">Key Metrics (Bar Chart)</h2>
-          <div className="w-72 mx-auto">
-            <Bar data={barData} options={{ maintainAspectRatio: false }} />
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6 text-gray-600">
-        {/* Sales Summary Table */}
-        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
-          <h2 className="font-semibold mb-4">Sales Summary (Table)</h2>
-          <table className="w-full text-sm border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
-                <th className="border border-gray-300 p-1 text-left">Total Sales</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSales.map((data, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 p-1">{data.bname}</td>
-                  <td className="border border-gray-300 p-1">฿{data.sales.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Sale Recents Table */}
-        <div className="bg-white shadow-lg rounded-lg p-4 text-gray-600">
-          <h2 className="font-semibold mb-4">Sale Recents</h2>
-          <table className="w-full text-sm border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 p-1 text-left">Receipt Number</th>
-                <th className="border border-gray-300 p-1 text-left">Branch Name</th>
-                <th className="border border-gray-300 p-1 text-left">Employee Name</th>
-                <th className="border border-gray-300 p-1 text-left">Total Sales (THB)</th>
-                <th className="border border-gray-300 p-1 text-left">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {saleRecents.map((sale, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 p-1">{sale.receiptnumber}</td>
-                  <td className="border border-gray-300 p-1">
-                    {branches.find(branch => branch.branchid === sale.branchid)?.bname}
-                  </td>
-                  <td className="border border-gray-300 p-1">{sale.employeename}</td>
-                  <td className="border border-gray-300 p-1">{sale.totalamount.toLocaleString()}</td>
-                  <td className="border border-gray-300 p-1">{formatDate(sale.createdat)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>  
+      )}
     </div>
   );
 };
 
-export default DashboardPage;
+export default UserManagementPage;
