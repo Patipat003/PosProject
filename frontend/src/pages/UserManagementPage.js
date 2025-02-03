@@ -132,6 +132,10 @@ const UserManagementPage = () => {
     setSelectedBranch(e.target.value);
   };
 
+  const handleRoleSort = (e) => {
+    setSelectedRole(e.target.value);
+  };
+
   const handleRoleChange = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -202,25 +206,26 @@ const UserManagementPage = () => {
   };
 
   const filteredEmployees = employees
-    .filter((item) => {
-      const branchName = getBranchName(item.branchid).toLowerCase();
-      const nameMatch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const emailMatch = item.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const roleMatch = item.role.toLowerCase().includes(searchQuery.toLowerCase());
-      const branchMatch = branchName.includes(searchQuery.toLowerCase());
-      
-      // Apply additional filters
-      const branchFilterMatch = selectedBranch ? item.branchid === selectedBranch : true;
-      const roleFilterMatch = selectedRole ? item.role === selectedRole : true;
+  .filter((item) => {
+    const branchName = getBranchName(item.branchid).toLowerCase();
+    const nameMatch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const emailMatch = item.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const roleMatch = item.role.toLowerCase().includes(searchQuery.toLowerCase());
+    const branchMatch = branchName.includes(searchQuery.toLowerCase());
 
-      return (nameMatch || emailMatch || roleMatch || branchMatch) && branchFilterMatch && roleFilterMatch;
-    })
-    .sort((a, b) => {
-      if (sortByDate) {
-        return new Date(a.createdat) > new Date(b.createdat) ? 1 : -1;
-      }
-      return 0;
-    });
+    // Apply additional filters
+    const branchFilterMatch = selectedBranch ? item.branchid === selectedBranch : true;
+    const roleFilterMatch = selectedRole ? item.role === selectedRole : true;
+
+    return (nameMatch || emailMatch || roleMatch || branchMatch) && branchFilterMatch && roleFilterMatch;
+  })
+  .sort((a, b) => {
+    if (sortByDate) {
+      return new Date(a.createdat) > new Date(b.createdat) ? 1 : -1;
+    }
+    return 0;
+  });
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -275,7 +280,7 @@ const UserManagementPage = () => {
 
         <select
           value={selectedRole}
-          onChange={handleRoleChange}
+          onChange={handleRoleSort}
           className="border p-2 rounded"
         >
           <option value="">All Roles</option>
