@@ -3,6 +3,8 @@ import axios from "axios";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const formatDate = (dateString, type) => {
   const date = new Date(dateString);
@@ -104,6 +106,36 @@ const ReportsPage = () => {
 
     return result;
   }, {});
+      const exportToPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Sales Report", 14, 15);
+        
+        const tableColumn = ["No.", "Date", "Branch", "Total Amount", "Items Sold"];
+        const tableRows = [];
+      
+        Object.keys(filteredSales).forEach((dateKey, index) => {
+          filteredSales[dateKey].forEach((branchId) => {
+            const { totalAmount, count } = groupedSales[dateKey][branchId];
+            tableRows.push([
+              index + 1,
+              dateKey,
+              getBranchName(branchId),
+              `$${totalAmount.toFixed(2)}`,
+              count,
+            ]);
+          });
+        });
+      
+        autoTable(doc, {
+          startY: 20,
+          head: [tableColumn],
+          body: tableRows,
+        });
+      
+        doc.save("Sales_Report.pdf");
+      };
+
+
 
   if (loading) {
     return <div className="text-center text-xl py-4">Loading...</div>;
@@ -180,6 +212,7 @@ const ReportsPage = () => {
         />
       </div>
       
+      
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
         <thead className="bg-gray-100 text-gray-600">
           <tr>
@@ -207,8 +240,15 @@ const ReportsPage = () => {
               })}
             </React.Fragment>
           ))}
+
         </tbody>
       </table>
+      <button
+        onClick={exportToPDF}
+        className="bg-teal-500 text-white p-2 rounded-md shadow-md hover:bg-teal-600"
+        >
+          Export to PDF
+      </button>
     </div>
   );
 };

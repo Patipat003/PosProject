@@ -214,7 +214,7 @@ const UserManagementPage = () => {
             role: employee.role,
             branch: getBranchName(employee.branchid),
           }))}
-          columns={["email", "name", "role", "branch", "createdAt"]} // Define the column headers accordingly
+          columns={["email", "name", "role", "branch"]} // Define the column headers accordingly
           filename="employees_report.pdf" // Filename for export
         />
       </div>
