@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { PencilIcon } from "@heroicons/react/outline"; // Import icon
+import { PencilIcon } from "@heroicons/react/outline";
+import { motion, AnimatePresence } from "framer-motion";
 
 const EditedProduct = ({ productId, onProductUpdated }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -8,20 +9,14 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [imageUrl, setImageUrl] = useState(""); // State for Image URL
-  const [categories, setCategories] = useState([]); // Categories state
-  const [selectedCategory, setSelectedCategory] = useState(""); // Selected category state
+  const [imageUrl, setImageUrl] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-  // Fetch product data from API to populate the inputs
   useEffect(() => {
-    const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
-      },
-    };
-    
-    // ฟังก์ชันสำหรับดึงข้อมูล Categories
+    const token = localStorage.getItem("authToken");
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
     const fetchCategories = async () => {
       try {
         const response = await axios.get("http://localhost:5050/categories", config);
@@ -32,11 +27,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     };
 
     const fetchProduct = async () => {
-      if (!productId) {
-        console.error("Product ID is not available.");
-        return; // หยุดการทำงานหากไม่มี productId
-      }
-    
+      if (!productId) return;
       try {
         const response = await axios.get(`http://localhost:5050/Products/${productId}`, config);
         const product = response.data.Data;
@@ -45,29 +36,18 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
         setDescription(product.description);
         setPrice(product.price);
         setImageUrl(product.imageurl);
-        setSelectedCategory(product.categoryid); // Set the selected category
+        setSelectedCategory(product.categoryid);
       } catch (err) {
         console.error("Error fetching product data:", err);
       }
     };
-    
+
     fetchCategories();
-    if (productId) {
-      fetchProduct();
-    }
+    if (productId) fetchProduct();
   }, [productId]);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true); // Open modal
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // Close modal
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const numericPrice = parseFloat(price);
     if (isNaN(numericPrice)) {
       console.error("Price must be a valid number");
@@ -75,150 +55,145 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     }
 
     try {
-      const token = localStorage.getItem("authToken"); // หยิบ token จาก localStorage
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
+      const token = localStorage.getItem("authToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.put(
+        `http://localhost:5050/products/${productId}`,
+        {
+          productcode: productCode,
+          productname: productName,
+          description,
+          price: numericPrice,
+          imageurl: imageUrl,
+          categoryid: selectedCategory,
         },
-      };
-      const response = await axios.put(`http://localhost:5050/products/${productId}`, {
-        productcode: productCode,
-        productname: productName,
-        description: description,
-        price: numericPrice,
-        imageurl: imageUrl,
-        categoryid: selectedCategory, // ส่ง category ID ไปด้วย
-      }, config);
+        config
+      );
 
-      if (response.status === 200) {
-        onProductUpdated(); // Refresh data after successful update
-      }
-
-      handleCloseModal(); // Close modal after updating
+      if (response.status === 200) onProductUpdated();
+      setIsModalOpen(false);
     } catch (err) {
       console.error("Error updating product:", err);
     }
   };
 
   return (
-    <div className="border-none">
+    <div>
       <button
-        onClick={handleOpenModal}
-        className="hover:border-b-2 border-gray-400 transition duration-300"
+        onClick={() => setIsModalOpen(true)}
+        className="hover:text-teal-500 transition duration-300"
       >
         <PencilIcon className="text-blue-600 h-6 w-6" />
       </button>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50"
-          onClick={handleCloseModal} // คลิกที่ Backdrop เพื่อปิด
-        >
-          <div
-            className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-60 overflow-y-auto max-h-screen mt-10"
-            onClick={(e) => e.stopPropagation()} // ป้องกันการปิด Modal เมื่อคลิกใน Modal
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)}
           >
-            <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
-              Edit Product
-            </h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="flex flex-col w-full">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Product Code
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter product Code"
-                  value={productCode}
-                  onChange={(e) => setProductCode(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col w-full">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Product Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter product name"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col w-full">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Price
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter price"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col w-full">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Image URL
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter image URL"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col w-full">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Category
-                </label>
-                <select
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category.categoryid} value={category.categoryid}>
-                      {category.categoryname}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col w-full sm:col-span-2">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Description
-                </label>
-                <textarea
-                  className="w-full p-4 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Enter description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4} // เพิ่มจำนวนแถวของช่อง description
-                />
-              </div>
-              <div className="col-span-2">
-                <button
-                  type="submit"
-                  className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded hover:bg-teal-600 transition duration-300"
-                >
-                  Update Product
-                </button>
-              </div>
-            </form>
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-2 right-2 text-gray-500 text-2xl mr-2"
+            <motion.div
+              className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl relative"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              &times;
-            </button>
-          </div>
-        </div>
-      )}
+              <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
+                Edit Product
+              </h2>
+
+              {/* Preview รูปภาพ */}
+              {imageUrl && (
+                <div className="flex justify-center mb-4">
+                  <img
+                    src={imageUrl}
+                    alt="Product Preview"
+                    className="w-40 h-40 object-cover rounded-lg "
+                  />
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                <InputField label="Product Name" value={productName} onChange={setProductName} />
+                <InputField label="Price" value={price} onChange={setPrice} type="number" />
+                
+                {/* ช่องใส่ URL ที่แสดงรูปอัตโนมัติ */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Image URL</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    placeholder="Enter image URL"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Category</label>
+                  <select
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category.categoryid} value={category.categoryid}>
+                        {category.categoryname}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-gray-700 font-medium mb-1">Description</label>
+                  <textarea
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
+                  >
+                    Update Product
+                  </button>
+                </div>
+              </form>
+
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-3 right-4 text-gray-500 text-xl"
+              >
+                &times;
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+
+const InputField = ({ label, value, onChange, type = "text" }) => (
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">{label}</label>
+    <input
+      type={type}
+      className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+      placeholder={`Enter ${label.toLowerCase()}`}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </div>
+);
 
 export default EditedProduct;
