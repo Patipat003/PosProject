@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
-import { format } from "date-fns";
-import { FaPencilAlt, FaUser } from "react-icons/fa"; 
+import { toZonedTime, format } from 'date-fns-tz';
+import { FaPencilAlt, FaUser } from "react-icons/fa";
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
+  const date = toZonedTime(dateString, 'UTC');
   return format(date, "d/MM/yyyy, HH:mm");
 };
 
@@ -28,7 +28,7 @@ const UserManagementPage = () => {
   const [roleToUpdate, setRoleToUpdate] = useState("");
   const [employeeid, setemployeeid] = useState("");
   const [sortKey, setSortKey] = useState("employeeid");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");  // New state for branch filter
   const [selectedRole, setSelectedRole] = useState("");      // New state for role filter
@@ -36,7 +36,9 @@ const UserManagementPage = () => {
   const [userBranchId, setUserBranchId] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false); 
-  const [newPassword, setNewPassword] = useState(""); 
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const itemsPerPage = 10; // Items per page
 
   const fetchData = async () => {
     try {
@@ -221,11 +223,26 @@ const UserManagementPage = () => {
   })
   .sort((a, b) => {
     if (sortByDate) {
-      return new Date(a.createdat) > new Date(b.createdat) ? 1 : -1;
+      const dateA = new Date(a.createdat);  // Parse createdat as Date
+      const dateB = new Date(b.createdat);
+  
+      // Compare based on the selected sort direction (ascending or descending)
+      return sortDirection === "asc"
+        ? dateA.getTime() - dateB.getTime()
+        : dateB.getTime() - dateA.getTime();
     }
     return 0;
   });
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const currentEmployees = filteredEmployees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -258,30 +275,47 @@ const UserManagementPage = () => {
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search by name, email, role, or branch"
-            className="border p-2 rounded w-full"
+            placeholder="Search by name or email"
+            className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
-      </div>
-
-      <div className="flex space-x-4 mb-4">
+      
         <select
           value={selectedBranch}
           onChange={handleBranchChange}
-          className="border p-2 rounded"
+          disabled={userRole !== "Super Admin"} // Disable for non-Super Admin
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
-          <option value="">All Branches</option>
-          {branches.map((branch) => (
-            <option key={branch.branchid} value={branch.branchid}>
-              {branch.bname}
+          <option className="" value="">
+            All Branches
+          </option>
+          {userRole === "Super Admin" ? (
+            branches.map((branch) => (
+              <option
+                key={branch.branchid}
+                value={branch.branchid}
+                className="bg-white"
+                disabled={false} // This will prevent the option from being disabled
+              >
+                {branch.bname}
+              </option>
+            ))
+          ) : (
+            <option
+              key={userBranchId}
+              value={userBranchId}
+              className="bg-none"
+              disabled={true} // This option will be disabled for non-Super Admins
+            >
+              {getBranchName(userBranchId)}
             </option>
-          ))}
+          )}
         </select>
 
         <select
           value={selectedRole}
           onChange={handleRoleSort}
-          className="border p-2 rounded"
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
           <option value="">All Roles</option>
           <option value="Manager">Manager</option>
@@ -289,7 +323,7 @@ const UserManagementPage = () => {
           <option value="Audit">Audit</option>
         </select>
 
-        <button onClick={handleDateSortChange} className="border p-2 rounded">
+        <button onClick={handleDateSortChange} className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
           Sort by Date
         </button>
       </div>
@@ -307,7 +341,7 @@ const UserManagementPage = () => {
           </tr>
         </thead>
         <tbody>
-        {filteredEmployees.map((employee, index) => (
+        {currentEmployees.map((employee, index) => (
           <tr
             key={employee.employeeid}
             className={
@@ -320,9 +354,9 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border border-gray-300 px-4 py-2 flex justify-center items-center space-x-2">
+            <td className="border border-gray-300 px-6 py-3 flex justify-center items-center space-x-4">
               <FaUser
-                className="cursor-pointer text-teal-700"
+                className="cursor-pointer text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
                   setRoleToUpdate(employee.role);
@@ -330,42 +364,63 @@ const UserManagementPage = () => {
                 }}
               />
               <button
-                className="text-teal-700"
+                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
                   setShowPasswordModal(true);
                 }}
               >
-                <FaPencilAlt className="text-teal-700" />
+                <FaPencilAlt className="text-xl" />
               </button>
             </td>
           </tr>
         ))}
         </tbody>
       </table>
+      
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-4 space-x-4">
+        <button
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+        >
+          Previous
+        </button>
+        <div className="flex items-center">
+          Page {currentPage} of {totalPages}
+        </div>
+        <button
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+        >
+          Next
+        </button>
+      </div>
 
       {/* Password Update Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96">
-            <h2 className="text-xl font-bold mb-4">Update Password</h2>
+          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Password</h2>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="New Password"
-              className="border p-2 mb-4 w-full"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
-            <div className="flex justify-between">
+            <div className="flex justify-end space-x-4">
               <button
                 onClick={handlePasswordChange}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Update
               </button>
               <button
                 onClick={() => setShowPasswordModal(false)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
               </button>
@@ -376,106 +431,108 @@ const UserManagementPage = () => {
        {/* Add Employee Modal */}
        {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96">
-            <h2 className="text-xl font-bold mb-4">Add Employee</h2>
-            <form onSubmit={(e) => e.preventDefault()}>
+        <div className="bg-white p-8 rounded-lg shadow-lg w-96 space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-700 text-center mb-6">Add Employee</h2>
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+            <input
+              type="text"
+              value={newEmployee.name}
+              onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+              placeholder="Name"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            />
+            <input
+              type="email"
+              value={newEmployee.email}
+              onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+              placeholder="Email"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            />
+            <input
+              type="password"
+              value={newEmployee.password}
+              onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+              placeholder="Password"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            />
+            <select
+              value={newEmployee.role}
+              onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+              className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="Manager">Manager</option>
+              <option value="Cashier">Cashier</option>
+              <option value="Audit">Audit</option>
+            </select>
+            {userRole === "Super Admin" ? (
+              <select
+                value={newEmployee.branched}
+                onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              >
+                <option value="">Select Branch</option>
+                {branches.map((branch) => (
+                  <option key={branch.branchid} value={branch.branchid}>
+                    {branch.bname}
+                  </option>
+                ))}
+              </select>
+            ) : (
               <input
                 type="text"
-                value={newEmployee.name}
-                onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-                placeholder="Name"
-                className="border p-2 mb-2 w-full"
+                value={getBranchName(userBranchId)}
+                readOnly
+                className="w-full px-6 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-600"
               />
-              <input
-                type="email"
-                value={newEmployee.email}
-                onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                placeholder="Email"
-                className="border p-2 mb-2 w-full"
-              />
-              <input
-                type="password"
-                value={newEmployee.password}
-                onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
-                placeholder="Password"
-                className="border p-2 mb-2 w-full"
-              />
-              <select
-                value={newEmployee.role}
-                onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                className="border p-2 mb-2 w-full"
-              >
-                <option value="" disabled>
-                  Select Role
-                </option>
-                <option value="Manager">Manager</option>
-                <option value="Cashier">Cashier</option>
-                <option value="Audit">Audit</option>
-              </select>
-              {userRole === "Super Admin" ? (
-                <select
-                  value={newEmployee.branched}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
-                  className="w-full px-4 py-2 rounded border border-gray-300"
-                >
-                  <option value="">Select Branch</option>
-                  {branches.map((branch) => (
-                    <option key={branch.branchid} value={branch.branchid}>
-                      {branch.bname}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={getBranchName(userBranchId)}
-                  readOnly
-                  className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-200"
-                />
-              )}
-
+            )}
+      
+            <div className="flex space-x-4 justify-end">
               <button
                 onClick={handleAddEmployee}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full"
+                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Submit
               </button>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-full mt-2"
+                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
+      </div>      
       )}
       
       {/* Role Update Modal */}
       {showRoleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96">
-            <h2 className="text-xl font-bold mb-4">Update Role</h2>
+          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Role</h2>
             <select
               value={roleToUpdate}
               onChange={(e) => setRoleToUpdate(e.target.value)}
-              className="border p-2 mb-4 w-full"
+              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="" disabled>Select Role</option>
               <option value="Manager">Manager</option>
               <option value="Cashier">Cashier</option>
               <option value="Audit">Audit</option>
             </select>
-            <div className="flex justify-between">
+            <div className="flex justify-end space-x-4">
               <button
                 onClick={handleRoleChange}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Update
               </button>
               <button
                 onClick={() => setShowRoleModal(false)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
               </button>

@@ -166,7 +166,7 @@ const MainLayout = ({ children }) => {
             {(isSuperAdmin || isManager) && (
               <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
-                  { label: "User", link: "/userManagement", icon: (<HiUser />)},
+                  { label: "User Lists", link: "/userManagement", icon: (<HiUser />)},
                   { label: "Employee Transfer", link: "/employeeTransfer" },
                 ]}
               </SidebarDropdown>
@@ -179,7 +179,7 @@ const MainLayout = ({ children }) => {
       {/* Burger Icon */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-2 left-1 z-20 text-white bg-teal-600 pl-3 pt-3"
+        className="fixed top-2 left-1 z-40 text-white bg-teal-600 pl-3 pt-3"
       >
         {isSidebarOpen ? <HiX size={30} /> : <HiMenu size={30} />}
       </button>

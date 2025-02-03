@@ -119,7 +119,7 @@ const InventoryPage = () => {
       (!startDate || new Date(item.updatedat) >= new Date(startDate)) &&
       (!endDate || new Date(item.updatedat) <= new Date(endDate));
 
-    if (userRole === "Manager" && viewAllBranches) {
+    if ((userRole === "Manager" || userRole === "Super Admin") && viewAllBranches) {
       return matchesSearch && matchesDate;
     }
 
@@ -300,10 +300,10 @@ const InventoryPage = () => {
                   <th className="border py-2 px-4 text-sm text-left">No.</th>
                   <th className="border py-2 px-4 text-sm">Product Name</th>
                   <th className="border py-2 px-4 text-sm">Quantity</th>
-                  {userRole === "Manager" && (
+                  {(userRole === "Manager" || userRole === "Super Admin") && (
                     <th className="border py-2 px-4 text-sm">Updated At</th>
                   )}
-                  {userRole === "Manager" && (
+                  {(userRole === "Manager" || userRole === "Super Admin") && (
                     <th className="border border-gray-300 py-2 px-4 text-sm">Action</th>
                   )}
                 </tr>
@@ -314,10 +314,10 @@ const InventoryPage = () => {
                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
                     <td className="border border-gray-300 text-black">{products[item.productid]}</td>               
                     <td className="border border-gray-300 text-black">{item.quantity}</td>
-                    {userRole === "Manager" && (
+                    {(userRole === "Manager" || userRole === "Super Admin") && (
                       <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
                     )}
-                    {userRole === "Manager" && (
+                    {(userRole === "Manager" || userRole === "Super Admin") && (
                       <td className="border border-gray-300 text-center justify-center items-center">
                         <button
                           onClick={() => handleViewDetails(item)}

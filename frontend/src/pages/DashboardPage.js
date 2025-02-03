@@ -254,6 +254,7 @@ const DashboardPage = () => {
   const pieOptions = {
     maintainAspectRatio: false,
     responsive: true,
+    cutout: '50%',
     animation: {
       animateScale: true, 
       animateRotate: true,

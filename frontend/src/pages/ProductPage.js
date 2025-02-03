@@ -290,10 +290,10 @@ const ProductPage = () => {
                 <th className="border text-sm px-4 py-2">Description</th>
                 <th className="border text-sm px-4 py-2">Category</th>
                 <th className="border text-sm px-4 py-2">Price</th>
-                {userRole === "Manager" && (
+                {(userRole === "Manager" || userRole === "Super Admin") && (
                   <th className="border text-sm px-4 py-2">Created</th>
                 )}
-                {userRole === "Manager" && (
+                {(userRole === "Manager" || userRole === "Super Admin") && (
                   <th className="border border-gray-300 py-2 px-4 text-sm">Action</th>
                 )}
               </tr>
@@ -315,10 +315,10 @@ const ProductPage = () => {
                     </td>
                     <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
                     <td className="border border-gray-300 px-4 py-2">฿{product.price.toFixed(2)}</td>
-                    {userRole === "Manager" && (
+                    {(userRole === "Manager" || userRole === "Super Admin") && (
                       <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
                     )}
-                    {userRole === "Manager" && (
+                    {(userRole === "Manager" || userRole === "Super Admin") && (
                       <>
                         <td className="border border-gray-300 text-center justify-center items-center">
                           <EditedProduct
