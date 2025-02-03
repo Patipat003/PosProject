@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
+import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import { format } from "date-fns";
-import { FaPencilAlt, FaUser } from "react-icons/fa"; // Pencil icon import
+import { FaPencilAlt, FaUser } from "react-icons/fa"; 
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -30,41 +30,50 @@ const UserManagementPage = () => {
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");  // New state for branch filter
+  const [selectedRole, setSelectedRole] = useState("");      // New state for role filter
   const [sortByDate, setSortByDate] = useState(false);
   const [userBranchId, setUserBranchId] = useState(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false); // New state for password modal
-  const [newPassword, setNewPassword] = useState(""); // New state for the new password
+  const [userRole, setUserRole] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false); 
+  const [newPassword, setNewPassword] = useState(""); 
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const decodedToken = jwtDecode(token);
       const branchIdFromToken = decodedToken.branchid;
-      setUserBranchId(branchIdFromToken);
+      const userRole = decodedToken.role;
   
+      setUserBranchId(branchIdFromToken);
+      setUserRole(userRole);
+    
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
   
-      // ดึงข้อมูลพนักงานเฉพาะสาขาของผู้ใช้ที่เข้าสู่ระบบ
       const employeeResponse = await axios.get("http://localhost:5050/employees", config);
       const branchResponse = await axios.get("http://localhost:5050/branches", config);
   
-      setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken)); // กรองพนักงานตามสาขาของผู้ใช้
+      if (userRole === "Super Admin") {
+        setEmployees(employeeResponse.data.Data);
+      } else {
+        setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken));
+      }
+  
       setBranches(branchResponse.data.Data);
       setLoading(false);
     } catch (err) {
       setError("Failed to load data");
       setLoading(false);
     }
-  };
+  };  
 
   useEffect(() => {
     fetchData();
   }, []);
-  
 
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
@@ -117,6 +126,10 @@ const UserManagementPage = () => {
       console.error("Failed to add employee:", err);
       alert("Failed to add employee. Please try again.");
     }
+  };
+
+  const handleBranchChange = (e) => {
+    setSelectedBranch(e.target.value);
   };
 
   const handleRoleChange = async () => {
@@ -184,15 +197,30 @@ const UserManagementPage = () => {
     }
   };
 
-  const filteredEmployees = employees.filter((item) => {
-    const branchName = getBranchName(item.branchid).toLowerCase();
-    return (
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      branchName.includes(searchQuery.toLowerCase())
-    );
-  });
+  const handleDateSortChange = () => {
+    setSortByDate(!sortByDate);
+  };
+
+  const filteredEmployees = employees
+    .filter((item) => {
+      const branchName = getBranchName(item.branchid).toLowerCase();
+      const nameMatch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const emailMatch = item.email.toLowerCase().includes(searchQuery.toLowerCase());
+      const roleMatch = item.role.toLowerCase().includes(searchQuery.toLowerCase());
+      const branchMatch = branchName.includes(searchQuery.toLowerCase());
+      
+      // Apply additional filters
+      const branchFilterMatch = selectedBranch ? item.branchid === selectedBranch : true;
+      const roleFilterMatch = selectedRole ? item.role === selectedRole : true;
+
+      return (nameMatch || emailMatch || roleMatch || branchMatch) && branchFilterMatch && roleFilterMatch;
+    })
+    .sort((a, b) => {
+      if (sortByDate) {
+        return new Date(a.createdat) > new Date(b.createdat) ? 1 : -1;
+      }
+      return 0;
+    });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -229,6 +257,36 @@ const UserManagementPage = () => {
             className="border p-2 rounded w-full"
           />
         </div>
+      </div>
+
+      <div className="flex space-x-4 mb-4">
+        <select
+          value={selectedBranch}
+          onChange={handleBranchChange}
+          className="border p-2 rounded"
+        >
+          <option value="">All Branches</option>
+          {branches.map((branch) => (
+            <option key={branch.branchid} value={branch.branchid}>
+              {branch.bname}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedRole}
+          onChange={handleRoleChange}
+          className="border p-2 rounded"
+        >
+          <option value="">All Roles</option>
+          <option value="Manager">Manager</option>
+          <option value="Cashier">Cashier</option>
+          <option value="Audit">Audit</option>
+        </select>
+
+        <button onClick={handleDateSortChange} className="border p-2 rounded">
+          Sort by Date
+        </button>
       </div>
 
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
@@ -349,20 +407,28 @@ const UserManagementPage = () => {
                 <option value="Cashier">Cashier</option>
                 <option value="Audit">Audit</option>
               </select>
-              <select
-                value={newEmployee.branched}
-                onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
-                className="w-full px-4 py-2 rounded border border-gray-300"
-              >
-                <option value="">Select Branch</option>
-                {branches
-                  .filter((branch) => branch.branchid === userBranchId) // แสดงสาขาเฉพาะที่ตรงกับ userBranchId
-                  .map((branch) => (
+              {userRole === "Super Admin" ? (
+                <select
+                  value={newEmployee.branched}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                  className="w-full px-4 py-2 rounded border border-gray-300"
+                >
+                  <option value="">Select Branch</option>
+                  {branches.map((branch) => (
                     <option key={branch.branchid} value={branch.branchid}>
                       {branch.bname}
                     </option>
                   ))}
-              </select>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={getBranchName(userBranchId)}
+                  readOnly
+                  className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-200"
+                />
+              )}
+
               <button
                 onClick={handleAddEmployee}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full"
