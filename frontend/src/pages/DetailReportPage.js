@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
+import ExportButtons from "../components/layout/ui/ExportButtons";
+
 
 const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
   <div className="flex space-x-4 items-center">
@@ -11,12 +13,12 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       placeholder="Search..."
       className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
-    <button
+    {/* <button
       onClick={onSort}
       className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
     >
       Sort by Total Price {sortOrder === "asc" ? "↑" : "↓"}
-    </button>
+    </button> */}
     <select
       value={selectedEmployee}
       onChange={(e) => onEmployeeFilter(e.target.value)}
@@ -50,7 +52,7 @@ const DetailReportPage = () => {
     try {
       const token = localStorage.getItem("authToken");
       const decodedToken = jwtDecode(token);
-      const userBranchId = decodedToken.branchid; // Assuming the branchid is in the token
+      const userBranchId = decodedToken.branchid;
 
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
@@ -59,7 +61,7 @@ const DetailReportPage = () => {
         axios.get("http://localhost:5050/products", config),
         axios.get("http://localhost:5050/sales", config),
         axios.get("http://localhost:5050/employees", config),
-        axios.get("http://localhost:5050/branches", config), // Fetch branches data
+        axios.get("http://localhost:5050/branches", config),
       ]);
 
       const productMap = {};
@@ -74,15 +76,15 @@ const DetailReportPage = () => {
 
       const branchList = branchesResponse.data.Data.map((branch) => ({
         id: branch.branchid,
-        name: branch.bname, // Use branch name (bname)
+        name: branch.bname,
       }));
 
       setSaleItems(saleItemsResponse.data.Data);
       setFilteredSaleItems(saleItemsResponse.data.Data);
       setProducts(productMap);
       setBranchIds(saleToBranchMap);
-      setBranches(branchList); // Set branches as an array of objects with id and name
-      setSelectedEmployee(userBranchId); // Set the selected employee to the user's branch ID
+      setBranches(branchList);
+      setSelectedEmployee(userBranchId);
       setLoading(false);
     } catch (err) {
       setError("Failed to load data");
@@ -97,7 +99,7 @@ const DetailReportPage = () => {
   const filterSaleItems = (query, branchId) => {
     const filtered = saleItems.filter((item) => {
       const branch = branchIds[item.saleid] || "Unknown";
-      const branchName = branches.find((branch) => branch.id === branch) ? branches.find((branch) => branch.id === branch).name : "Unknown"; // Find branch name by ID
+      const branchName = branches.find((branch) => branch.id === branch) ? branches.find((branch) => branch.id === branch).name : "Unknown"; 
       const productName = products[item.productid]?.toLowerCase() || "";
       const matchesBranch = branchId ? branch === branchId : true;
 
@@ -128,7 +130,6 @@ const DetailReportPage = () => {
           productName: products[productId],
           totalQuantity: 0,
           totalPrice: 0,
-          totalPriceFormatted: 0,
           branchNames: new Set(),
         };
       }
@@ -168,7 +169,7 @@ const DetailReportPage = () => {
         sortOrder={sortOrder}
       />
       <div className="overflow-x-auto mt-4">
-        <table className="table-auto min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+        <table id="table-report" className="table-auto min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
           <thead className="bg-gray-100 text-gray-600">
             <tr>
               <th className="border px-4 py-2">No.</th>
@@ -198,6 +199,19 @@ const DetailReportPage = () => {
           </tbody>
         </table>
       </div>
+      <ExportButtons
+      filteredTables={Object.values(groupedItems).map(item => ({
+        branchNames: [...item.branchNames].map((branchId) => {
+          return branches.find((branch) => branch.id === branchId)?.name || "Unknown";
+        }).join(", "),
+        productName: item.productName || "Unknown",
+        totalQuantity: item.totalQuantity,
+        price: (item.totalPrice / item.totalQuantity).toFixed(2),
+        totalPrice: item.totalPrice.toFixed(2),
+      }))}
+      columns={["branchNames", "productName", "totalQuantity", "price", "totalPrice"]}
+      filename="sales_report.pdf"
+    />
     </div>
   );
 };

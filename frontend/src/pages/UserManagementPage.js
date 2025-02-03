@@ -41,17 +41,18 @@ const UserManagementPage = () => {
       const decodedToken = jwtDecode(token);
       const branchIdFromToken = decodedToken.branchid;
       setUserBranchId(branchIdFromToken);
-
+  
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-
+  
+      // ดึงข้อมูลพนักงานเฉพาะสาขาของผู้ใช้ที่เข้าสู่ระบบ
       const employeeResponse = await axios.get("http://localhost:5050/employees", config);
       const branchResponse = await axios.get("http://localhost:5050/branches", config);
-
-      setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken));
+  
+      setEmployees(employeeResponse.data.Data.filter((emp) => emp.branchid === branchIdFromToken)); // กรองพนักงานตามสาขาของผู้ใช้
       setBranches(branchResponse.data.Data);
       setLoading(false);
     } catch (err) {
@@ -63,6 +64,7 @@ const UserManagementPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
+  
 
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
@@ -206,9 +208,14 @@ const UserManagementPage = () => {
           + Add Employee
         </button>
         <ExportButtons
-          filteredTables={filteredEmployees}
-          columns={["employeeid", "email", "name", "role", "branched", "createdat"]}
-          filename="employees.pdf"
+          filteredTables={filteredEmployees.map(employee => ({
+            email: employee.email,
+            name: employee.name,
+            role: employee.role,
+            branch: getBranchName(employee.branchid),
+          }))}
+          columns={["email", "name", "role", "branch", "createdAt"]} // Define the column headers accordingly
+          filename="employees_report.pdf" // Filename for export
         />
       </div>
 
@@ -345,16 +352,16 @@ const UserManagementPage = () => {
               <select
                 value={newEmployee.branched}
                 onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
-                className="border p-2 mb-2 w-full"
+                className="w-full px-4 py-2 rounded border border-gray-300"
               >
-                <option value="" disabled>
-                  Select Branch
-                </option>
-                {branches.map((branch) => (
-                  <option key={branch.branchid} value={branch.branchid}>
-                    {branch.bname}
-                  </option>
-                ))}
+                <option value="">Select Branch</option>
+                {branches
+                  .filter((branch) => branch.branchid === userBranchId) // แสดงสาขาเฉพาะที่ตรงกับ userBranchId
+                  .map((branch) => (
+                    <option key={branch.branchid} value={branch.branchid}>
+                      {branch.bname}
+                    </option>
+                  ))}
               </select>
               <button
                 onClick={handleAddEmployee}
