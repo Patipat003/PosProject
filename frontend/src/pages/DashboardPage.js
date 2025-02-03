@@ -155,7 +155,7 @@ const DashboardPage = () => {
   const [saleRecents, setSaleRecents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState("all");
+  const [selectedBranch, setSelectedBranch] = useState("!all");
   const [userBranchId, setUserBranchId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [salesByTime, setSalesByTime] = useState([]);
@@ -399,7 +399,7 @@ const DashboardPage = () => {
           <h2 className="font-semibold mb-4">Top Sale Products (List)</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {topProducts.map((product, index) => (
-              <div key={index} className="border-2 border-teal-500 p-4 rounded-lg shadow-sm">
+              <div key={index} className="border-2 border-gray-300 p-4 rounded-lg shadow-sm">
                 <img
                   src={product.imageurl || "https://via.placeholder.com/150"}
                   alt={product.productname}
