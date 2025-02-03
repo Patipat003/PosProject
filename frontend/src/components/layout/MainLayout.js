@@ -158,7 +158,7 @@ const MainLayout = ({ children }) => {
             {(isManager)&& ( 
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
-                  { label: "New Item", link: "/reports" },
+                  { label: "Sales Reports", link: "/reports" },
                   { label: "Detail Report", link: "/detailReport" },              
                 ]}
               </SidebarDropdown>
