@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
-import ExportButtons from "../components/layout/ui/ExportButtons";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 
 const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
@@ -141,34 +142,64 @@ const DetailReportPage = () => {
   };
 
   const exportToPDF = () => {
-        const doc = new jsPDF();
-        doc.text("Sales Report", 14, 15);
-        
-        const tableColumn = ["No.", "Date", "Branch", "Total Amount", "Items Sold"];
-        const tableRows = [];
-      
-        Object.keys(filteredSales).forEach((dateKey, index) => {
-          filteredSales[dateKey].forEach((branchId) => {
-            const { totalAmount, count } = groupedSales[dateKey][branchId];
-            tableRows.push([
-              index + 1,
-              dateKey,
-              getBranchName(branchId),
-              `$${totalAmount.toFixed(2)}`,
-              count,
-            ]);
-          });
-        });
-      
-        autoTable(doc, {
-          startY: 20,
-          head: [tableColumn],
-          body: tableRows,
-        });
-      
-        doc.save("Sales_Report.pdf");
-      };
-
+    const doc = new jsPDF();
+    const branchName = getBranchName(selectedEmployee);
+  
+    doc.text(`Sales Report - ${branchName}`, 14, 15);
+  
+    const tableColumn = ["No.", "Branch Name", "Product Name", "Total Quantity", "Average Price", "Total Price"];
+    const tableRows = [];
+  
+    // กรองข้อมูลให้เฉพาะของสาขาที่ล็อกอิน
+    const branchFilteredItems = filteredSaleItems.filter((item) => branchIds[item.saleid] === selectedEmployee);
+  
+    // จัดกลุ่มข้อมูลตามสินค้าในสาขาของผู้ใช้
+    const groupedItems = branchFilteredItems.reduce((acc, item) => {
+      const productName = products[item.productid] || "Unknown";
+      const key = `${productName}`;
+  
+      if (!acc[key]) {
+        acc[key] = { branchName, productName, totalQuantity: 0, totalPrice: 0 };
+      }
+  
+      acc[key].totalQuantity += item.quantity;
+      acc[key].totalPrice += item.totalprice;
+  
+      return acc;
+    }, {});
+  
+    // แปลงข้อมูลที่จัดกลุ่มแล้วเป็นรูปแบบตาราง
+    Object.values(groupedItems).forEach((item, index) => {
+      tableRows.push([
+        index + 1,
+        item.branchName,
+        item.productName,
+        item.totalQuantity,
+        (item.totalPrice / item.totalQuantity).toFixed(2), // ราคาเฉลี่ย
+        item.totalPrice.toFixed(2),
+      ]);
+    });
+  
+    if (tableRows.length === 0) {
+      doc.text("No sales data available for your branch.", 14, 25);
+    } else {
+      autoTable(doc, {
+        startY: 20,
+        head: [tableColumn],
+        body: tableRows,
+      });
+    }
+  
+    doc.save(`Sales_Report_${branchName}.pdf`);
+  };
+  
+  // ฟังก์ชันช่วยดึงชื่อสาขา
+  const getBranchName = (branchId) => {
+    return branches.find((branch) => branch.id === branchId)?.name || "Unknown Branch";
+  };
+  
+  
+  
   // Filter sale items based on selected branch or user's branch
   const filteredItems = selectedEmployee
     ? saleItems.filter((item) => branchIds[item.saleid] === selectedEmployee)
@@ -228,19 +259,12 @@ const DetailReportPage = () => {
           </tbody>
         </table>
       </div>
-      <ExportButtons
-      filteredTables={Object.values(groupedItems).map(item => ({
-        branchNames: [...item.branchNames].map((branchId) => {
-          return branches.find((branch) => branch.id === branchId)?.name || "Unknown";
-        }).join(", "),
-        productName: item.productName || "Unknown",
-        totalQuantity: item.totalQuantity,
-        price: (item.totalPrice / item.totalQuantity).toFixed(2),
-        totalPrice: item.totalPrice.toFixed(2),
-      }))}
-      columns={["branchNames", "productName", "totalQuantity", "price", "totalPrice"]}
-      filename="sales_report.pdf"
-    />
+      <button
+        onClick={exportToPDF}
+        className="bg-teal-500 text-white p-2 rounded-md shadow-md hover:bg-teal-600"
+        >
+          Export to PDF
+      </button>
     </div>
   );
 };
