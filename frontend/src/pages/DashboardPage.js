@@ -288,7 +288,7 @@ const DashboardPage = () => {
       {
         label: "Metrics",
         data: keyMetrics.map((metric) => metric.value),
-        backgroundColor: "#36A2EB",
+        backgroundColor: "#420505",
       },
     ],
   };
@@ -310,8 +310,8 @@ const DashboardPage = () => {
       {
         label: "Sales",
         data: salesByTime.map((data) => data.sales),
-        backgroundColor: "rgba(56, 178, 172, 0.5)", // สีพื้นหลังแบบโปร่งแสง (Teal 500)
-        borderColor: "rgb(13, 148, 136)", // สีขอบ (Teal 700)
+        backgroundColor: "rgba(178, 56, 56, 0.5)", // สีพื้นหลังแบบโปร่งแสง (Teal 500)
+        borderColor: "rgb(148, 13, 13)", // สีขอบ (Teal 700)
         borderWidth: 1, // ความหนาของกรอบ
       },
     ],
