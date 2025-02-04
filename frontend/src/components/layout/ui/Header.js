@@ -161,39 +161,44 @@ const Header = () => {
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
-      <div className="flex-shrink-0 ml-5">
-        <Link to="/" className="flex items-center">
-          <img
-            src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-header.svg"
-            alt="Lotus's Icon"
-            className="h-6 w-40"
-          />
+      {/* โลโก้ อยู่ตรงกลาง */}
+      <div className="absolute left-1/2 transform -translate-x-1/2">
+        <Link to="/">
+          <img src="/image/x10logo.png" alt="x10" className="h-10 w-auto" />
         </Link>
       </div>
 
-      <div className="flex items-center space-x-4">
+      {/* แจ้งเตือน + User Info (อยู่ขวา) */}
+      <div className="flex items-center space-x-4 ml-auto">
         {salesNotifications.length > 0 && (
           <button
             onClick={handleNotificationClick}
-            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
+            className="relative flex items-center p-2 bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
           >
             <HiTruck className="h-6 w-6" />
-            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{salesNotifications.length}</span>
+            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">
+              {salesNotifications.length}
+            </span>
           </button>
         )}
 
         {lowStockProducts.length > 0 && (
           <button
             onClick={handleNotificationClick1}
-            className="relative flex items-center p-2 text-white bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
+            className="relative flex items-center p-2 bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
           >
             <HiBell className="h-6 w-6" />
-            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">{lowStockProducts.length}</span>
+            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">
+              {lowStockProducts.length}
+            </span>
           </button>
         )}
 
+        {/* ชื่อสาขา */}
         <p className="text-white">{branchName || "Loading branch..."}</p>
-        <div className="relative ml-auto">
+
+        {/* Dropdown ของ User */}
+        <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
@@ -230,35 +235,35 @@ const Header = () => {
             </div>
           )}
         </div>
-
-        {isBranchModalOpen && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg">
-              <h3 className="text-lg font-semibold">Select Branch</h3>
-              <select
-                onChange={(e) => handleBranchSelect(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
-              >
-                <option value="">Please select a branch</option>
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-              <div className="mt-4">
-                <button
-                  onClick={handleBranchConfirmation}
-                  className="w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
-                >
-                  Confirm Selection
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
+      {isBranchModalOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-semibold">Select Branch</h3>
+            <select
+              onChange={(e) => handleBranchSelect(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+            >
+              <option value="">Please select a branch</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            <div className="mt-4">
+              <button
+                onClick={handleBranchConfirmation}
+                className="w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
+              >
+                Confirm Selection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {isModalOpen && (
         <ModalStockLow 
           products={lowStockProducts} 

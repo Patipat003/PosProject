@@ -315,7 +315,7 @@ const SalesPage = () => {
                     onClick={() => handleAddToCart(product)}
                     className={`card border border-slate-300 shadow-xl p-4 flex flex-col justify-between items-center transition-transform transform hover:border-teal-700 scale-105 ${stock === 0 ? "opacity-50" : ""}`}
                   >
-                    <figure className="flex justify-center items-center h-2/3 w-full">
+                    <figure className="flex justify-center items-center h-2/3 w-2/3">
                       <img
                         src={product.imageurl}
                         alt={product.productname}
@@ -324,9 +324,9 @@ const SalesPage = () => {
                     </figure>
                     <div className="text-center my-2">
                       <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
-                      <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
-                      <p className="text-sm text-black mt-1">Stock: {stock}</p>
-                      <p className="text-sm text-black text-xs mt-4">{product.productcode}</p>
+                      {/* <p className="text-sm text-black text-xs mt-1">{product.productcode}</p> */}
+                      <p className="text-sm text-black mt-4">฿{product.price.toFixed(2)}</p>
+                      <p className="text-sm text-black mt-1">Stock: {stock}</p>                     
                     </div>
                   </button>
                 );
