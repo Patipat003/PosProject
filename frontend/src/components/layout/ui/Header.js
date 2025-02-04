@@ -94,6 +94,50 @@ const Header = () => {
     }
   }, []);
 
+  const fetchRequests = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const decodedToken = jwtDecode(token);
+      const branchid = decodedToken.branchid;
+
+      const response = await axios.get(
+        `http://localhost:5050/requests`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const requests = response.data.Data;
+      const notifications = requests.filter(request => request.frombranchid === branchid && request.status === "pending" || request.tobranchid === branchid && request.status === "Pending");
+      setSalesNotifications(notifications);
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userData && userData.branchid) {
+      fetchBranchName(userData.branchid);  // ดึงชื่อสาขา
+      fetchRequests();  // ดึงข้อมูลการร้องขอ
+    }
+  }, [userData, fetchBranchName, fetchRequests]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (userData && userData.branchid) {
+        fetchRequests();
+        fetchInventory(userData.branchid);
+      }
+    }, 2000); // Polling every 2 seconds
+
+    return () => clearInterval(intervalId);
+  }, [userData, fetchRequests, fetchInventory]);
+
   useEffect(() => {
     getUserDataFromToken();
     if (isSuperAdmin) fetchBranches();

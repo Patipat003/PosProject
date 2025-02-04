@@ -33,18 +33,18 @@ const SoldProductsModal = ({ show, closeModal, products }) => {
             transition={{ duration: 0.3 }}   // กำหนดระยะเวลาในการเคลื่อนที่
           >
             <h2 className="text-xl font-semibold mb-4 text-gray-600">Top Sale Products</h2>
-            <table className="w-full text-sm border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-200 text-gray-600">
-                  <th className="border border-gray-300 p-1 text-left">Product Name</th>
-                  <th className="border border-gray-300 p-1 text-left">Quantity Sold</th>
+            <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+              <thead className="bg-gray-100 text-gray-600">
+                <tr>
+                  <th className="border text-sm px-4 py-2">Product Name</th>
+                  <th className="border text-sm px-4 py-2">Quantity Sold</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedProducts.map((product, index) => (
-                  <tr key={index} className="text-gray-600">
-                    <td className="border border-gray-300 p-1">{product.productname}</td>
-                    <td className="border border-gray-300 p-1">{product.quantity}</td>
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.quantity}</td>
                   </tr>
                 ))}
               </tbody>

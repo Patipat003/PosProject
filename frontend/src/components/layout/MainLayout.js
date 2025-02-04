@@ -116,22 +116,11 @@ const MainLayout = ({ children }) => {
       <div className="fixed top-0 left-0 w-full z-10">
         <Header />
         {/* Show the back button only on /sales */}
-        {isSalesProductPage && (
-          <div className="bg-white shadow-sm p-4 border-t">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center space-x-2 text-teal-600 font-semibold"
-            >
-              <HiArrowLeft className="text-lg" />
-              <span>Back</span>
-            </button>
-          </div>
-        )}
+        
       </div>
 
       <div className="flex flex-1 pt-6">
         {/* Sidebar */}
-        {!isSalesProductPage && (
         <aside
           className={`fixed top-16 left-0 w-64 bg-teal-600 shadow-md h-full overflow-y-auto transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -173,7 +162,6 @@ const MainLayout = ({ children }) => {
             )}  
           </nav>
         </aside>
-        )}
       </div>
       
       {/* Burger Icon */}
@@ -188,7 +176,7 @@ const MainLayout = ({ children }) => {
       <main
         onClick={() => isSidebarOpen && setIsSidebarOpen(false)} 
         className={`flex-1 p-6 bg-white transition-all duration-300 ${
-          isSalesProductPage ? "pt-28" : isSidebarOpen ? "ml-64 pt-16" : "ml-0 pt-16"
+         isSidebarOpen ? "ml-64 pt-16" : "ml-0 pt-16"
         }`}
       >
         {children}

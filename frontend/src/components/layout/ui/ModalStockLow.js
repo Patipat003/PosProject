@@ -11,6 +11,7 @@ const ModalStockLow = ({ closeModal }) => {
   const [branchId, setBranchId] = useState(null);
   const [quantity, setQuantity] = useState(0); // ใช้สำหรับเก็บจำนวนสินค้า
   const [selectedProduct, setSelectedProduct] = useState(null); // เก็บสินค้าที่เลือก
+  const [showQuantityModal, setShowQuantityModal] = useState(false); // New state to control quantity modal visibility
 
   // ดึง branch ID จาก token
   const getBranchIdFromToken = () => {
@@ -191,7 +192,7 @@ const ModalStockLow = ({ closeModal }) => {
                     <button
                       onClick={() => {
                         setSelectedProduct(product);
-                        setQuantity(1);
+                        setShowQuantityModal(true); // Show quantity modal when a product is clicked
                       }}
                       className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
                     >
@@ -203,22 +204,36 @@ const ModalStockLow = ({ closeModal }) => {
             </div>
           )}
 
-          {selectedProduct && (
-            <div className="mt-4 space-x-4">
-              <h3 className="text-gray-700 font-semibold mb-2">Enter Quantity for {selectedProduct.productname}</h3>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="input text-gray-600 bg-white p-4 border-gray-300 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-teal-600"
-                min="1"
-              />
-              <button
-                onClick={handleRequest}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
-              >
-                Submit Request
-              </button>
+          {/* Modal to enter quantity */}
+          {showQuantityModal && selectedProduct && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+              <div className="bg-white p-8 rounded-lg shadow-lg w-92">
+                <h3 className="text-gray-700 font-semibold mb-2">
+                  Enter Quantity
+                </h3>
+                <h2 className="text-gray-700 mb-4"> {selectedProduct.productname}</h2>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="input text-gray-600 bg-white p-4 border-gray-300 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-teal-600"
+                  min="1"
+                />
+                <div className="space-x-4 justify-end">
+                  <button
+                    onClick={handleRequest}
+                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+                  >
+                    Submit Request
+                  </button>
+                  <button
+                    onClick={() => setShowQuantityModal(false)}
+                    className="btn border-none bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition duration-300 mt-4"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
