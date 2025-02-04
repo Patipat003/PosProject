@@ -30,7 +30,11 @@ const Header = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await axios.get("http://localhost:5050/branches");
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      const response = await axios.get("http://localhost:5050/branches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setBranches(response.data);
     } catch (err) {
       console.error("Error fetching branches:", err);

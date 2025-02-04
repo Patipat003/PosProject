@@ -6,7 +6,6 @@ import PaymentModal from "../components/layout/ui/PaymentModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 const SalesPage = () => {
   const [products, setProducts] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -14,11 +13,29 @@ const SalesPage = () => {
   const [categories, setCategories] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // เพิ่ม state สำหรับค้นหา
   const [cart, setCart] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [employee, setEmployee] = useState(null);
   const [alertMessage, setAlertMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ฟังก์ชันเพื่อกรองผลิตภัณฑ์
+  const filterInventoryByProduct = () => {
+    if (!selectedBranch) return [];
+
+    return products.filter((product) => {
+      const inInventory = inventory.some(
+        (item) => item.productid === product.productid && item.branchid === selectedBranch
+      );
+      const inCategory =
+        !selectedCategory || product.categoryid === selectedCategory;
+      const matchesSearchQuery = product.productcode
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()); // ค้นหาตาม product code
+      return inInventory && inCategory && matchesSearchQuery;
+    });
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -74,6 +91,10 @@ const SalesPage = () => {
     }
   }, [employee]);
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleBranchChange = (event) => {
     const branchId = event.target.value;
     setSelectedBranch(branchId);
@@ -81,190 +102,23 @@ const SalesPage = () => {
     setTotalAmount(0);
   };
 
+  const handleClearCart = () => {
+    setCart([]);
+    setTotalAmount(0); // Reset the total amount
+    toast.info("Your cart has been cleared");
+  };
+  
+
   const handleCategoryChange = (event) => {
     setSelectedCategory(event.target.value);
   };
 
-  const filterInventoryByProduct = () => {
-    if (!selectedBranch) return [];
-
-    return products.filter((product) => {
-      const inInventory = inventory.some(
-        (item) => item.productid === product.productid && item.branchid === selectedBranch
-      );
-      const inCategory =
-        !selectedCategory || product.categoryid === selectedCategory;
-      return inInventory && inCategory;
-    });
-  };
-
-  const handleAddToCart = (product) => {
-    if (!selectedBranch) {
-      setAlertMessage("Please select a branch first");
-      return;
-    }
-  
-    const inventoryItem = inventory.find(
-      (item) => item.productid === product.productid && item.branchid === selectedBranch
-    );
-  
-    if (!inventoryItem || inventoryItem.quantity === 0) {
-      setAlertMessage("Out of stock");
-      return;
-    }
-  
-    const existingProduct = cart.find((item) => item.productid === product.productid);
-    const maxQuantity = inventoryItem.quantity;
-  
-    if (existingProduct) {
-
-      if (inventoryItem && existingProduct.quantity >= maxQuantity) {
-        toast.error(`Cannot increase quantity beyond ${inventoryItem.quantity}.`, {
-          position: "top-right",
-          autoClose: 2000,  // Toast จะหายหลังจาก 2 วินาที
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-        return;
-      }
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.productid === product.productid
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      if (maxQuantity === 0) {
-        setAlertMessage("Out of stock");
-
-        // ทำให้ alert หายไปหลังจาก 2 วินาที
-        setTimeout(() => {
-          setAlertMessage("");
-        }, 2000);
-
-        return;
-      }
-      setCart((prevCart) => [
-        ...prevCart,
-        { ...product, quantity: 1, branchid: selectedBranch },
-      ]);
-    }
-  
-    setAlertMessage("");
-  };
-  
-  useEffect(() => {
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    setTotalAmount(total);
-  }, [cart]);
-
-  const handleCheckout = () => {
-    if (!selectedBranch) {
-      setAlertMessage("Select branch before checkout");
-
-      // ทำให้ alert หายไปหลังจาก 2 วินาที
-      setTimeout(() => {
-        setAlertMessage("");
-      }, 2000);
-
-      return;
-    }
-  
-    if (cart.length === 0) {
-      setAlertMessage("Your cart is empty, select some products to checkout");
-
-      // ทำให้ alert หายไปหลังจาก 2 วินาที
-      setTimeout(() => {
-        setAlertMessage("");
-      }, 2000);
-
-      return;
-    }
-  
-    // Clear cart and reset total amount after successful sale in modal
-    setCart([]);
-    setTotalAmount(0);
-  };
-  
-  // ฟังก์ชันสำหรับการเพิ่ม/ลดจำนวนสินค้า
-  const handleIncreaseQuantity = (productId) => {
-    const productInCart = cart.find((item) => item.productid === productId);
-  
-    if (!productInCart) return;
-  
-    const inventoryItem = inventory.find(
-      (item) => item.productid === productInCart.productid && item.branchid === selectedBranch
-    );
-  
-    if (inventoryItem && productInCart.quantity >= inventoryItem.quantity) {
-      toast.error(`Cannot increase quantity beyond ${inventoryItem.quantity}.`, {
-        position: "top-right",
-        autoClose: 2000,  // Toast จะหายหลังจาก 2 วินาที
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      return;
-    }
-  
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
-  };
-  
-  const handleDecreaseQuantity = (productId) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-  };
-
-  const handleQuantityChange = (productId, newQuantity) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.productid === productId
-          ? { ...item, quantity: newQuantity }
-          : item
-      )
-    );
-  };
-
-  const handleRemoveFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.productid !== productId));
-  };
-
-  const handleContinue = () => {
-    // ตรวจสอบว่า cart มีข้อมูลหรือไม่
-    if (cart.length === 0) {
-      // ถ้าไม่มีสินค้าในตะกร้า ให้แสดง Toast
-      toast.error("Your cart is empty! Please add items before proceeding.");
-      return; // หยุดการทำงานถ้า cart ว่าง
-    }
-  
-    // เก็บข้อมูลใน localStorage
-    localStorage.setItem("cartData", JSON.stringify(cart));
-  
-    // เปิด Modal
+  const openModal = () => {
     setIsModalOpen(true);
   };
 
-  // ฟังก์ชันสำหรับล้างสินค้าทั้งหมดในตะกร้า
-  const handleClearCart = () => {
-    setCart([]);
-    setTotalAmount(0);
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -279,7 +133,16 @@ const SalesPage = () => {
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-4/5 mr-6">
-          <div className="flex justify-between mb-6">
+          <div className="flex justify-between mb-6 space-x-4">
+            {/* ช่องค้นหาผลิตภัณฑ์ */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search by product code"
+              className="w-2/3 bg-white border border-gray-300 text-gray-500 font-semibold p-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+            />
+            {/* ช่องกรองตาม category */}
             <select
               id="category-select"
               value={selectedCategory}
@@ -317,10 +180,11 @@ const SalesPage = () => {
                         className="max-h-full max-w-full"
                       />
                     </figure>
-                    <div className="text-center my-2">
+                    <div className="text-center my-2">          
                       <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
                       <p className="text-sm text-black mt-1">฿{product.price.toFixed(2)}</p>
                       <p className="text-sm text-black mt-1">Stock: {stock}</p>
+                      <p className="text-gray-600 text-xs mt-2">{product.productcode}</p>
                     </div>
                   </button>
                 );
@@ -329,7 +193,6 @@ const SalesPage = () => {
               <p className="text-center col-span-5">Please select a branch to view products.</p>
             )}
           </div>
-
         </div>
 
         <div className="w-2/5">
@@ -377,7 +240,7 @@ const SalesPage = () => {
                         onClick={() => handleDecreaseQuantity(item.productid)}
                         className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-l"
                       >
-                        -
+                        - 
                       </button>
                       <input
                         value={item.quantity}
@@ -391,7 +254,7 @@ const SalesPage = () => {
                         onClick={() => handleIncreaseQuantity(item.productid)}
                         className="text-teal-600 text-xl bg-white w-10 h-8 flex justify-center items-center border border-2 p-1 rounded-r"
                       >
-                        +
+                        + 
                       </button>
                     </div>
                     <button
@@ -405,38 +268,28 @@ const SalesPage = () => {
                 ))
               )}
             </div>
-
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-2">Total</h3>
-              <div className="flex justify-between">
-                <p className="text-xl text-gray-600">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)} items
-                </p>
-                <p className="text-xl text-gray-600">
-                  {totalAmount.toFixed(2)} THB
-                </p>
+            <div className="flex justify-between mb-4">
+              <div className="text-teal-600 font-semibold text-xl">Total Amount</div>
+              <div className="text-teal-600 font-semibold text-xl">
+                ฿{totalAmount.toFixed(2)}
               </div>
             </div>
-
-            <div className="flex justify-between mb-6">
-              <button
-                onClick={handleContinue}
-                className="btn w-full bg-teal-500 text-white border-none font-semibold text-base py-2 rounded-lg hover:bg-teal-600 transition"
-              >
-                Continue
-              </button>
-            </div>
+            <button
+              onClick={openModal}
+              className={`w-full p-3 bg-teal-600 text-white rounded-lg mt-6 hover:bg-teal-700 ${
+                cart.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={cart.length === 0}
+            >
+              Proceed to Payment
+            </button>
           </div>
+        </div>
       </div>
-    </div>
 
-      <PaymentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        cart={cart}
-        totalAmount={totalAmount.toFixed(2)}
-        onCheckout={handleCheckout}
-      />
+      {/* Payment Modal */}
+      {isModalOpen && <PaymentModal closeModal={closeModal} />}
+      <ToastContainer />
     </div>
   );
 };
