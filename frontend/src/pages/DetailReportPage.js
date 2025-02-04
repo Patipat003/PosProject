@@ -140,6 +140,35 @@ const DetailReportPage = () => {
     }, {});
   };
 
+  const exportToPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Sales Report", 14, 15);
+        
+        const tableColumn = ["No.", "Date", "Branch", "Total Amount", "Items Sold"];
+        const tableRows = [];
+      
+        Object.keys(filteredSales).forEach((dateKey, index) => {
+          filteredSales[dateKey].forEach((branchId) => {
+            const { totalAmount, count } = groupedSales[dateKey][branchId];
+            tableRows.push([
+              index + 1,
+              dateKey,
+              getBranchName(branchId),
+              `$${totalAmount.toFixed(2)}`,
+              count,
+            ]);
+          });
+        });
+      
+        autoTable(doc, {
+          startY: 20,
+          head: [tableColumn],
+          body: tableRows,
+        });
+      
+        doc.save("Sales_Report.pdf");
+      };
+
   // Filter sale items based on selected branch or user's branch
   const filteredItems = selectedEmployee
     ? saleItems.filter((item) => branchIds[item.saleid] === selectedEmployee)
