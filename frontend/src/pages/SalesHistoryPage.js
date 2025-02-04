@@ -98,6 +98,7 @@ const SalesHistoryPage = () => {
     filterData(searchTerm, selectedEmployee, order);
   };
 
+  
   const filterData = (term, employee, order, date) => {
     let filtered = [...sales];
   
@@ -112,9 +113,13 @@ const SalesHistoryPage = () => {
     }
   
     if (date) {
+      // แปลง selectedDate และ createdat ให้อยู่ในรูปแบบเดียวกัน (dd/MM/yyyy)
+      const formattedSelectedDate = format(new Date(date), "dd/MM/yyyy");
+  
       filtered = filtered.filter((sale) => {
-        const saleDate = sale.createdat.split(", ")[0]; // Extract "dd/MM/yyyy"
-        return saleDate === format(new Date(date), "dd/MM/yyyy");
+        // ดึงแค่วันที่จาก createdat (รูปแบบ "dd/MM/yyyy, HH:mm")
+        const saleDate = sale.createdat.split(", ")[0]; // "dd/MM/yyyy"
+        return saleDate === formattedSelectedDate;
       });
     }
   
@@ -135,6 +140,7 @@ const SalesHistoryPage = () => {
     setCurrentPage(1);
     setPaginatedSales(filtered.slice(0, itemsPerPage));
   };
+  
 
   // ฟังก์ชันที่ใช้ดึงข้อมูลจาก API เพื่อแสดงใน Modal
   const fetchSaleItems = async (saleId, createdAt) => {
@@ -325,7 +331,6 @@ const SalesHistoryPage = () => {
           </div>
         </div>
       )}
-      {console.log(modalData)}
     </div>
   );
 };

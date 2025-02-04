@@ -259,14 +259,10 @@ const ProductPage = () => {
                     alt={product.productname}
                     className="w-full h-full object-cover rounded"
                   />
-                </div>
-                <div className="text-gray-600 text-lg font-bold">{product.code}</div>
-                <div className="text-gray-600 text-sm mb-2 font-semibold">
-                  {product.productname}
-                </div>
-                <div className="text-gray-600 text-sm">
-                  Price : ฿{product.price.toFixed(2)}
-                </div>
+                </div>        
+                <div className="text-gray-600 text-sm mb-2 font-semibold">{product.productname}</div>
+                <div className="text-gray-600 text-xs mb-2 font-semibold">{product.productcode}</div>
+                <div className="text-gray-600 text-sm">Price : ฿{product.price.toFixed(2)}</div>
               </div>
             ))}
         </div>

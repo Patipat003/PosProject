@@ -57,7 +57,7 @@ const ProductForm = ({ onProductAdded }) => {
         onClick={() => setIsModalOpen(true)}
         className="btn bg-teal-500 text-white px-6 py-3 border-none rounded hover:bg-teal-600 transition duration-300 mt-4"
       >
-        Add Product
+        + Add Product
       </button>
 
       <AnimatePresence>

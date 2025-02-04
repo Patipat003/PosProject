@@ -3,7 +3,10 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import { toZonedTime, format } from 'date-fns-tz';
-import { FaPencilAlt, FaUser } from "react-icons/fa";
+import { HiOutlineUser , HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const formatDate = (dateString) => {
   const date = toZonedTime(dateString, 'UTC');
@@ -22,7 +25,7 @@ const UserManagementPage = () => {
     password: "",
     name: "",
     role: "",
-    branched: "",
+    branchid: "",
   });
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [roleToUpdate, setRoleToUpdate] = useState("");
@@ -30,7 +33,7 @@ const UserManagementPage = () => {
   const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("desc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");  // New state for branch filter
+  const [selectedBranch, setSelectedBranch] = useState(null);  // New state for branch filter
   const [selectedRole, setSelectedRole] = useState("");      // New state for role filter
   const [sortByDate, setSortByDate] = useState(false);
   const [userBranchId, setUserBranchId] = useState(null);
@@ -49,7 +52,7 @@ const UserManagementPage = () => {
   
       setUserBranchId(branchIdFromToken);
       setUserRole(userRole);
-    
+  
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -59,6 +62,7 @@ const UserManagementPage = () => {
       const employeeResponse = await axios.get("http://localhost:5050/employees", config);
       const branchResponse = await axios.get("http://localhost:5050/branches", config);
   
+      // กรองพนักงานตามสาขาที่มาจาก token
       if (userRole === "Super Admin") {
         setEmployees(employeeResponse.data.Data);
       } else {
@@ -71,12 +75,22 @@ const UserManagementPage = () => {
       setError("Failed to load data");
       setLoading(false);
     }
-  };  
+  };
+  
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
 
   useEffect(() => {
     fetchData();
   }, []);
-
+  
+  useEffect(() => {
+    console.log("Employees:", employees);
+    console.log("Selected Branch:", selectedBranch);
+  }, [employees, selectedBranch]);
+  
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
     return branch ? branch.bname : "Unknown Branch";
@@ -99,39 +113,32 @@ const UserManagementPage = () => {
 
   const handleAddEmployee = async (e) => {
     e.preventDefault();
-
-    if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role || !newEmployee.branched) {
-      alert("All fields are required.");
+    if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role) {
+      toast.error("All fields are required.");
       return;
     }
-
+  
     try {
       const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+  
       const payload = {
         ...newEmployee,
-        branchid: newEmployee.branched, 
+        branchid: userRole === "Super Admin" ? newEmployee.branchid : userBranchId,
       };
-
-      const response = await axios.post("http://localhost:5050/employees", payload, config);
-
+  
+      await axios.post("http://localhost:5050/employees", payload, config);
       setShowAddModal(false);
-      setNewEmployee({ email: "", password: "", name: "", role: "", branched: "" });
-
       fetchData();
+      toast.success("Employee added successfully.");
     } catch (err) {
       console.error("Failed to add employee:", err);
-      alert("Failed to add employee. Please try again.");
+      toast.error("Failed to add employee. Please try again.");
     }
   };
 
-  const handleBranchChange = (e) => {
-    setSelectedBranch(e.target.value);
+  const handleBranchChange = (branchId) => {
+    setSelectedBranch(branchId);  // Update the branch filter state
   };
 
   const handleRoleSort = (e) => {
@@ -168,6 +175,34 @@ const UserManagementPage = () => {
       alert("Failed to update role. Please check your permissions.");
     }
   };
+
+  const handleDeleteEmployee = async (employeeid) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+        const token = localStorage.getItem("authToken");
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+  
+        const response = await axios.delete(
+          `http://localhost:5050/employees/${employeeid}`,
+          config
+        );
+  
+        if (response.status === 200) {
+          setEmployees(employees.filter((employee) => employee.employeeid !== employeeid));
+          toast.success("Employee deleted successfully.");
+        } else {
+          toast.error("Failed to delete employee.");
+        }
+      } catch (err) {
+        console.error("Failed to delete employee:", err);
+        toast.error("Failed to delete employee. Please try again.");
+      }
+    }
+  };  
 
   const handlePasswordChange = async () => {
     if (!newPassword) {
@@ -233,7 +268,7 @@ const UserManagementPage = () => {
     }
     return 0;
   });
-  
+
   // Pagination
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const currentEmployees = filteredEmployees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -249,6 +284,7 @@ const UserManagementPage = () => {
 
   return (
     <div className="p-4 bg-white">
+      <ToastContainer />
       <h1 className="text-3xl font-bold text-teal-600 mb-6">User Management</h1>
       <div className="flex justify-between mb-4">
         <button
@@ -275,42 +311,25 @@ const UserManagementPage = () => {
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search by name or email"
+            placeholder="Search by Name or Email"
             className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
       
-        <select
-          value={selectedBranch}
-          onChange={handleBranchChange}
-          disabled={userRole !== "Super Admin"} // Disable for non-Super Admin
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-        >
-          <option className="" value="">
-            All Branches
-          </option>
-          {userRole === "Super Admin" ? (
-            branches.map((branch) => (
-              <option
-                key={branch.branchid}
-                value={branch.branchid}
-                className="bg-white"
-                disabled={false} // This will prevent the option from being disabled
-              >
+        {userRole === "Super Admin" && (
+          <select
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="">All Branch</option> {/* เพิ่มตัวเลือกนี้ */}
+            {branches.map((branch) => (
+              <option key={branch.branchid} value={branch.branchid}>
                 {branch.bname}
               </option>
-            ))
-          ) : (
-            <option
-              key={userBranchId}
-              value={userBranchId}
-              className="bg-none"
-              disabled={true} // This option will be disabled for non-Super Admins
-            >
-              {getBranchName(userBranchId)}
-            </option>
-          )}
-        </select>
+            ))}
+          </select>
+        )}
 
         <select
           value={selectedRole}
@@ -329,8 +348,8 @@ const UserManagementPage = () => {
       </div>
 
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
-        <thead>
-          <tr className="bg-gray-100 text-gray-600">
+        <thead className="bg-gray-100 text-gray-600">
+          <tr>
             <th className="border text-sm px-4 py-2">No.</th>
             <th className="border text-sm px-4 py-2">Email</th>
             <th className="border text-sm px-4 py-2">Name</th>
@@ -343,20 +362,16 @@ const UserManagementPage = () => {
         <tbody>
         {currentEmployees.map((employee, index) => (
           <tr
-            key={employee.employeeid}
-            className={
-              index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
-            }
-          >
+            key={employee.employeeid} className="hover:bg-gray-50">
             <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border border-gray-300 px-6 py-3 flex justify-center items-center space-x-4">
-              <FaUser
-                className="cursor-pointer text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+            <td className="border border-gray-300 px-6 py-3 flex justify-center items-center space-x-2">
+              <HiOutlineUser 
+                className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
                   setRoleToUpdate(employee.role);
@@ -370,9 +385,16 @@ const UserManagementPage = () => {
                   setShowPasswordModal(true);
                 }}
               >
-                <FaPencilAlt className="text-xl" />
+                <HiOutlinePencil className="text-xl" />
+              </button>
+              <button
+                className="text-red-500 text-xl hover:text-red-600 transition-all duration-200 ease-in-out"
+                onClick={() => handleDeleteEmployee(employee.employeeid)}
+              >
+                <HiOutlineTrash className="text-xl" />
               </button>
             </td>
+
           </tr>
         ))}
         </tbody>
@@ -469,8 +491,8 @@ const UserManagementPage = () => {
             </select>
             {userRole === "Super Admin" ? (
               <select
-                value={newEmployee.branched}
-                onChange={(e) => setNewEmployee({ ...newEmployee, branched: e.target.value })}
+                value={newEmployee.branchid}
+                onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
                 className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
               >
                 <option value="">Select Branch</option>
