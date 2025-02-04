@@ -43,9 +43,9 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-10 rounded-lg shadow-lg">
           <div className="text-center text-white">
             <img
-              alt="POS"
-              src="https://publish-p33706-e156581.adobeaemcloud.com/content/dam/aem-cplotusonlinecommerce-project/th/images/medias/logo/lotus-logo-primary.svg"
-              className="mx-auto h-12 w-auto"
+              alt="x10"
+              src="/image/x10logo.png"
+              className="mx-auto h-24 w-auto"
             />
             <h2 className="mt-6 text-xl font-semibold text-gray-500">
               Sign in to your account
