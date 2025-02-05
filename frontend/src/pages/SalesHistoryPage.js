@@ -244,7 +244,6 @@ const SalesHistoryPage = () => {
             onChange={handleDateFilter}
             className="btn btn-none border-none bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
-
           <button
             onClick={handleSort}
             className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"

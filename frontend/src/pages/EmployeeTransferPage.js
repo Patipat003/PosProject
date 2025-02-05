@@ -110,7 +110,7 @@ const EmployeeTransferPage = () => {
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Employee Branch Transfer</h1>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-4xl mx-auto">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {userRole === "Super Admin" && (
             <div className="mb-4">
@@ -201,7 +201,7 @@ const EmployeeTransferPage = () => {
             />
           </div>
 
-          <button type="submit" className="btn border-none px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-md hover:bg-teal-600 col-span-2">
+          <button type="submit" className="btn border-none bg-teal-500 text-white font-semibold rounded-lg shadow-md hover:bg-teal-600 col-span-2">
             Submit Transfer
           </button>
         </form>

@@ -9,6 +9,7 @@ import { toZonedTime, format } from 'date-fns-tz';
 import { TrashIcon } from "@heroicons/react/outline";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
+import CategoryModal from "../components/layout/ui/CategoryModal";
 
 const formatDate = (dateString) => {
   // const date = new Date(dateString);
@@ -26,6 +27,7 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); // จัดการ Modal
 
   const itemsPerPage = 20; // จำนวนรายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
@@ -167,6 +169,26 @@ const ProductPage = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("authToken"); 
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      };
+
+      const categoryResponse = await axios.get("http://localhost:5050/categories", config);
+      setCategories(categoryResponse.data.Data);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   const getCategoryName = (categoryId) => {
     const category = categories.find((cat) => cat.categoryid === categoryId);
     return category ? category.categoryname : "Unknown";
@@ -272,7 +294,18 @@ const ProductPage = () => {
       <div className="min-w-full">
         <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
-          <ProductForm onProductAdded={handleProductAdded} />
+        {(userRole === "Manager" || userRole === "Super Admin") && (
+          <>
+            <ProductForm onProductAdded={handleProductAdded} />
+            {/* Category */}
+            <button
+              onClick={() => setIsCategoryModalOpen(true)}
+              className="btn bg-teal-500 text-white px-6 py-3 border-none rounded hover:bg-teal-600 transition duration-300 mt-4"
+            >
+              + Add Category
+            </button>
+          </>
+        )}
           <ExportButtons filteredTables={filteredProducts} columns={columns} filename="products.pdf" />
         </div>
 
@@ -337,6 +370,15 @@ const ProductPage = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Category Modal */}
+        {isCategoryModalOpen && (
+          <CategoryModal
+            isOpen={isCategoryModalOpen}
+            onClose={() => setIsCategoryModalOpen(false)}
+            onCategoryAdded={fetchCategories} // รีเฟรช Categories เมื่อเพิ่มใหม่
+          />
+        )}
 
         {/* Pagination Controls */}
         <div className="flex justify-center mt-4 space-x-4">

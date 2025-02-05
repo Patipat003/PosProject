@@ -3,7 +3,6 @@ package Database
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Product พร้อม SKU อิงตาม CategoryID และสร้าง Inventory สำหรับทุกสาขา
+// ✅ เพิ่มสินค้าใหม่ พร้อมสร้าง SKU โดยดึง categorycode จากฐานข้อมูล
 func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Product
 	if err := c.BodyParser(&req); err != nil {
@@ -21,7 +20,7 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// ตรวจสอบ CategoryID
+	// 🔍 ตรวจสอบ CategoryID และดึง categorycode จากฐานข้อมูล
 	var category Models.Category
 	if err := db.Where("category_id = ?", req.CategoryID).First(&category).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -29,20 +28,19 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// สร้าง SKU อิงตาม CategoryID (ใช้ CategoryName เพื่อสร้างรหัส)
-	categoryCode := getCategoryCode(category.CategoryName)
-	req.ProductID = uuid.New().String()             // UUID สำหรับ ProductID
-	req.ProductCode = generateSKU(categoryCode, db) // สร้าง SKU ที่ไม่ซ้ำกัน
+	// ✅ ใช้ categorycode จากฐานข้อมูลแทน
+	req.ProductID = uuid.New().String()
+	req.ProductCode = generateSKU(category.CategoryCode, db) // ใช้ categorycode จริงจากฐานข้อมูล
 	req.CreatedAt = time.Now()
 
-	// สร้าง Product
+	// ✅ บันทึก Product ลงฐานข้อมูล
 	if err := db.Create(&req).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create product: " + err.Error(),
 		})
 	}
 
-	// ดึงข้อมูลสาขาทั้งหมด
+	// ✅ ดึงข้อมูลสาขาทั้งหมด
 	var branches []Models.Branches
 	if err := db.Find(&branches).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -50,7 +48,7 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// สร้าง Inventory สำหรับทุกสาขา
+	// ✅ สร้าง Inventory สำหรับทุกสาขา
 	for _, branch := range branches {
 		inventory := Models.Inventory{
 			ProductID: req.ProductID,
@@ -68,62 +66,22 @@ func AddProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
 }
 
-// ฟังก์ชันช่วยในการดึงรหัสหมวดหมู่ (Category Code) เช่น "SPP" จากชื่อหมวดหมู่
-func getCategoryCode(categoryName string) string {
-	// แปลงชื่อหมวดหมู่ให้เป็นรหัสที่สามารถใช้ใน SKU ได้
-	categoryName = strings.ToLower(categoryName) // แปลงเป็นพิมพ์เล็ก
-
-	switch categoryName {
-	case "specialty products":
-		return "SPP"
-	case "seasonal products":
-		return "SSP"
-	case "pharmaceutical and health products":
-		return "PHAR"
-	case "fresh produce":
-		return "FRS"
-	case "electronics":
-		return "ELEC"
-	case "fashion":
-		return "FASH"
-	case "toys and kids' products":
-		return "TNK"
-	case "stationery and office supplies":
-		return "STOFF"
-	case "personal care":
-		return "PSNC"
-	case "fruits and vegetables":
-		return "FNV"
-	case "consumer goods":
-		return "CSM"
-	case "food and beverages":
-		return "FNB"
-	default:
-		return "GEN" // ใช้รหัส "GEN" หากไม่พบหมวดหมู่ที่ตรง
-	}
-}
-
-// ฟังก์ชันช่วยในการสร้าง SKU โดยใช้ category code และหมายเลขที่ไม่ซ้ำกัน
+// ✅ ฟังก์ชันสร้าง SKU โดยใช้ categorycode จากฐานข้อมูล
 func generateSKU(categoryCode string, db *gorm.DB) string {
-	// สร้างหมายเลขสุ่มในช่วง 10001 ถึง 99999
-	rand.Seed(time.Now().UnixNano())         // กำหนด seed สำหรับการสุ่ม
-	randomNumber := rand.Intn(90000) + 10001 // สุ่มระหว่าง 10001 ถึง 99999
-
-	// สร้าง SKU จาก categoryCode และหมายเลขสุ่ม
+	rand.Seed(time.Now().UnixNano()) // ใช้ Seed เพื่อให้เลขสุ่มเปลี่ยนทุกครั้ง
+	randomNumber := rand.Intn(90000) + 10001
 	randomSKU := fmt.Sprintf("%s-%d", categoryCode, randomNumber)
 
-	// ตรวจสอบว่า SKU นี้ซ้ำหรือไม่
+	// ตรวจสอบว่า SKU ซ้ำหรือไม่
 	var existingProduct Models.Product
 	if err := db.Where("product_code = ?", randomSKU).First(&existingProduct).Error; err == nil {
-		// หากพบ SKU ซ้ำ ให้เรียกใช้ฟังก์ชันนี้อีกครั้ง
-		return generateSKU(categoryCode, db)
+		return generateSKU(categoryCode, db) // ถ้าซ้ำให้สุ่มใหม่
 	}
 
-	// ส่งคืน SKU ที่ไม่ซ้ำ
 	return randomSKU
 }
 
-// ดู Products ทั้งหมด
+// ✅ ดู Products ทั้งหมด
 func LookProducts(db *gorm.DB, c *fiber.Ctx) error {
 	var products []Models.Product
 	if err := db.Find(&products).Error; err != nil {
@@ -134,12 +92,11 @@ func LookProducts(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"Data": products})
 }
 
-// หา Product ตาม ID หรือ ProductCode
+// ✅ หา Product ตาม ID หรือ ProductCode
 func FindProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var product Models.Product
 
-	// ค้นหาได้ทั้ง product_id และ product_code
 	if err := db.Where("product_id = ? OR product_code = ?", id, id).First(&product).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
@@ -148,10 +105,11 @@ func FindProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"Data": product})
 }
 
-// อัปเดต Product
+// ✅ อัปเดต Product
 func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var product Models.Product
+
 	if err := db.Where("product_id = ?", id).First(&product).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
@@ -165,7 +123,7 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// ตรวจสอบ CategoryID
+	// ✅ ตรวจสอบ CategoryID ใหม่ และดึง categorycode
 	var category Models.Category
 	if err := db.Where("category_id = ?", req.CategoryID).First(&category).Error; err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -173,18 +131,7 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// ตรวจสอบว่า ProductCode ใหม่ซ้ำหรือไม่
-	if req.ProductCode != product.ProductCode {
-		var existing Models.Product
-		if err := db.Where("product_code = ?", req.ProductCode).First(&existing).Error; err == nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "ProductCode already exists",
-			})
-		}
-	}
-
 	// อัปเดตฟิลด์
-	product.ProductCode = req.ProductCode
 	product.ProductName = req.ProductName
 	product.Description = req.Description
 	product.Price = req.Price
@@ -200,16 +147,16 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
-// ลบ Product และ Inventory ที่เกี่ยวข้องทั้งหมด
+// ✅ ลบ Product และ Inventory ที่เกี่ยวข้อง
 func DeleteProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	// เริ่มต้น transaction
+	// เริ่ม transaction
 	tx := db.Begin()
 
-	// ลบ Inventory ที่เกี่ยวข้องทั้งหมดก่อน
+	// ลบ Inventory
 	if err := tx.Where("product_id = ?", id).Delete(&Models.Inventory{}).Error; err != nil {
-		tx.Rollback() // หากลบ Inventory ไม่สำเร็จ ย้อนกลับการทำงานทั้งหมด
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete inventory: " + err.Error(),
 		})
@@ -218,26 +165,26 @@ func DeleteProduct(db *gorm.DB, c *fiber.Ctx) error {
 	// ลบ Product
 	var product Models.Product
 	if err := tx.Where("product_id = ?", id).First(&product).Error; err != nil {
-		tx.Rollback() // หากไม่พบ Product ให้ย้อนกลับ
+		tx.Rollback()
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
 		})
 	}
 
 	if err := tx.Delete(&product).Error; err != nil {
-		tx.Rollback() // หากลบ Product ไม่สำเร็จ ย้อนกลับการทำงานทั้งหมด
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete product: " + err.Error(),
 		})
 	}
 
-	// Commit การลบทั้งสองตาราง
+	// Commit การลบ
 	tx.Commit()
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
-// Route สำหรับ Products
+// ✅ Route สำหรับ Products
 func ProductRoutes(app *fiber.App, db *gorm.DB) {
 	app.Get("/products", func(c *fiber.Ctx) error {
 		return LookProducts(db, c)

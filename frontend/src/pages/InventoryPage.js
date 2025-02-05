@@ -3,7 +3,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import RequestInventory from "../components/layout/ui/RequestInventory";
-import { format } from "date-fns";
+import { toZonedTime, format } from 'date-fns-tz';
 import { HiOutlineEye  } from "react-icons/hi";
 import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
@@ -12,8 +12,8 @@ import "react-datepicker/dist/react-datepicker.css"; // ใช้สำหรั
 import InventoryModal from "../components/layout/ui/InventoryModal";
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return format(date, "d/MM/yyyy, HH:mm");
+  const utcDate = toZonedTime(dateString, "UTC"); // แปลงเป็น UTC
+  return format(utcDate, "d/MM/yyyy, HH:mm", { timeZone: "UTC" });
 };
 
 const InventoryPage = () => {
@@ -297,7 +297,7 @@ const InventoryPage = () => {
             <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
               <thead className="bg-gray-100 text-gray-600">
                 <tr>
-                  <th className="border py-2 px-4 text-sm text-left">No.</th>
+                  <th className="border text-sm text-center">No.</th>
                   <th className="border py-2 px-4 text-sm">Product Name</th>
                   <th className="border py-2 px-4 text-sm">Quantity</th>
                   {(userRole === "Manager" || userRole === "Super Admin") && (
@@ -309,11 +309,21 @@ const InventoryPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {getPaginatedRequests(groupedInventory[branchName]).map((item, index) => (
+                {getPaginatedRequests(groupedInventory[branchName]).map((item, index) => {
+                  const rowIndex = (currentProductPage - 1) * itemsPerPage + index + 1; // Calculate row index
+                  return (
                   <tr key={item.productid} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                    <td className="border border-gray-300 text-center">{rowIndex}</td>
                     <td className="border border-gray-300 text-black">{products[item.productid]}</td>               
-                    <td className="border border-gray-300 text-black">{item.quantity}</td>
+                    <td
+                      className={`border border-gray-300 font-bold ${
+                        item.quantity < 100 ? "text-red-500" :
+                        item.quantity >= 90 && item.quantity <= 110 ? "text-yellow-500" :
+                        "text-green-500"
+                      }`}
+                    >
+                      {item.quantity}
+                    </td>
                     {(userRole === "Manager" || userRole === "Super Admin") && (
                       <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
                     )}
@@ -328,7 +338,7 @@ const InventoryPage = () => {
                       </td>
                     )}
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>

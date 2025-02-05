@@ -134,7 +134,7 @@ const ProductForm = ({ onProductAdded }) => {
                 <div className="col-span-2">
                   <button
                     type="submit"
-                    className="w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
+                    className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
                   >
                     Add Product
                   </button>

@@ -166,6 +166,7 @@ func (Shipments) TableName() string {
 type Category struct {
 	CategoryID   string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"categoryid"`
 	CategoryName string    `gorm:"type:varchar(100);not null" json:"categoryname"`
+	CategoryCode string    `gorm:"type:varchar(4);not null;unique" json:"categorycode"` // เพิ่ม CategoryCode
 	CreatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
 }
 
