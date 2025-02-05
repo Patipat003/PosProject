@@ -351,7 +351,7 @@ const UserManagementPage = () => {
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
         <thead className="bg-gray-100 text-gray-600">
           <tr>
-            <th className="border text-sm px-4 py-2">No.</th>
+            <th className="border text-sm">#</th>
             <th className="border text-sm px-4 py-2">Email</th>
             <th className="border text-sm px-4 py-2">Name</th>
             <th className="border text-sm px-4 py-2">Role</th>
@@ -361,10 +361,12 @@ const UserManagementPage = () => {
           </tr>
         </thead>
         <tbody>
-        {currentEmployees.map((employee, index) => (
+        {currentEmployees.map((employee, index) => {
+           const rowIndex = (currentPage - 1) * itemsPerPage + index + 1; // Calculate row index
+           return (
           <tr
             key={employee.employeeid} className="hover:bg-gray-50">
-            <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+            <td className="border border-gray-300 text-center">{rowIndex}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
@@ -395,9 +397,9 @@ const UserManagementPage = () => {
                 <HiOutlineTrash className="text-xl" />
               </button>
             </td>
-
           </tr>
-        ))}
+          );
+        })}
         </tbody>
       </table>
       

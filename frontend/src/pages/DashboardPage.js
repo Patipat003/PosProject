@@ -132,6 +132,7 @@ const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => 
     .slice(0, 10);
 
   const salesByTime = calculateSalesByTime(filteredSales, timeRange);  
+  
 
   return {
     branchesData,

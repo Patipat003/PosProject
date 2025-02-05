@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell, HiTruck } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -18,6 +18,8 @@ const Header = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const navigate = useNavigate();
+
+  const dropdownRef = useRef(null);  // Reference to the dropdown container
 
   const getUserDataFromToken = useCallback(() => {
     const token = localStorage.getItem("authToken");
@@ -151,6 +153,22 @@ const Header = () => {
     if (userData?.branchid) fetchInventory(userData.branchid);
   }, [userData, fetchInventory]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Clean up event listener
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleNotificationClick = () => {
     navigate("/inventory", { state: { openModal: true } });
   };
@@ -198,7 +216,7 @@ const Header = () => {
         <p className="text-white">{branchName || "Loading branch..."}</p>
 
         {/* Dropdown ของ User */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
@@ -225,9 +243,18 @@ const Header = () => {
                 <HiOfficeBuilding className="text-teal-600 mr-2" />
                 {branchName || "Loading branch..."}
               </div>
+              
+              {/* New Dropdown Option for Changing Branch */}
+              {isSuperAdmin && (
+                <Link to="/select-branch" className="text-red-600 px-4 py-2 text-sm flex items-center hover:bg-red-100">
+                  <HiOfficeBuilding className="text-red-600 mr-2" />
+                  Change Branch
+                </Link>
+              )}
+
               <div
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm text-red-600 cursor-pointer flex items-center space-x-2"
+                className="px-4 py-2 text-sm text-red-600 cursor-pointer flex items-center space-x-2 hover:bg-red-100"
               >
                 <HiLogout />
                 <span>Logout</span>
