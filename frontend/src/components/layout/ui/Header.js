@@ -181,7 +181,7 @@ const Header = () => {
     <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
       {/* โลโก้ อยู่ตรงกลาง */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
-        <Link to="/">
+        <Link to="/sales">
           <img src="/image/x10logo.png" alt="x10" className="h-10 w-auto" />
         </Link>
       </div>

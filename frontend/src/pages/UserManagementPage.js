@@ -391,7 +391,7 @@ const UserManagementPage = () => {
                 <HiOutlinePencil className="text-xl" />
               </button>
               <button
-                className="text-red-500 text-xl hover:text-red-600 transition-all duration-200 ease-in-out"
+                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => handleDeleteEmployee(employee.employeeid)}
               >
                 <HiOutlineTrash className="text-xl" />
