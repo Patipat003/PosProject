@@ -262,7 +262,11 @@ const ProductPage = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        {/* Scrollable Product Grid */}
+        <div
+          className="grid grid-cols-5 gap-4 max-h-96 overflow-y-auto"  // This makes the grid scrollable
+          style={{ maxHeight: '400px' }}  // You can adjust the height as needed
+        >
           {filteredProducts
             .filter((product) =>
               searchQuery

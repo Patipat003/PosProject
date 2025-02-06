@@ -302,7 +302,8 @@ const SalesPage = () => {
 
           {/* Product List */}
           <p className="text-black mb-6">Product Lists</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {/* Product List with Scroll */}
+          <div className="grid grid-cols-5 gap-4 p-4 rounded h-screen overflow-y-auto mb-6">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
                 const stock =
@@ -323,10 +324,9 @@ const SalesPage = () => {
                       />
                     </figure>
                     <div className="text-center my-2">
-                      <h2 className="text-black font-semibold text-sm">{product.productname}</h2>
-                      {/* <p className="text-sm text-black text-xs mt-1">{product.productcode}</p> */}
-                      <p className="text-sm text-black mt-4">฿{product.price.toFixed(2)}</p>
-                      <p className="text-sm text-black mt-1">Stock: {stock}</p>                     
+                      <h2 className="text-black text-xs">{product.productname}</h2>
+                      <p className="text-xs text-black mt-4">฿{product.price.toFixed(2)}</p>
+                      <p className="text-xs text-black mt-1">Stock: {stock}</p>                     
                     </div>
                   </button>
                 );
