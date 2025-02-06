@@ -2,6 +2,7 @@
   "dependencies": {
     "@heroicons/react": "^1.0.6",
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@tailwindcss/typography": "^0.5.16",
     "antd": "^5.23.1",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",

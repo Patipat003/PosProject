@@ -100,15 +100,13 @@ const MainLayout = ({ children }) => {
         const decoded = jwtDecode(token); // Decode the JWT token
         setUserRole(decoded.role); // Set the user role from the decoded token
       }
-    }, []);
+  }, []);
   
   // Check if the user has access based on their role
   const isSuperAdmin = userRole === "Super Admin"; // Super Admin can access everything
   const isCashier = userRole === "Cashier"; // Only Cashier can access Sales pages
   const isManager = userRole === "Manager"; // Manager can access everything
-  
-  // Check if the user is on the /sales page
-  const isSalesProductPage = location.pathname === "/sales";
+  const isAudit = userRole === "Audit"; // Audit can access only views
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -128,23 +126,24 @@ const MainLayout = ({ children }) => {
         >
           <nav className="p-5 list-none">
             <SidebarItem label="Dashboard" link="/" icon={<HiHome />} />
-            {(isSuperAdmin || isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier || isAudit) && (
               <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
                 {[
-                  { label: "Sales Product", link: "/sales" },
+                  !isAudit && { label: "Sales Product", link: "/sales" },
                   { label: "Sales History", link: "/salesHistory" },
+                  
                   // { label: "Payment", link: "/payment" },
                   // { label: "Receipts", link: "/receipts" },
-                ]}
+                ].filter(Boolean)}
               </SidebarDropdown>
             )}
-            {(isSuperAdmin || isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier || isAudit) && (
               <SidebarItem label="Product Management" link="/product" icon={<HiCube />} />
             )}
-            {(isSuperAdmin || isManager || isCashier) && (
+            {(isSuperAdmin || isManager || isCashier || isAudit) && (
               <SidebarItem label="Inventory Management" link="/inventory" icon={<HiMiniSquare3Stack3D />} />
             )}
-            {(isSuperAdmin || isManager) && (
+            {(isSuperAdmin || isManager || isAudit) && (
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
                   { label: "Sales Reports", link: "/reports" },

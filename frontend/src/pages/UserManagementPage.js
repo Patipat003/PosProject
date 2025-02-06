@@ -3,6 +3,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import { toZonedTime, format } from 'date-fns-tz';
+import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
+import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import { HiOutlineUser , HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -280,8 +282,28 @@ const UserManagementPage = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) {
+      return (
+        <div className="flex items-center justify-center h-42 flex-col">
+          <Player
+            autoplay
+            loop
+            src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
+            style={{ height: "200px", width: "200px" }}
+          />
+          <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        </div>
+      );
+    }
+  
+    if (error) {
+      return (
+        <div className="flex items-center justify-center h-42 flex-col">
+          <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
+          <p className="text-red-500 text-xl">{error}</p>
+        </div>
+      );
+    }
 
   return (
     <div className="p-4 bg-white">

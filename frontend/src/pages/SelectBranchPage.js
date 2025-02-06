@@ -128,7 +128,7 @@ const SelectBranchPage = () => {
         <div className="mt-4">
           <button
             onClick={handleBranchConfirmation}
-            className="w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
+            className="btn border-none w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
           >
             Confirm Selection
           </button>

@@ -28,10 +28,22 @@ module.exports = {
           700: '#300404',
         },
       },
+      fontFamily: {
+        sans: ["SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      },
+      
+      typography: {
+        DEFAULT: {
+          css: {
+            fontFamily: "Inter, sans-serif", // ใช้กับ prose (บทความ)
+          },
+        },
+      },
     },
   },
   plugins: [
     require('daisyui'),
+    require('@tailwindcss/typography'),
   ],
 }
 

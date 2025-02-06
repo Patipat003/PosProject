@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AnimatePresence, motion } from "framer-motion";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 import AddRequestModal from "./AddRequestModal";
 import SendingShipmentTable from "./SendingShipmentTable";
 import ReceivingShipmentTable from "./ReceivingShipmentTable";
@@ -28,6 +29,7 @@ const RequestInventory = () => {
   const location = useLocation();
   const [toBranch, setToBranch] = useState('');
   const [activeSection, setActiveSection] = useState("products");
+  const [userRole, setUserRole] = useState(null);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -161,6 +163,16 @@ const RequestInventory = () => {
     const decoded = JSON.parse(atob(token.split('.')[1]));
     return decoded.branchid;
   };
+
+  useEffect(() => {
+        const token = localStorage.getItem("authToken"); // Retrieve the token from local storage
+        if (token) {
+          const decoded = jwtDecode(token); // Decode the JWT token
+          setUserRole(decoded.role); // Set the user role from the decoded token
+        }
+  }, []);
+
+  const isAudit = userRole === "Audit"; // Audit can access only views
 
   useEffect(() => {
     const branchid = getBranchFromToken();
@@ -358,16 +370,18 @@ const RequestInventory = () => {
               className="bg-white p-8 rounded-lg shadow-lg max-w-7xl w-full relative z-60 overflow-y-auto max-h-screen mt-10"
               onClick={(e) => e.stopPropagation()}
             >
-              <AddRequestModal
-                newRequest={newRequest}
-                setNewRequest={setNewRequest}
-                branches={branches}
-                products={products}
-                inventory={inventory}
-                branchid={branchid}
-                branchName={branchName}
-                handleAddRequest={handleAddRequest}
-              />
+              {( !isAudit ) && (
+                <AddRequestModal
+                  newRequest={newRequest}
+                  setNewRequest={setNewRequest}
+                  branches={branches}
+                  products={products}
+                  inventory={inventory}
+                  branchid={branchid}
+                  branchName={branchName}
+                  handleAddRequest={handleAddRequest}
+                />
+              )}
 
               <div className="flex justify-center space-x-4 mb-6">
                 <button
