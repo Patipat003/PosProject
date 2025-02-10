@@ -109,21 +109,44 @@ func UpdateBranch(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
-// ลบ Branch
+// ลบ Branch และลบ Inventory ที่เกี่ยวข้อง
 func DeleteBranch(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var branch Models.Branches
+
+	// ตรวจสอบว่ามีสาขานี้หรือไม่
 	if err := db.Where("branch_id = ?", id).First(&branch).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Branch not found",
 		})
 	}
-	if err := db.Delete(&branch).Error; err != nil {
+
+	// ใช้ Transaction เพื่อความปลอดภัย
+	tx := db.Begin()
+
+	// ลบ Inventory ที่มี branch_id นี้
+	if err := tx.Where("branch_id = ?", id).Delete(&Models.Inventory{}).Error; err != nil {
+		tx.Rollback() // ยกเลิก Transaction หากมีข้อผิดพลาด
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete inventory: " + err.Error(),
+		})
+	}
+
+	// ลบ Branch
+	if err := tx.Delete(&branch).Error; err != nil {
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete branch: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
+
+	// Commit Transaction หากทุกอย่างสำเร็จ
+	tx.Commit()
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"Deleted":  "Branch and associated inventory deleted successfully",
+		"BranchID": id,
+	})
 }
 
 // Route สำหรับ Branch

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Pie, Bar, Line } from "react-chartjs-2";
+import ApexCharts from "react-apexcharts";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,6 +16,7 @@ import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
 import { HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineCube } from 'react-icons/hi'; // Heroicons
+import moment from "moment";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -305,48 +307,19 @@ const DashboardPage = () => {
     ],
   };
 
-  const salesByTimeData = {
-    labels: salesByTime.map((data) => data.time),
-    datasets: [
-      {
-        label: "Sales",
-        data: salesByTime.map((data) => data.sales),
-        backgroundColor: "rgba(178, 56, 56, 0.5)", // สีพื้นหลังแบบโปร่งแสง (Teal 500)
-        borderColor: "rgb(148, 13, 13)", // สีขอบ (Teal 700)
-        borderWidth: 1, // ความหนาของกรอบ
-      },
-    ],
-  };
+  // Sales Graph Data (ApexCharts)
+    const salesGraphOptions = {
+      chart: { type: "line", height: 350 },
+      xaxis: { categories: salesByTime.map(data => moment(data.time).format("D/M/YY")) },
+      stroke: { curve: "smooth" },
+      markers: { size: 4 },
+      tooltip: { theme: "light" },
+      colors: ["#FF6384"],
+      yaxis: { title: { text: "Total Sales (THB)" } },
+    };
   
-  const salesByTimeOptions = {
-    responsive: true,
-    maintainAspectRatio: false,  // ✅ ทำให้กราฟขยายเต็มพื้นที่
-    plugins: {
-      tooltip: {
-        enabled: true,
-        backgroundColor: "#333",
-        titleColor: "#fff",
-        bodyColor: "#fff",
-      },
-      legend: {
-        display: true,
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: timeRange === "day" ? "Day" : timeRange === "month" ? "Month" : "Year",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Total Sales (THB)",
-        },
-      },
-    },
-  };  
+    const salesGraphSeries = [{ name: "Sales", data: salesByTime.map(data => data.sales) }];
+   
 
   const handleViewAllClick = () => {
     setSelectedBranch(prevState => (prevState === "all" ? userBranchId : "all"));
@@ -468,7 +441,7 @@ const DashboardPage = () => {
           </div>
 
           <div className="w-full h-96 px-4">
-            <Line data={salesByTimeData} options={salesByTimeOptions} />
+            <ApexCharts options={salesGraphOptions} series={salesGraphSeries} type="line" height={350} />
           </div>
         </div>
 

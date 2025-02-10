@@ -20,6 +20,7 @@ import ProtectedRoute from "./components/routes/ProtectedRoute";
 import ReceiptsPage from "./pages/ReceiptsPage";
 import { ToastContainer } from "react-toastify";
 import SelectBranchPage from "./pages/SelectBranchPage";
+import BranchesPage from "./pages/BranchesPage";
 
 function App() {
   return (
@@ -166,6 +167,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <ReceiptsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/branchesManagement"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <BranchesPage />
                 </MainLayout>
               </ProtectedRoute>
             }
