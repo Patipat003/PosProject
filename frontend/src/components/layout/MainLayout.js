@@ -158,7 +158,10 @@ const MainLayout = ({ children }) => {
                   { label: "Employee Transfer", link: "/employeeTransfer" },
                 ]}
               </SidebarDropdown>
-            )}  
+            )}
+            {( isSuperAdmin ) && (
+              <SidebarItem label="Branches Management" link="/branchesManagement" icon={<HiCube />} />
+            )}
           </nav>
         </aside>
       </div>

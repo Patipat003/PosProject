@@ -254,12 +254,9 @@ const ProductPage = () => {
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search for products"
-            className="border bg-white border-gray-300 p-2 rounded w-full mr-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            placeholder="Search by Product Name"
+            className="border bg-white border-gray-300 p-3 text-black rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
-          <button className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
-            Search
-          </button>
         </div>
 
         {/* Scrollable Product Grid */}

@@ -83,7 +83,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
         onClick={() => setIsModalOpen(true)}
         className="hover:text-teal-500 transition duration-300"
       >
-        <PencilIcon className="text-blue-600 h-6 w-6" />
+        <PencilIcon className="text-teal-500 h-6 w-6" />
       </button>
 
       <AnimatePresence>
