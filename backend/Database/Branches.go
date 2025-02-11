@@ -9,6 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// โครงสร้างข้อมูลที่ใช้รับค่า Latitude และ Longitude จาก Nominatim
+type NominatimResponse []struct {
+	Lat string `json:"lat"`
+	Lon string `json:"lon"`
+}
+
 // เพิ่ม Branch และสร้าง Inventory สำหรับทุก Product
 func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	var req Models.Branches
@@ -21,35 +27,53 @@ func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	req.BranchID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
-	// สร้าง Branch
-	if err := db.Create(&req).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create branch: " + err.Error(),
+	// ตรวจสอบว่ามี GoogleLocation หรือไม่
+	if req.GoogleLocation == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Google Location (Latitude, Longitude) is required",
 		})
 	}
 
-	// ดึงรายการ Products ทั้งหมด
-	var products []Models.Product
-	if err := db.Find(&products).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch products: " + err.Error(),
-		})
-	}
-
-	// เพิ่ม Inventory สำหรับแต่ละ Product
-	for _, product := range products {
-		inventory := Models.Inventory{
-			InventoryID: uuid.New().String(),
-			ProductID:   product.ProductID,
-			BranchID:    req.BranchID,
-			Quantity:    0, // ค่าเริ่มต้น
-			UpdatedAt:   time.Now(),
+	// ใช้ Transaction เพื่อให้แน่ใจว่าทั้ง Branch และ Inventory ถูกสร้างครบ
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// 1️⃣ บันทึก Branch ลงฐานข้อมูล
+		if err := tx.Create(&req).Error; err != nil {
+			return err
 		}
-		if err := db.Create(&inventory).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create inventory for product ID " + product.ProductID + ": " + err.Error(),
+
+		// 2️⃣ ดึง Product ทั้งหมดที่มีอยู่
+		var products []Models.Product
+		if err := tx.Find(&products).Error; err != nil {
+			return err
+		}
+
+		// 3️⃣ สร้าง Inventory สำหรับ Branch ใหม่โดยใช้ Product ที่มี
+		var inventories []Models.Inventory
+		for _, product := range products {
+			inventories = append(inventories, Models.Inventory{
+				InventoryID: uuid.New().String(),
+				BranchID:    req.BranchID,
+				ProductID:   product.ProductID,
+				Quantity:    0, // หรือค่าเริ่มต้นที่ต้องการ
+				UpdatedAt:   time.Now(),
 			})
 		}
+
+		// 4️⃣ บันทึก Inventory ลงฐานข้อมูล (หากมี Product อยู่)
+		if len(inventories) > 0 {
+			if err := tx.Create(&inventories).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil // Transaction สำเร็จ
+	})
+
+	// ตรวจสอบว่า Transaction สำเร็จหรือไม่
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create branch and inventory: " + err.Error(),
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -61,11 +85,19 @@ func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 // ดู Branch ทั้งหมด
 func LookBranches(db *gorm.DB, c *fiber.Ctx) error {
 	var branches []Models.Branches
-	if err := db.Find(&branches).Error; err != nil {
+	googleLocation := c.Query("google_location")
+
+	query := db
+	if googleLocation != "" {
+		query = query.Where("google_location LIKE ?", "%"+googleLocation+"%")
+	}
+
+	if err := query.Find(&branches).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to find branches: " + err.Error(),
 		})
 	}
+
 	return c.JSON(fiber.Map{"Data": branches})
 }
 
@@ -100,6 +132,7 @@ func UpdateBranch(db *gorm.DB, c *fiber.Ctx) error {
 
 	branch.BName = req.BName
 	branch.Location = req.Location
+	branch.GoogleLocation = req.GoogleLocation
 
 	if err := db.Save(&branch).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

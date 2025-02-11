@@ -216,31 +216,42 @@ const InventoryPage = () => {
         <ExportButtons filteredTables={filteredInventory} columns={columns} filename="pdf" />
       </div>
 
-      <div className="mb-4 space-y-6 sm:space-y-0 sm:flex sm:justify-between sm:items-center sm:flex-wrap">
-        <div className="flex flex-wrap items-center space-x-4 m-2 w-full sm:w-auto">
-          <label htmlFor="searchInput" className="text-black font-semibold w-full sm:w-auto">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        {/* Search Bar */}
+        <div className="flex items-center space-x-4 flex-grow">
+          <label htmlFor="searchInput" className="text-black font-semibold whitespace-nowrap">
             Search by Product Name
           </label>
-          <input
-            id="searchInput"
-            type="text"
-            value={searchQuery}
-            onChange={handleSearch}
-            placeholder="Search by product name"
-            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md w-full sm:w-72 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
+          <div className="relative flex-grow">
+            <input
+              id="searchInput"
+              type="text"
+              value={searchQuery}
+              onChange={handleSearch}
+              placeholder="Search by product name"
+              className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                &times;
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Date Range Picker */}
-        <div className="flex flex-wrap items-center space-x-4 sm:w-auto">
+        <div className="flex items-center space-x-2">
           <label htmlFor="startDate" className="text-black font-semibold">From</label>
           <DatePicker
             id="startDate"
             selected={startDate}
             onChange={(date) => setStartDate(date)}
             dateFormat="dd/MM/yyyy"
-            placeholderText="Start Date"  // ใช้ placeholderText แทน placeholder
-            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+            placeholderText="Start Date"
+            className="border bg-white border-gray-300 p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
 
           <label htmlFor="endDate" className="text-black font-semibold">To</label>
@@ -249,22 +260,23 @@ const InventoryPage = () => {
             selected={endDate}
             onChange={(date) => setEndDate(date)}
             dateFormat="dd/MM/yyyy"
-            placeholderText="End Date" 
-            className="border bg-white border-gray-300 p-3 m-2 text-black rounded-md mr-2 items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+            placeholderText="End Date"
+            className="border bg-white border-gray-300 p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
 
-          {/* ปุ่มล้าง (Clear) */}
+          {/* Clear Button */}
           <button
             onClick={() => {
               setStartDate(null);
               setEndDate(null);
             }}
-            className="bg-red-500 text-white font-medium px-4 py-2 rounded-md hover:bg-red-600 transition duration-300 mt-2 sm:mt-0"
+            className="bg-red-500 text-white font-medium px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
           >
             Clear
           </button>
         </div>
       </div>
+
 
       {/* แสดงรายละเอียดสินค้าใน Modal */}
       {selectedInventory && (

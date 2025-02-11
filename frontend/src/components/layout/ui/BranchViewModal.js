@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Chart from "react-apexcharts";
 import ProductDetailModal from "./ProductDetailModal";
 import moment from "moment"; // ✅ Import Moment.js
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 const BranchViewModal = ({ branch, onClose }) => {
   const [salesData, setSalesData] = useState([]);
@@ -113,6 +116,19 @@ const BranchViewModal = ({ branch, onClose }) => {
     };
   };
 
+  const customIcon = new L.Icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+  const location = branch.google_location?.split(",") || [];
+  const latitude = parseFloat(location[0]);
+  const longitude = parseFloat(location[1]);
+
   const salesTrend = aggregateSales(chartView);
 
   // ✅ คำนวณหน้าปัจจุบันของ Employees และ Inventory
@@ -143,7 +159,26 @@ const BranchViewModal = ({ branch, onClose }) => {
               <FaTimes size={20} />
             </button>
 
-            <h2 className="text-2xl font-bold text-teal-500 mb-4">📍 Branch Details</h2>
+            <h2 className="text-2xl font-bold text-teal-500 mb-4">
+              📍 Branch Details ({branch?.bname || "N/A"})
+            </h2>
+
+            {/* ✅ เพิ่มแผนที่  */}
+            <div className="mb-6">
+              {/* แสดงแผนที่เฉพาะเมื่อมีพิกัด */}
+              {latitude && longitude ? (
+                <div className="mt-4 h-96 w-full rounded-lg shadow-md overflow-hidden">
+                  <MapContainer center={[latitude, longitude]} zoom={13} className="h-full w-full">
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[latitude, longitude]} icon={customIcon}>
+                      <Popup>{branch.bname}</Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              ) : (
+                <p className="text-red-500 mt-4">📍 No location data available for this branch.</p>
+              )}
+            </div>
 
             {/* ✅ Employee List as Table */}
             <div className="mb-6">

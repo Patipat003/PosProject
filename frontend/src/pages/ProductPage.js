@@ -249,14 +249,23 @@ const ProductPage = () => {
 
       {/* Product List */}
       <div className="mb-6">
-        <div className="flex items-center mb-4">
+        <div className="relative w-full mb-6">
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search by Product Name"
-            className="border bg-white border-gray-300 p-3 text-black rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+            placeholder="Search by Product Code"
+            className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
+          
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              &times;
+            </button>
+          )}
         </div>
 
         {/* Scrollable Product Grid */}
@@ -267,7 +276,7 @@ const ProductPage = () => {
           {filteredProducts
             .filter((product) =>
               searchQuery
-                ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
+                ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase())
                 : true
             )
             .map((product) => (
@@ -332,7 +341,7 @@ const ProductPage = () => {
               {paginatedProducts
                 .filter((product) =>
                   searchQuery
-                    ? product.productname.toLowerCase().includes(searchQuery.toLowerCase())
+                    ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase())
                     : true
                 )
                 .map((product, index) => (

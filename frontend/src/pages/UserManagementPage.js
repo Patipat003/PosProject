@@ -329,7 +329,7 @@ const UserManagementPage = () => {
       </div>
 
       <div className="mb-4 space-x-6 flex">
-        <div className="flex items-center space-x-4 w-full">
+        <div className="flex items-center space-x-4 w-full relative">
           <input
             type="text"
             value={searchQuery}
@@ -337,6 +337,15 @@ const UserManagementPage = () => {
             placeholder="Search by Name or Email"
             className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
+
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              &times;
+            </button>
+          )}
         </div>
       
         {userRole === "Super Admin" && (

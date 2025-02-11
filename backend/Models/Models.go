@@ -29,10 +29,11 @@ func (s *Employees) BeforeCreate(tx *gorm.DB) (err error) {
 
 // Branches struct
 type Branches struct {
-	BranchID  string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"branchid"`
-	BName     string    `gorm:"type:varchar(100);not null" json:"bname"`
-	Location  string    `gorm:"type:varchar(255);not null" json:"location"`
-	CreatedAt time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
+	BranchID       string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"branchid"`
+	BName          string    `gorm:"type:varchar(100);not null" json:"bname"`
+	Location       string    `gorm:"type:varchar(255);not null" json:"location"`
+	GoogleLocation string    `gorm:"type:varchar(255);not null" json:"google_location"` // ฟิลด์ใหม่
+	CreatedAt      time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
 }
 
 func (Branches) TableName() string {

@@ -3,6 +3,19 @@ import axios from "axios";
 import { PencilIcon } from "@heroicons/react/outline";
 import { motion, AnimatePresence } from "framer-motion";
 
+const InputField = ({ label, value, onChange, type = "text" }) => (
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">{label}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+    />
+  </div>
+);
+
+
 const EditedProduct = ({ productId, onProductUpdated }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productCode, setProductCode] = useState("");
@@ -12,6 +25,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -45,6 +59,34 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     fetchCategories();
     if (productId) fetchProduct();
   }, [productId]);
+
+  // อัปโหลดรูปภาพไปยัง ImgBB
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true); // แสดงสถานะกำลังอัปโหลด
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await axios.post(
+        `https://api.imgbb.com/1/upload?key=e71bdf3bd6dc220c4ddaf2fd9d9db287`,
+        formData
+      );
+
+      if (response.data.success) {
+        setImageUrl(response.data.data.url); // อัปเดตรูปภาพใหม่
+      } else {
+        console.error("Upload failed:", response.data);
+      }
+    } catch (err) {
+      console.error("Error uploading image:", err);
+    } finally {
+      setIsUploading(false); // ซ่อนสถานะกำลังอัปโหลด
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,13 +148,21 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 Edit Product
               </h2>
 
-              {/* Preview รูปภาพ */}
-              {imageUrl && (
+              {/* แสดงรูป Preview */}
+              {isUploading ? (
+                <div className="flex justify-center">
+                  <img
+                    src="https://loading.io/assets/mod/spinner/rolling/lg.gif " // เปลี่ยน URL นี้ให้เป็นที่ตั้งของ GIF ที่คุณต้องการ
+                    alt="Loading..."
+                    className="w-30 h-20" // ขนาด GIF
+                  />
+                </div>
+              ) : imageUrl && (
                 <div className="flex justify-center mb-4">
                   <img
                     src={imageUrl}
                     alt="Product Preview"
-                    className="w-40 h-40 object-cover rounded-lg "
+                    className="w-40 h-40 object-cover rounded-lg"
                   />
                 </div>
               )}
@@ -120,17 +170,17 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                 <InputField label="Product Name" value={productName} onChange={setProductName} />
                 <InputField label="Price" value={price} onChange={setPrice} type="number" />
-                
-                {/* ช่องใส่ URL ที่แสดงรูปอัตโนมัติ */}
+
+                {/* ปุ่มอัปโหลดรูปภาพ */}
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Image URL</label>
+                  <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
                   <input
-                    type="text"
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
-                    placeholder="Enter image URL"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white"
                   />
+                  {isUploading && <p className="text-sm text-gray-500">Uploading...</p>}
                 </div>
 
                 <div>
@@ -182,18 +232,5 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     </div>
   );
 };
-
-const InputField = ({ label, value, onChange, type = "text" }) => (
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">{label}</label>
-    <input
-      type={type}
-      className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
-      placeholder={`Enter ${label.toLowerCase()}`}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  </div>
-);
 
 export default EditedProduct;

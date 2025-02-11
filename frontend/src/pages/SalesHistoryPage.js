@@ -58,8 +58,8 @@ const SalesHistoryPage = () => {
             index: index + 1,
             saleid: sale.saleid,
             receiptnumber: receipt?.receiptnumber || "N/A",
-            employeename: employee?.name || "Unknown",
-            role: employee?.role || "Unknown",
+            employeename: employee?.name || "Super Admin",
+            role: employee?.role || "Super Admin",
             totalamount: sale.totalamount,
             createdat: formattedDate,
           };
