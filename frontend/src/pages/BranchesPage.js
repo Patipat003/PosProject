@@ -9,7 +9,7 @@ import BranchViewModal from "../components/layout/ui/BranchViewModal";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useRef } from "react";
+import BranchMap from "../components/layout/ui/BranchMap";
 
 const BranchesPage = () => {
   const [branches, setBranches] = useState([]);
@@ -91,6 +91,9 @@ const BranchesPage = () => {
         config
       );  
       toast.success("✅ Branch added successfully!");
+      setTimeout(() => {
+        toast.dismiss(); // Manually dismiss the toast after some delay
+      }, 5000); // Dismiss after 5 seconds
       setNewBranch({ bname: "", location: "", googleLocation: "" });
       setIsAddModalOpen(false);
       fetchBranches();
@@ -101,18 +104,21 @@ const BranchesPage = () => {
   };
   
   const updateBranch = async () => {
-    if (!editData.bname.trim() || !editData.location.trim() || !editData.googleLocation) {
+    if (!editData?.bname?.trim() || !editData?.location?.trim() || !editData?.googleLocation) {
       toast.warning("⚠️ Please enter branch name, location, and pick a position on the map!");
       return;
     }
   
     try {
-      await axios.put(`http://localhost:5050/branches/${editBranch.branchid}`, {
-        bname: editData.bname,
-        location: editData.location,
-        google_location: editData.googleLocation, // ใช้ชื่อที่ API ต้องการ
+      await axios.put(`http://localhost:5050/branches/${editBranch?.branchid}`, {
+        bname: editData?.bname,
+        location: editData?.location,
+        google_location: editData?.googleLocation,
       }, config);
       toast.success("✅ Branch updated successfully!");
+      setTimeout(() => {
+        toast.dismiss();
+      }, 5000); 
       setIsEditModalOpen(false);
       fetchBranches();
     } catch (error) {
@@ -121,12 +127,16 @@ const BranchesPage = () => {
     }
   };
   
+  
   const deleteBranch = async (id) => {
     if (!window.confirm("⚠️ Are you sure you want to delete this branch?")) return;
     try {
       await axios.delete(`http://localhost:5050/branches/${id}`, config);
       setBranches((prev) => prev.filter((branch) => branch.branchid !== id));
       toast.success("🗑️ Branch deleted successfully!");
+      setTimeout(() => {
+        toast.dismiss(); // Manually dismiss the toast after some delay
+      }, 5000); // Dismiss after 5 seconds
       fetchBranches();
     } catch (error) {
       console.error("Error deleting branch:", error);
@@ -135,16 +145,26 @@ const BranchesPage = () => {
   };
 
   const openEditModal = (branch) => {
+    if (!branch) {
+      console.error("Branch data is not available");
+      return;
+    }
+  
     setEditBranch(branch);
     setEditData({ 
       bname: branch.bname, 
       location: branch.location, 
-      googleLocation: branch.google_location // แก้ให้ตรงกับ API
+      googleLocation: branch.google_location 
     });
     setIsEditModalOpen(true);
   };
-
+  
   const openViewModal = (branch) => {
+    if (!branch) {
+      console.error("Branch data is not available");
+      return;
+    }
+  
     setSelectedBranch(branch);
     setIsViewModalOpen(true);
   };
@@ -170,6 +190,12 @@ const BranchesPage = () => {
         <button onClick={() => setIsAddModalOpen(true)} className="btn bg-teal-500 text-white">
           <FiPlus size={18} /> Add Branch
         </button>
+      </div>
+
+      
+      {/* ✅ แสดงแผนที่ขนาดใหญ่ที่รวมทุกสาขา */}
+      <div className="mb-6">
+        <BranchMap branches={branches} onBranchClick={openViewModal} />
       </div>
 
       <input
@@ -229,13 +255,13 @@ const BranchesPage = () => {
       {(isAddModalOpen || isEditModalOpen) && (
         <motion.div
           className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center"
-          style={{ zIndex: 50 }} // ✅ ตั้งค่า z-index สูงขึ้น
+          style={{ zIndex: 50 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-lg w-96"
+            className="bg-white p-6 rounded-lg shadow-lg w-3/4"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
@@ -244,6 +270,7 @@ const BranchesPage = () => {
             <h2 className="text-xl text-gray-600 font-bold mb-4">
               {isAddModalOpen ? "Add New Branch" : "Edit Branch"}
             </h2>
+
             <input
               type="text"
               name="bname"
@@ -270,34 +297,41 @@ const BranchesPage = () => {
               className="border bg-white border-gray-300 p-3 mb-3 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
 
-            <MapContainer center={[13.736717, 100.523186]} zoom={10} className="h-60 w-full" scrollWheelZoom={false}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <MapClickHandler setLocation={isAddModalOpen ? setNewBranch : setEditData} />
+            {/* Render the map only when modal is open */}
+            {(isAddModalOpen || isEditModalOpen) && (
+              <MapContainer
+                center={[13.736717, 100.523186]}
+                zoom={10}
+                className="h-72 w-full"
+                scrollWheelZoom={true}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <MapClickHandler setLocation={isAddModalOpen ? setNewBranch : setEditData} />
 
-              {((isAddModalOpen && newBranch.googleLocation) || (!isAddModalOpen && editData.googleLocation)) && (
-                <Marker 
-                  position={(isAddModalOpen ? newBranch.googleLocation : editData.googleLocation)
-                    ?.split(",")  // แยก lat,lng
-                    .map(Number)  // แปลงเป็นตัวเลข
-                  }
-                  icon={customIcon} 
-                />
-              )}
-            </MapContainer>
-
+                {((isAddModalOpen && newBranch.googleLocation) || (!isAddModalOpen && editData.googleLocation)) && (
+                  <Marker
+                    position={(isAddModalOpen ? newBranch.googleLocation : editData.googleLocation)
+                      ?.split(",") // split lat,lng
+                      .map(Number) // convert to numbers
+                    }
+                    icon={customIcon}
+                  />
+                )}
+              </MapContainer>
+            )}
 
             <div className="flex justify-end gap-2 mt-4">
-              <button 
-                onClick={isAddModalOpen ? addBranch : updateBranch} 
+              <button
+                onClick={isAddModalOpen ? addBranch : updateBranch}
                 className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Save
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
-                }} 
+                }}
                 className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
@@ -306,6 +340,7 @@ const BranchesPage = () => {
           </motion.div>
         </motion.div>
       )}
+
 
       {isViewModalOpen && selectedBranch && <BranchViewModal branch={selectedBranch} onClose={() => setIsViewModalOpen(false)} />}
     </div>
