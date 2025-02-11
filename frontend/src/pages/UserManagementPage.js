@@ -3,8 +3,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
 import { toZonedTime, format } from 'date-fns-tz';
-import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
-import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
+import { AiOutlineExclamationCircle } from "react-icons/ai"; 
+import { Player } from "@lottiefiles/react-lottie-player"; 
 import { HiOutlineUser , HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -43,8 +43,8 @@ const UserManagementPage = () => {
   const [userRole, setUserRole] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false); 
   const [newPassword, setNewPassword] = useState("");
-  const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const itemsPerPage = 10; // Items per page
+  const [currentPage, setCurrentPage] = useState(1); 
+  const itemsPerPage = 10; 
 
   const fetchData = async () => {
     try {
