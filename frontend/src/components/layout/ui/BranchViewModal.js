@@ -159,8 +159,8 @@ const BranchViewModal = ({ branch, onClose }) => {
               <FaTimes size={20} />
             </button>
 
-            <h2 className="text-2xl font-bold text-teal-500 mb-4">
-              📍 Branch Details ({branch?.bname || "N/A"})
+            <h2 className="text-2xl font-bold text-teal-500 mb-6">
+              📍 {branch?.bname || "N/A"} ({branch.location})
             </h2>
 
             {/* ✅ เพิ่มแผนที่  */}
@@ -272,6 +272,7 @@ const BranchViewModal = ({ branch, onClose }) => {
                     <th className="border py-2 px-4 text-sm">Product</th>
                     <th className="border py-2 px-4 text-sm">Stock</th>
                     <th className="border py-2 px-4 text-sm">Sold</th>
+                    <th className="border py-2 px-4 text-sm">Price</th>
                     <th className="border py-2 px-4 text-sm">Total Price</th>
                     <th className="border py-2 px-4 text-sm">Details</th>
                   </tr>
@@ -299,6 +300,7 @@ const BranchViewModal = ({ branch, onClose }) => {
                           {item.quantity}
                         </td>
                         <td className="border py-2 px-4 border-gray-300 text-black">{soldQuantity}</td>
+                        <td className="border py-2 px-4 border-gray-300 text-black">{product.price || "Unknown"}</td>
                         <td className="border py-2 px-4 border-gray-300 text-black">{totalRevenue.toLocaleString()}</td>
                         <td className="border border-gray-300 text-center justify-center items-center">
                           <button onClick={() => setSelectedProduct(products[item.productid])}>

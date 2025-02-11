@@ -19,7 +19,7 @@ const SoldProductsModal = ({ show, closeModal, products }) => {
         <motion.div
           id="modal-overlay"
           onClick={handleBackgroundClick}
-          className="fixed inset-0 bg-gray-700 bg-opacity-50 flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
           initial={{ opacity: 0 }}  // เริ่มต้นที่ opacity = 0
           animate={{ opacity: 1 }}   // เมื่อแสดงให้ opacity = 1
           exit={{ opacity: 0 }}      // เมื่อปิดให้ opacity กลับไปที่ 0
