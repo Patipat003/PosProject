@@ -183,12 +183,12 @@ const ReportsPage = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by Date, Branch, Amount, or Items Sold"
-          className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
         <select
           value={selectedBranch}
           onChange={(e) => setSelectedBranch(e.target.value)}
-          className="border p-2 rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
         >
           <option value="">Select Branch</option>
           {branches.map((branch) => (
@@ -201,7 +201,7 @@ const ReportsPage = () => {
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}
           placeholderText="Select Date"
-          className="border p-3 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400 text-lg flex items-center"
+          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400 text-lg flex items-center"
           dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
           showMonthYearPicker={filterType === "month"}
           showYearPicker={filterType === "year"}
