@@ -12,10 +12,16 @@ import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import CategoryModal from "../components/layout/ui/CategoryModal";
 
 const formatDate = (dateString) => {
-  // const date = new Date(dateString);
-  const zonedDate = toZonedTime(dateString, 'UTC');
-  return format(zonedDate, "d/MM/yyyy, HH:mm"); 
+  if (!dateString) return "N/A"; // ตรวจสอบค่าว่าง
+  try {
+    const zonedDate = toZonedTime(new Date(dateString), "UTC");
+    return format(zonedDate, "d/MM/yyyy, HH:mm");
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Invalid Date";
+  }
 };
+
 
 const ProductPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -224,8 +230,42 @@ const ProductPage = () => {
     : products;
 
   const paginatedProducts = getPaginatedProducts();
-  const columns = ["productname", "description", "price", "createdat"]; // Define columns
 
+  const exportToCSV = () => {
+    if (filteredProducts.length === 0) {
+      alert("No data available to export.");
+      return;
+    }
+  
+    const BOM = "\uFEFF"; // เพิ่ม BOM เพื่อรองรับ UTF-8 ใน Excel
+    const csvRows = [];
+    const headers = [
+      "Product Code", "Name", "Description", "Category", "Price", "Created At"
+    ];
+    csvRows.push(headers.join(",")); // เพิ่ม Header
+  
+    filteredProducts.forEach((item) => {
+      const row = [
+        `"${item.productcode}"`,    // Product Code
+        `"${item.productname}"`,    // Name
+        `"${item.description || ''}"`, // Description (กันค่า null)
+        `"${getCategoryName(item.categoryid)}"`, // Category Name
+        `"${item.price.toFixed(2)}"`, // Price
+        `"${formatDate(item.createdat)}"` // Created At
+      ];
+      csvRows.push(row.join(","));
+    });
+  
+    const csvString = BOM + csvRows.join("\n"); // ใส่ BOM นำหน้า
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ProductData.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+  
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Product Management</h1>
@@ -316,7 +356,12 @@ const ProductPage = () => {
             </button>
           </>
         )}
-          <ExportButtons filteredTables={filteredProducts} columns={columns} filename="products.pdf" />
+          <button
+            onClick={exportToCSV}
+            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+          >
+            Export CSV
+          </button>
         </div>
 
         <div className="overflow-x-auto mb-6">
