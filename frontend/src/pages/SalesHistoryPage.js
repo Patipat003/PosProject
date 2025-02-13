@@ -211,6 +211,22 @@ const SalesHistoryPage = () => {
   
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
 
+  const exportToCSV = () => {
+    const csvHeader = "Receipt Number,Employee Name,Role,Total Amount,Created At\n";
+    const csvRows = filteredSales.map((sale) =>
+      `"${sale.receiptnumber}","${sale.employeename}","${sale.role}",${sale.totalamount},"${sale.createdat}"`
+    );
+    const csvContent = csvHeader + csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sales_history.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales History</h1>
@@ -249,6 +265,13 @@ const SalesHistoryPage = () => {
             className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
           >
             Sort by Date {sortOrder === "asc" ? "↑" : "↓"}
+          </button>
+
+          <button
+            onClick={exportToCSV}
+            className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+          >
+            Export CSV
           </button>
         </div>
 
