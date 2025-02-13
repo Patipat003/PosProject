@@ -3,6 +3,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { CSVLink } from "react-csv";
+
 
 
 const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
@@ -12,7 +14,7 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       value={query}
       onChange={(e) => onSearch(e.target.value)}
       placeholder="Search..."
-      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
+      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
     {/* <button
       onClick={onSort}
@@ -207,6 +209,15 @@ const DetailReportPage = () => {
 
   const groupedItems = groupByProduct(filteredItems);
 
+  const csvData = Object.values(groupedItems).map((item, index) => ({
+    "No.": index + 1,
+    "Branch Name": [...item.branchNames].map((id) => branches.find((b) => b.id === id)?.name || "Unknown").join(", "),
+    "Product Name": item.productName,
+    "Total Quantity": item.totalQuantity,
+    "Average Price": (item.totalPrice / item.totalQuantity).toFixed(2),
+    "Total Price": item.totalPrice.toFixed(2),
+  }));
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -259,12 +270,16 @@ const DetailReportPage = () => {
           </tbody>
         </table>
       </div>
-      <button
+      {/* <button
         onClick={exportToPDF}
-        className="bg-teal-500 text-white p-2 rounded-md shadow-md hover:bg-teal-600"
+        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
         >
           Export to PDF
-      </button>
+      </button> */}
+      <CSVLink data={csvData} filename={`Sales_Report.csv`} 
+      className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4">
+        Export to CSV
+      </CSVLink>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { CSVLink } from "react-csv";
 
 const formatDate = (dateString, type) => {
   const date = new Date(dateString);
@@ -135,7 +136,25 @@ const ReportsPage = () => {
         doc.save("Sales_Report.pdf");
       };
 
-
+      const generateCSVData = () => {
+        const csvData = [
+          ["No.", "Date", "Branch", "Total Amount", "Items Sold"],
+        ];
+        Object.keys(groupedSales).forEach((dateKey, index) => {
+          Object.keys(groupedSales[dateKey]).forEach((branchId) => {
+            const { totalAmount, count } = groupedSales[dateKey][branchId];
+            csvData.push([
+              index + 1,
+              dateKey,
+              getBranchName(branchId),
+              totalAmount.toFixed(2),
+              count,
+            ]);
+          });
+        });
+        return csvData;
+      };
+    
 
   if (loading) {
     return <div className="text-center text-xl py-4">Loading...</div>;
@@ -243,12 +262,19 @@ const ReportsPage = () => {
 
         </tbody>
       </table>
-      <button
+      {/* <button
         onClick={exportToPDF}
-        className="bg-teal-500 text-white p-2 rounded-md shadow-md hover:bg-teal-600"
+        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
         >
           Export to PDF
-      </button>
+      </button> */}  
+      <CSVLink
+        data={generateCSVData()}
+        filename={"Sales_Report.csv"}
+        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+      >
+        Export to CSV
+      </CSVLink>
     </div>
   );
 };
