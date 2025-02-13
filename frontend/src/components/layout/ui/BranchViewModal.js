@@ -192,7 +192,7 @@ const BranchViewModal = ({ branch, onClose }) => {
                 </thead>
                 <tbody>
                   {currentEmployees.map((emp) => (
-                    <tr key={emp.employeeid} className="hover:bg-gray-50">
+                    <tr key={emp.employeeid} className="hover:bg-gray-100">
                       <td className="border py-2 px-4 border-gray-300 text-blac">{emp.name}</td>
                       <td className="border py-2 px-4 border-gray-300 text-blac">{emp.role}</td>
                     </tr>
@@ -288,7 +288,7 @@ const BranchViewModal = ({ branch, onClose }) => {
                     const totalRevenue = soldQuantity * (product.price || 0);
 
                     return (
-                      <tr key={item.inventoryid} className="hover:bg-gray-50">
+                      <tr key={item.inventoryid} className="hover:bg-gray-100">
                         <td className="border py-2 px-4 border-gray-300 text-black">{product.productname || "Unknown"}</td>
                         <td
                           className={`border py-2 px-4 border-gray-300 font-bold ${

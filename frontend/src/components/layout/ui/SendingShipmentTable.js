@@ -55,7 +55,7 @@ const SendingShipmentTable = ({
                 };
 
                 return (
-                  <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-50">
+                  <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-100">
                     <td className="border px-4 py-2">{toBranch ? toBranch.bname : "-"}</td>
                     <td className="border px-4 py-2">{product ? product.productname : "-"}</td>
                     <td className="border px-4 py-2">{request.quantity}</td>

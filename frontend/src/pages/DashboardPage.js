@@ -473,7 +473,7 @@ const DashboardPage = () => {
               </thead>
               <tbody>
                 {filteredSales.map((data, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <tr key={index} className="hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-2">{data.bname}</td>
                     <td className="border border-gray-300 px-4 py-2">฿{data.sales.toLocaleString()}</td>
                   </tr>
@@ -496,7 +496,7 @@ const DashboardPage = () => {
               </thead>
               <tbody>
                 {saleRecents.map((sale, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <tr key={index} className="hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
                     <td className="border border-gray-300 px-4 py-2">
                       {branches.find(branch => branch.branchid === sale.branchid)?.bname}

@@ -290,7 +290,7 @@ const SalesHistoryPage = () => {
         </thead>
         <tbody>
           {paginatedSales.map((sale) => (
-            <tr key={sale.saleid} className="hover:bg-gray-50">
+            <tr key={sale.saleid} className="hover:bg-gray-100">
               <td className="border border-gray-300 px-4 py-2">{sale.index}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.employeename}</td>
