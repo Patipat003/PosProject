@@ -218,7 +218,7 @@ const EmployeeTransferPage = () => {
           </thead>
           <tbody>
             {filterEmployeesByBranch(formData.currentBranch).map((employee) => (
-              <tr key={employee.employeeid} className="hover:bg-gray-50">
+              <tr key={employee.employeeid} className="hover:bg-gray-100">
                 <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
                 <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
               </tr>

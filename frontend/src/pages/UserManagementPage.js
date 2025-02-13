@@ -396,7 +396,7 @@ const UserManagementPage = () => {
            const rowIndex = (currentPage - 1) * itemsPerPage + index + 1; // Calculate row index
            return (
           <tr
-            key={employee.employeeid} className="hover:bg-gray-50">
+            key={employee.employeeid} className="hover:bg-gray-100">
             <td className="border border-gray-300 text-center">{rowIndex}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.name}</td>

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const IMG_BB_API_KEY = "e71bdf3bd6dc220c4ddaf2fd9d9db287"; // 🔹 ใส่ API Key ของ ImgBB ที่นี่
+const IMG_BB_API_KEY = "e71bdf3bd6dc220c4ddaf2fd9d9db287";
 
 const ProductForm = ({ onProductAdded }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(""); // 🔹 แก้ให้สามารถใส่ URL ได้เอง
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -42,15 +44,17 @@ const ProductForm = ({ onProductAdded }) => {
         description,
         price: numericPrice,
         unitsperbox: 30,
-        imageurl: imageUrl,
+        imageurl: imageUrl, // 🔹 ใช้ URL ที่ผู้ใช้ป้อนหรืออัปโหลด
         categoryid: selectedCategory,
       };
 
       const response = await axios.post("http://localhost:5050/products", productData, config);
       if (response.data) onProductAdded();
+      toast.success("✅ Add Product Complete!", { position: "top-right", autoClose: 3000 });
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error adding product:", err);
+      toast.error("❌ Fail to Add Product", { position: "top-right", autoClose: 3000 });
     }
   };
 
@@ -62,7 +66,7 @@ const ProductForm = ({ onProductAdded }) => {
     try {
       const response = await axios.post(`https://api.imgbb.com/1/upload?key=${IMG_BB_API_KEY}`, formData);
       if (response.data.data.url) {
-        setImageUrl(response.data.data.url);
+        setImageUrl(response.data.data.url);  
       }
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -86,6 +90,8 @@ const ProductForm = ({ onProductAdded }) => {
         + Add Product
       </button>
 
+      <ToastContainer />
+      
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -127,14 +133,15 @@ const ProductForm = ({ onProductAdded }) => {
                 <InputField label="Product Name" value={productName} onChange={setProductName} />
                 <InputField label="Price" value={price} onChange={setPrice} type="number" />
 
-                {/* ช่องแสดง URL ของรูปที่อัปโหลด */}
+                {/* 🔹 ช่องให้พิมพ์หรือวาง URL ของรูป */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Image URL</label>
                   <input
                     type="text"
                     className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
                     value={imageUrl}
-                    readOnly
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="Paste image URL here"
                   />
                 </div>
 

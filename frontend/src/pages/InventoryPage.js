@@ -358,7 +358,7 @@ const InventoryPage = () => {
                 {getPaginatedRequests(groupedInventory[branchName]).map((item, index) => {
                   const rowIndex = (currentProductPage - 1) * itemsPerPage + index + 1; // Calculate row index
                   return (
-                  <tr key={item.productid} className="hover:bg-gray-50">
+                  <tr key={item.productid} className="hover:bg-gray-100">
                     <td className="border border-gray-300 text-center">{rowIndex}</td>
                     <td className="border py-2 px-4 border-gray-300 text-black">{products[item.productid]}</td>               
                     <td

@@ -115,7 +115,7 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
               <tbody>
                 {categories.length > 0 ? (
                   categories.map((category, index) => (
-                    <tr key={category.categoryid} className="bg-gray-80 hover:bg-gray-50">
+                    <tr key={category.categoryid} className="bg-gray-80 hover:bg-gray-100">
                       <td className="border text-sm text-center py-2">{index + 1}</td>
                       <td className="border text-sm px-4 py-2">{category.categoryname}</td>
                       <td className="border text-sm px-4 py-2">{category.categorycode}</td>

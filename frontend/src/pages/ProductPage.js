@@ -390,7 +390,7 @@ const ProductPage = () => {
                     : true
                 )
                 .map((product, index) => (
-                  <tr key={product.productid} className="hover:bg-gray-50">
+                  <tr key={product.productid} className="hover:bg-gray-100">
                     {/* <td className="border border-gray-300 px-4 py-2">{index + 1}</td> */}
                     <td className="border border-gray-300 px-4 py-2">{product.productcode}</td>
                     <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
@@ -410,14 +410,14 @@ const ProductPage = () => {
                             onProductUpdated={fetchProducts}
                           />
                         </td>
-                        {/* <td className="border border-gray-300 text-center justify-center items-center">
-                          <button
-                            onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
-                        </td> */}
+                          {/* <td className="border border-gray-300 text-center justify-center items-center">
+                            <button
+                              onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <TrashIcon className="w-6 h-6" />
+                            </button>
+                          </td>  */}
                       </>
                     )}
                   </tr>
