@@ -12,7 +12,7 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       value={query}
       onChange={(e) => onSearch(e.target.value)}
       placeholder="Search..."
-      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
     />
     {/* <button
       onClick={onSort}
@@ -23,7 +23,7 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
     <select
       value={selectedEmployee}
       onChange={(e) => onEmployeeFilter(e.target.value)}
-      className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
     >
       <option value="">All Branches</option>
       {employees
