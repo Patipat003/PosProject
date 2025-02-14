@@ -1,7 +1,8 @@
-import React from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, LayersControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { motion } from "framer-motion";
 
 // ตั้งค่าไอคอนหมุด
 const customIcon = new L.Icon({
@@ -13,29 +14,69 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-const BranchMap = ({ branches, onBranchClick }) => {
-  return (
-    <MapContainer center={[14.736717, 104.523186]} zoom={5} className="h-96 w-full rounded-lg shadow-lg" style={{ zIndex: 0 }}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+// คอมโพเนนต์ช่วยให้แผนที่เคลื่อนที่นุ่มนวล
+const MapFlyTo = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, map.getZoom(), { animate: true, duration: 1.5 });
+  }, [center, map]);
+  return null;
+};
 
-      {branches.map((branch) => {
-        const [lat, lng] = branch.google_location?.split(",").map(Number) || [13.736717, 100.523186];
+const BranchMap = ({ branches, onBranchClick }) => {
+  const [mapCenter, setMapCenter] = useState([14.736717, 104.523186]);
+
+  // อัปเดต Center ถ้ามีสาขา
+  useEffect(() => {
+    if (branches.length > 0) {
+      const firstBranch = branches[0];
+      if (firstBranch.google_location?.includes(",")) {
+        const [lat, lng] = firstBranch.google_location.split(",").map(Number);
+        setMapCenter([lat, lng]);
+      }
+    }
+  }, [branches]);
+
+  return (
+    <MapContainer center={mapCenter} zoom={5} className="h-96 w-full rounded-lg shadow-lg" style={{ zIndex: 0 }} animate={true}>
+      <MapFlyTo center={mapCenter} />
+
+      {/* Layer Control */}
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="OpenStreetMap">
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Google Satellite">
+          <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={["mt0", "mt1", "mt2", "mt3"]} />
+        </LayersControl.BaseLayer>
+      </LayersControl>
+
+      {/* Marker ของสาขา */}
+      {branches?.map((branch) => {
+        const [lat, lng] = branch.google_location?.includes(",")
+          ? branch.google_location.split(",").map(Number)
+          : [13.736717, 100.523186];
 
         return (
           <Marker 
             key={branch.branchid} 
             position={[lat, lng]} 
-            icon={customIcon}
+            icon={customIcon} 
+            zIndexOffset={1000}
             eventHandlers={{
-              click: () => onBranchClick(branch), // คลิกหมุดเพื่อเปิด View Modal
+              click: () => {
+                setMapCenter([lat, lng]);
+                onBranchClick(branch);
+              }
             }}
           >
-            <Popup>
+            {/* แสดง Tooltip เมื่อ hover */}
+            <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
               <div className="text-center">
                 <p className="font-bold">{branch.bname}</p>
                 <p className="text-gray-600">{branch.location}</p>
               </div>
-            </Popup>
+            </Tooltip>
           </Marker>
         );
       })}
