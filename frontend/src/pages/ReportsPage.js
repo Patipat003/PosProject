@@ -37,6 +37,7 @@ const ReportsPage = () => {
   const [filterType, setFilterType] = useState("month");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(""); // Declare the selectedEmployee state
 
   const fetchSalesData = async () => {
     try {
@@ -51,6 +52,9 @@ const ReportsPage = () => {
       setSalesData(salesResponse.data.Data);
       setBranches(branchResponse.data.Data);
       setLoading(false);
+
+      const userBranch = getUserBranch(); // Get user branch id from token
+      setSelectedEmployee(userBranch); // Set the selectedEmployee to user's branch id
     } catch (err) {
       setError("Failed to load sales data");
       setLoading(false);
@@ -64,6 +68,12 @@ const ReportsPage = () => {
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
     return branch ? branch.bname : "Unknown Branch";
+  };
+
+  const getUserBranch = () => {
+    const token = localStorage.getItem("authToken");
+    const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode token
+    return decodedToken.branchid; // Extract branchid from token
   };
 
   const groupedSales = salesData.reduce((groups, item) => {
@@ -88,9 +98,9 @@ const ReportsPage = () => {
     const branchesData = Object.keys(groupedSales[dateKey]).filter((branchId) => {
       const { totalAmount, count } = groupedSales[dateKey][branchId];
       const branchName = getBranchName(branchId);
-
+  
       return (
-        (selectedBranch === "" || selectedBranch === branchId) &&
+        (selectedEmployee === "" || selectedEmployee === branchId) && // Check if branch matches the selectedEmployee
         (!selectedDate ||
           dateKey === format(selectedDate, filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy")) &&
         (searchQuery === "" ||
@@ -100,61 +110,61 @@ const ReportsPage = () => {
           count.toString().includes(searchQuery))
       );
     });
-
+  
     if (branchesData.length > 0) {
       result[dateKey] = branchesData;
     }
-
+  
     return result;
   }, {});
-      const exportToPDF = () => {
-        const doc = new jsPDF();
-        doc.text("Sales Report", 14, 15);
-        
-        const tableColumn = ["No.", "Date", "Branch", "Total Amount", "Items Sold"];
-        const tableRows = [];
-      
-        Object.keys(filteredSales).forEach((dateKey, index) => {
-          filteredSales[dateKey].forEach((branchId) => {
-            const { totalAmount, count } = groupedSales[dateKey][branchId];
-            tableRows.push([
-              index + 1,
-              dateKey,
-              getBranchName(branchId),
-              `$${totalAmount.toFixed(2)}`,
-              count,
-            ]);
-          });
-        });
-      
-        autoTable(doc, {
-          startY: 20,
-          head: [tableColumn],
-          body: tableRows,
-        });
-      
-        doc.save("Sales_Report.pdf");
-      };
 
-      const generateCSVData = () => {
-        const csvData = [
-          ["No.", "Date", "Branch", "Total Amount", "Items Sold"],
-        ];
-        Object.keys(groupedSales).forEach((dateKey, index) => {
-          Object.keys(groupedSales[dateKey]).forEach((branchId) => {
-            const { totalAmount, count } = groupedSales[dateKey][branchId];
-            csvData.push([
-              index + 1,
-              dateKey,
-              getBranchName(branchId),
-              totalAmount.toFixed(2),
-              count,
-            ]);
-          });
-        });
-        return csvData;
-      };
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Sales Report", 14, 15);
     
+    const tableColumn = ["No.", "Date", "Branch", "Total Amount", "Items Sold"];
+    const tableRows = [];
+  
+    Object.keys(filteredSales).forEach((dateKey, index) => {
+      filteredSales[dateKey].forEach((branchId) => {
+        const { totalAmount, count } = groupedSales[dateKey][branchId];
+        tableRows.push([
+          index + 1,
+          dateKey,
+          getBranchName(branchId),
+          `$${totalAmount.toFixed(2)}`,
+          count,
+        ]);
+      });
+    });
+  
+    autoTable(doc, {
+      startY: 20,
+      head: [tableColumn],
+      body: tableRows,
+    });
+  
+    doc.save("Sales_Report.pdf");
+  };
+
+  const generateCSVData = () => {
+    const csvData = [
+      ["No.", "Date", "Branch", "Total Amount", "Items Sold"],
+    ];
+    Object.keys(filteredSales).forEach((dateKey, index) => {
+      filteredSales[dateKey].forEach((branchId) => {
+        const { totalAmount, count } = groupedSales[dateKey][branchId];
+        csvData.push([
+          index + 1,
+          dateKey,
+          getBranchName(branchId),
+          totalAmount.toFixed(2),
+          count,
+        ]);
+      });
+    });
+    return csvData;
+  };
 
   if (loading) {
     return <div className="text-center text-xl py-4">Loading...</div>;
@@ -195,7 +205,6 @@ const ReportsPage = () => {
         </button>
       </div>
 
-      {/* Search input, branch dropdown, and calendar picker */}
       <div className="mb-6 flex gap-4 items-center">
         <input
           type="text"
@@ -205,11 +214,11 @@ const ReportsPage = () => {
           className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
         <select
-          value={selectedBranch}
-          onChange={(e) => setSelectedBranch(e.target.value)}
-          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          value={selectedEmployee} // Use the selectedEmployee state
+          onChange={(e) => setSelectedEmployee(e.target.value)} // Update the state on change
+          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
         >
-          <option value="">Select Branch</option>
+          <option value="">All Branches</option>
           {branches.map((branch) => (
             <option key={branch.branchid} value={branch.branchid}>
               {branch.bname}
@@ -230,7 +239,6 @@ const ReportsPage = () => {
           style={{ position: "relative" }}
         />
       </div>
-      
       
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
         <thead className="bg-gray-100 text-gray-600">
@@ -259,15 +267,8 @@ const ReportsPage = () => {
               })}
             </React.Fragment>
           ))}
-
         </tbody>
       </table>
-      {/* <button
-        onClick={exportToPDF}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
-        >
-          Export to PDF
-      </button> */}  
       <CSVLink
         data={generateCSVData()}
         filename={"Sales_Report.csv"}
