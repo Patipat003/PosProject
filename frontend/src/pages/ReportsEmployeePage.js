@@ -5,7 +5,6 @@ import ExportButtons from "../components/layout/ui/ExportButtons";
 import { toZonedTime, format } from 'date-fns-tz';
 import { AiOutlineExclamationCircle } from "react-icons/ai"; 
 import { Player } from "@lottiefiles/react-lottie-player"; 
-import { HiOutlineUser , HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -19,19 +18,6 @@ const ReportsEmployeePage = () => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({
-    email: "",
-    password: "",
-    name: "",
-    role: "",
-    branchid: "",
-  });
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [roleToUpdate, setRoleToUpdate] = useState("");
-  const [employeeid, setemployeeid] = useState("");
-  const [sortKey, setSortKey] = useState("employeeid");
   const [sortDirection, setSortDirection] = useState("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState(null);  // New state for branch filter
@@ -39,8 +25,6 @@ const ReportsEmployeePage = () => {
   const [sortByDate, setSortByDate] = useState(false);
   const [userBranchId, setUserBranchId] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false); 
-  const [newPassword, setNewPassword] = useState("");
   const [currentPage, setCurrentPage] = useState(1); 
   const itemsPerPage = 10; 
 
@@ -110,148 +94,16 @@ const ReportsEmployeePage = () => {
     return branch ? branch.bname : "Unknown Branch";
   };
 
-  const handleSortChange = (key, direction) => {
-    setSortKey(key);
-    setSortDirection(direction);
-    const sortedData = [...employees].sort((a, b) => {
-      const aValue = a[key];
-      const bValue = b[key];
-      return direction === "asc" ? (aValue < bValue ? -1 : 1) : aValue > bValue ? -1 : 1;
-    });
-    setEmployees(sortedData);
-  };
+  
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleAddEmployee = async (e) => {
-    e.preventDefault();
-    if (!newEmployee.name || !newEmployee.email || !newEmployee.password || !newEmployee.role) {
-      toast.error("All fields are required.");
-      return;
-    }
-  
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-  
-      const payload = {
-        ...newEmployee,
-        branchid: userRole === "Super Admin" ? newEmployee.branchid : userBranchId,
-      };
-  
-      await axios.post("http://localhost:5050/employees", payload, config);
-      setShowAddModal(false);
-      fetchData();
-      toast.success("Employee added successfully.");
-    } catch (err) {
-      console.error("Failed to add employee:", err);
-      toast.error("Failed to add employee. Please try again.");
-    }
-  };
-
-  const handleBranchChange = (branchId) => {
-    setSelectedBranch(branchId);  // Update the branch filter state
-  };
 
   const handleRoleSort = (e) => {
     setSelectedRole(e.target.value);
   };
-
-  const handleRoleChange = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const response = await axios.patch(
-        `http://localhost:5050/employees/${employeeid}`,
-        { role: roleToUpdate },
-        config
-      );
-
-      if (response.status === 200) {
-        const updatedEmployees = employees.map((employee) =>
-          employee.employeeid === employeeid ? { ...employee, role: roleToUpdate } : employee
-        );
-        setEmployees(updatedEmployees);
-        setShowRoleModal(false);
-      } else {
-        console.error("Failed to update role:", response.data);
-        alert("Failed to update role. Please check your permissions.");
-      }
-    } catch (err) {
-      console.error("Failed to update role:", err);
-      alert("Failed to update role. Please check your permissions.");
-    }
-  };
-
-  const handleDeleteEmployee = async (employeeid) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      try {
-        const token = localStorage.getItem("authToken");
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-  
-        const response = await axios.delete(
-          `http://localhost:5050/employees/${employeeid}`,
-          config
-        );
-  
-        if (response.status === 200) {
-          setEmployees(employees.filter((employee) => employee.employeeid !== employeeid));
-          toast.success("Employee deleted successfully.");
-        } else {
-          toast.error("Failed to delete employee.");
-        }
-      } catch (err) {
-        console.error("Failed to delete employee:", err);
-        toast.error("Failed to delete employee. Please try again.");
-      }
-    }
-  };  
-
-  const handlePasswordChange = async () => {
-    if (!newPassword) {
-      alert("Please enter a new password.");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const response = await axios.patch(
-        `http://localhost:5050/employees/${employeeid}`,
-        { password: newPassword },
-        config
-      );
-
-      if (response.status === 200) {
-        alert("Password updated successfully.");
-        setShowPasswordModal(false);
-        fetchData();
-      } else {
-        console.error("Failed to update password:", response.data);
-        alert("Failed to update password.");
-      }
-    } catch (err) {
-      console.error("Failed to update password:", err);
-      alert("Failed to update password.");
-    }
-  };
-
   const handleDateSortChange = () => {
     setSortByDate(!sortByDate);
   };
@@ -323,10 +175,10 @@ const ReportsEmployeePage = () => {
       <div className="flex justify-between mb-4">
         <ExportButtons
           filteredTables={filteredEmployees.map(employee => ({
-            email: employee.email,
-            name: employee.name,
-            role: employee.role,
-            branch: getBranchName(employee.branchid),
+            Name: employee.name,
+            Role: employee.role,
+            Branch: getBranchName(employee.branchid),
+            Totalamount: employee.totalamount.toLocaleString(),
           }))}
           columns={["email", "name", "role", "branch"]} // Define the column headers accordingly
           filename="employees_report.pdf" // Filename for export
