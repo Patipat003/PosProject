@@ -159,7 +159,7 @@ const ProductMovementChart = () => {
           <tbody>
             {currentData.map((item, index) => (
               <tr key={index} className="hover:bg-gray-100">
-                <td className="border border-gray-300 px-4 py-2">{moment(item.date).format("DD/MM/YYYY")}</td>
+                <td className="border border-gray-300 px-4 py-2">{moment.utc(item.date).format("DD/MM/YYYY")}</td>
                 <td className="border border-gray-300 px-4 py-2">{item.imported}</td>
                 <td className="border border-gray-300 px-4 py-2">{item.sold}</td>
                 <td className="border border-gray-300 px-4 py-2">{item.exported}</td>

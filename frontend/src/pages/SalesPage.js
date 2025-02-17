@@ -336,7 +336,7 @@ const SalesPage = () => {
                       />
                     </figure>
                     <div className="text-center my-2">
-                      <h2 className="text-black text-xs">{product.productname}</h2>
+                      <h2 className="text-black text-xs truncate w-32">{product.productname}</h2>
                       <p className="text-xs text-black mt-4">฿{product.price.toFixed(2)}</p>
                       <p className="text-xs text-black mt-1">Stock: {stock}</p>
                     </div>
