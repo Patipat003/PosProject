@@ -17,6 +17,7 @@ import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
 import { HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineCube } from 'react-icons/hi'; // Heroicons
 import moment from "moment";
+import ProductMovementChart from "../components/layout/ui/ProductMovementChart";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -311,9 +312,7 @@ const DashboardPage = () => {
     const salesGraphOptions = {
       chart: { type: "line", height: 350 },
       xaxis: { categories: salesByTime.map(data => moment(data.time).format("D/M/YY")) },
-      stroke: { curve: "smooth" },
-      markers: { size: 4 },
-      tooltip: { theme: "light" },
+      stroke: { width: 3, curve: "smooth" },
       colors: ["#FF6384"],
       yaxis: { title: { text: "Total Sales (THB)" } },
     };
@@ -484,6 +483,8 @@ const DashboardPage = () => {
               </tbody>
             </table>
           </div>
+
+          <ProductMovementChart />
 
           <div className="bg-white shadow-lg rounded-lg p-4">
             <h2 className="font-semibold mb-4">Sale Recents</h2>
