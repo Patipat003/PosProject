@@ -346,9 +346,7 @@ const InventoryPage = () => {
                   <th className="border text-sm text-center">No.</th>
                   <th className="border py-2 px-4 text-sm">Product Name</th>
                   <th className="border py-2 px-4 text-sm">Quantity</th>
-                  {(userRole === "Manager" || userRole === "Super Admin") && (
-                    <th className="border py-2 px-4 text-sm">Updated At</th>
-                  )}
+                  <th className="border py-2 px-4 text-sm">Updated At</th>
                   {(userRole === "Manager" || userRole === "Super Admin") && (
                     <th className="border border-gray-300 py-2 px-4 text-sm">Action</th>
                   )}
@@ -370,9 +368,7 @@ const InventoryPage = () => {
                     >
                       {item.quantity}
                     </td>
-                    {(userRole === "Manager" || userRole === "Super Admin") && (
-                      <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
-                    )}
+                    <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
                     {(userRole === "Manager" || userRole === "Super Admin") && (
                       <td className="border border-gray-300 text-center justify-center items-center">
                         <button
