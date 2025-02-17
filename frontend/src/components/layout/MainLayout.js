@@ -147,7 +147,8 @@ const MainLayout = ({ children }) => {
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
                   { label: "Sales Reports", link: "/reports" },
-                  { label: "Detail Report", link: "/detailReport" },              
+                  { label: "Detail Report", link: "/detailReport" },
+                  { label: "Employee Report", link: "/employeeReports" },              
                 ]}
               </SidebarDropdown>
             )}

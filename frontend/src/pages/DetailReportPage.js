@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { CSVLink } from "react-csv";
+import { Player } from "@lottiefiles/react-lottie-player";
+
 
 
 
@@ -218,7 +220,19 @@ const DetailReportPage = () => {
     "Total Price": item.totalPrice.toFixed(2),
   }));
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
+          style={{ height: "200px", width: "200px" }}
+        />
+        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+      </div>
+    );
+  }
   if (error) return <div>{error}</div>;
 
   return (

@@ -6,6 +6,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { CSVLink } from "react-csv";
+import { Player } from "@lottiefiles/react-lottie-player";
+
 
 const formatDate = (dateString, type) => {
   const date = new Date(dateString);
@@ -167,7 +169,17 @@ const ReportsPage = () => {
   };
 
   if (loading) {
-    return <div className="text-center text-xl py-4">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-42 flex-col">
+        <Player
+          autoplay
+          loop
+          src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
+          style={{ height: "200px", width: "200px" }}
+        />
+        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+      </div>
+    );
   }
 
   if (error) {
