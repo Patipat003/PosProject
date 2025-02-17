@@ -3,7 +3,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 import { format } from "date-fns";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify"; // ✅ นำเข้า toast
 import "react-toastify/dist/ReactToastify.css"; // ✅ นำเข้า CSS
 
@@ -120,12 +120,12 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
                       <td className="border text-sm px-4 py-2">{category.categoryname}</td>
                       <td className="border text-sm px-4 py-2">{category.categorycode}</td>
                       <td className="border text-sm px-4 py-2">{moment.utc(category.createdat).format("L, HH:mm")}</td>
-                      <td className="px-4 py-2 text-center">
+                      <td className="px-4 py-2 text-center flex justify-center items-center">
                         <button
                           onClick={() => handleDeleteCategory(category.categoryid)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <FaTrashAlt size={20} />
+                          className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                          >
+                            <FaTrash /> Delete
                         </button>
                       </td>
                     </tr>
