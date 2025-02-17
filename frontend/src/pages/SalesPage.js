@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import PaymentModal from "../components/layout/ui/PaymentModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { motion } from "framer-motion";
 
 const SalesPage = () => {
   const [products, setProducts] = useState([]);
@@ -83,8 +84,8 @@ const SalesPage = () => {
     setTotalAmount(0);
   };
 
-  const handleCategoryChange = (event) => {
-    setSelectedCategory(event.target.value);
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
   };
 
   const filterInventoryByProduct = () => {
@@ -253,7 +254,7 @@ const SalesPage = () => {
   return (
     <div className="p-4 bg-white">
       <ToastContainer />
-      <h1 className="text-3xl font-bold text-teal-600 mb-10">Sales Product</h1>
+      <h1 className="text-3xl font-bold text-teal-600 mb-4">Sales Product</h1>
 
       {alertMessage && (
         <div className="mb-4 p-3 bg-red-100 text-red-600 rounded-lg">
@@ -261,38 +262,58 @@ const SalesPage = () => {
         </div>
       )}
 
+      <motion.div 
+        className="w-full overflow-x-scroll scrollbar-hide whitespace-nowrap py-6 flex border-b border-gray-300"
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* ปุ่ม "All Items" */}
+        <button
+          onClick={() => handleCategoryChange("")}
+          className={`px-4 py-2 text-sm font-medium ${
+            selectedCategory === ""
+              ? "text-red-600 font-bold border-b-2 border-teal-500"
+              : "text-gray-500 hover:text-black"
+          }`}
+        >
+          All Items
+        </button>
+
+        {/* ปุ่มหมวดหมู่สินค้า */}
+        {categories.map((category) => (
+          <motion.button
+            key={category.categoryid}
+            onClick={() => handleCategoryChange(category.categoryid)}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-2 text-sm font-medium ${
+              selectedCategory === category.categoryid
+                ? "text-red-600 font-bold border-b-2 border-teal-500"
+                : "text-gray-500 hover:text-black"
+            }`}
+          >
+            {category.categoryname}
+          </motion.button>
+        ))}
+      </motion.div>
+
+
       <div className="flex flex-col md:flex-row gap-4">
         {/* รายการสินค้า */}
         <div className="w-full md:w-3/5">
-          <div className="flex flex-col md:flex-row justify-between mb-6 space-y-4 md:space-y-0 md:space-x-6">
-            {/* หมวดหมู่สินค้า */}
-            <select
-              id="category-select"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.categoryid} value={category.categoryid}>
-                  {category.categoryname}
-                </option>
-              ))}
-            </select>
-
+          <div className="my-6"> 
             {/* ค้นหาสินค้า */}
             <input
               type="text"
-              placeholder="Search by Product code"
+              placeholder="🔍 Search by Product code"
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full md:w-2/3 border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
-          </div>
+          </div> 
 
           {/* รายการสินค้า */}
           <p className="text-black mb-6">Product Lists</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-screen overflow-y-auto mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-34 overflow-y-auto mb-6">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
                 const stock =
@@ -330,7 +351,7 @@ const SalesPage = () => {
 
         {/* ตะกร้าสินค้า */}
         <div className="w-full md:w-2/5">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-end my-6">
             {/* เลือกสาขา */}
             <select
               id="branch-select"

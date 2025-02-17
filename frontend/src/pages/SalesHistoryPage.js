@@ -321,7 +321,7 @@ const SalesHistoryPage = () => {
               <td className="border border-gray-300 px-4 py-2">{sale.role}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.totalamount}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
-              <td className="border border-gray-300 px-4 py-2 flex items-center justify-center space-x-4">
+              <td className="border px-4 py-2 flex items-center justify-center space-x-4">
                 <button
                   className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
                   onClick={() => openModal(sale.saleid, sale.createdat)}

@@ -110,6 +110,7 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var product Models.Product
 
+	// ตรวจสอบว่าสินค้านี้มีอยู่จริงหรือไม่
 	if err := db.Where("product_id = ?", id).First(&product).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Product not found",
@@ -131,7 +132,12 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	// อัปเดตฟิลด์
+	// ✅ เช็คว่า CategoryID มีการเปลี่ยนแปลงหรือไม่
+	if product.CategoryID != req.CategoryID {
+		product.ProductCode = generateSKU(category.CategoryCode, db) // สร้างรหัสใหม่
+	}
+
+	// อัปเดตฟิลด์ต่างๆ
 	product.ProductName = req.ProductName
 	product.Description = req.Description
 	product.Price = req.Price
@@ -144,7 +150,8 @@ func UpdateProduct(db *gorm.DB, c *fiber.Ctx) error {
 			"error": "Failed to update product: " + err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed", "ProductCode": product.ProductCode})
 }
 
 // ✅ ลบ Product และ Inventory ที่เกี่ยวข้อง

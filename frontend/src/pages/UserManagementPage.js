@@ -403,7 +403,7 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border border-gray-300 px-6 py-3 flex justify-center items-center space-x-2">
+            <td className="border px-6 py-3 flex justify-center items-center space-x-2">
               <HiOutlineUser 
                 className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
