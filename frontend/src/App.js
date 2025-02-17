@@ -21,6 +21,7 @@ import ReceiptsPage from "./pages/ReceiptsPage";
 import { ToastContainer } from "react-toastify";
 import SelectBranchPage from "./pages/SelectBranchPage";
 import BranchesPage from "./pages/BranchesPage";
+import ReportsEmployeePage from "./pages/ReportsEmployeePage";
 
 function App() {
   return (
@@ -177,6 +178,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <BranchesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employeeReports"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ReportsEmployeePage />
                 </MainLayout>
               </ProtectedRoute>
             }
