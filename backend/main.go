@@ -80,14 +80,6 @@ func main() {
 		log.Fatalf("AutoMigrate failed for PosDB: %v", err)
 	}
 
-	// ตัวอย่างการใช้ warehouseDB
-	var branchFromWarehouse Models.Branches
-	// ดึงข้อมูลจาก WarehouseDB โดยใช้ warehouseDB
-	if err := warehouseDB.Where("branch_id = ?", "b652492b-2083-4770-8888-e7609b8f033a").First(&branchFromWarehouse).Error; err != nil {
-		log.Fatalf("Failed to fetch branch from WarehouseDB: %v", err)
-	}
-	log.Printf("Branch from Warehouse: %+v", branchFromWarehouse)
-
 	// สร้าง Fiber app
 	app := fiber.New()
 

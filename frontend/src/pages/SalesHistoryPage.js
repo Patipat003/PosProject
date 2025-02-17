@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toZonedTime, format } from 'date-fns-tz';
-import { FaReceipt, FaPrint } from "react-icons/fa"; // Import receipt and print icons
+import { FaReceipt, FaPrint, FaTrash } from "react-icons/fa"; // Import receipt and print icons
 import { jwtDecode } from "jwt-decode";
 import { jsPDF } from 'jspdf';// Import ReactPrinter component
 import html2canvas from 'html2canvas-pro';
@@ -14,6 +14,7 @@ const SalesHistoryPage = () => {
   const [modalData, setModalData] = useState(null);
   const [branchId, setBranchId] = useState("");
   const [employees, setEmployees] = useState([]);
+  const [userRole, setUserRole] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +27,7 @@ const SalesHistoryPage = () => {
     const token = localStorage.getItem("authToken");
     const decoded = jwtDecode(token);
     setBranchId(decoded.branchid);
+    setUserRole(decoded.role);
     fetchSalesData(decoded.branchid);
   }, []);
 
@@ -72,6 +74,30 @@ const SalesHistoryPage = () => {
       console.error("Error fetching sales data:", error);
     }
   };
+
+
+  const handleDelete = async (saleId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this sale?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      await axios.delete(`http://localhost:5050/sales/${saleId}`, config);
+      
+      // อัปเดต state หลังจากลบสำเร็จ
+      const updatedSales = sales.filter((sale) => sale.saleid !== saleId);
+      setSales(updatedSales);
+      setFilteredSales(updatedSales);
+      setPaginatedSales(updatedSales.slice(0, itemsPerPage));
+
+      alert("Sale deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting sale:", error);
+      alert("Failed to delete sale.");
+    }
+  };
   
   const handleSearch = (event) => {
     const term = event.target.value;
@@ -113,16 +139,14 @@ const SalesHistoryPage = () => {
     }
   
     if (date) {
-      // แปลง selectedDate และ createdat ให้อยู่ในรูปแบบเดียวกัน (dd/MM/yyyy)
       const formattedSelectedDate = format(new Date(date), "dd/MM/yyyy");
-  
+    
       filtered = filtered.filter((sale) => {
-        // ดึงแค่วันที่จาก createdat (รูปแบบ "dd/MM/yyyy, HH:mm")
-        const saleDate = sale.createdat.split(", ")[0]; // "dd/MM/yyyy"
+        const saleDate = sale.createdat.split(", ")[0]; // แยกเอาเฉพาะวันที่
         return saleDate === formattedSelectedDate;
       });
     }
-  
+    
     filtered.sort((a, b) => {
       const parseDate = (dateStr) => {
         const [date, time] = dateStr.split(", ");
@@ -291,20 +315,28 @@ const SalesHistoryPage = () => {
         <tbody>
           {paginatedSales.map((sale) => (
             <tr key={sale.saleid} className="hover:bg-gray-100">
-              <td className="border border-gray-300 px-4 py-2">{sale.index}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{sale.index}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.employeename}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.role}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.totalamount}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
-              <td className="border border-gray-300 px-4 py-2 flex items-center justify-center">
+              <td className="border border-gray-300 px-4 py-2 flex items-center justify-center space-x-4">
                 <button
                   className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
                   onClick={() => openModal(sale.saleid, sale.createdat)}
                 >
                   <FaReceipt /> Receipt
                 </button>
-              </td>
+                {(userRole === "Manager" || userRole === "Super Admin") && (
+                  <button
+                    onClick={() => handleDelete(sale.saleid)}
+                    className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                )}
+              </td>   
             </tr>
           ))}
         </tbody>

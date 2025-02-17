@@ -376,22 +376,25 @@ const DashboardPage = () => {
 
         {/* New Top Sale Products Section */}
         <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
-          <h2 className="font-semibold mb-4">Top Sale Products (List)</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {topProducts.map((product, index) => (
-              <div key={index} className="border-2 border-gray-300 p-4 rounded-lg shadow-sm">
-                <img
-                  src={product.imageurl || "https://via.placeholder.com/150"}
-                  alt={product.productname}
-                  className="w-full h-32 object-contain rounded-md mb-2"
-                />
-                <h3 className="font-bold text-teal-600">{product.productname}</h3>
-
-                <p className="text-sm text-gray-500">Sold: {product.quantity} Units</p>
-              </div>
-            ))}
-          </div>
+        <h2 className="font-semibold mb-4">Top Sale Products (List)</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {topProducts.map((product, index) => (
+            <div key={index} className="relative border-2 border-gray-300 p-4 rounded-lg shadow-sm">
+              {/* แสดงตัวเลขอันดับ */}
+              <span className="absolute top-2 left-2 bg-teal-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {index + 1}
+              </span>
+              <img
+                src={product.imageurl || "https://via.placeholder.com/150"}
+                alt={product.productname}
+                className="w-full h-32 object-contain rounded-md mb-2"
+              />
+              <h3 className="font-bold text-teal-600">{product.productname}</h3>
+              <p className="text-sm text-gray-500">Sold: {product.quantity} Units</p>
+            </div>
+          ))}
         </div>
+      </div>
 
         <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
           <h2 className="font-semibold mb-4">Top Sale Products (Pie Chart)</h2>

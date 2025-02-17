@@ -105,7 +105,7 @@ const SalesPage = () => {
 
   const handleAddToCart = (product) => {
     if (!selectedBranch) {
-      setAlertMessage("Please select a branch first");
+      toast.warning("Please select a branch first");
       return;
     }
 
@@ -114,7 +114,7 @@ const SalesPage = () => {
     );
 
     if (!inventoryItem || inventoryItem.quantity === 0) {
-      setAlertMessage("Out of stock");
+      toast.error("Out of stock");
       return;
     }
 
@@ -125,7 +125,7 @@ const SalesPage = () => {
       if (existingProduct.quantity >= maxQuantity) {
         toast.error(`Cannot increase quantity beyond ${inventoryItem.quantity}.`, {
           position: "top-right",
-          autoClose: 2000,  // Toast จะหายหลังจาก 2 วินาที
+          autoClose: 2000,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: true,
@@ -142,20 +142,11 @@ const SalesPage = () => {
         )
       );
     } else {
-      if (maxQuantity === 0) {
-        setAlertMessage("Out of stock");
-        setTimeout(() => {
-          setAlertMessage("");
-        }, 2000);
-        return;
-      }
       setCart((prevCart) => [
         ...prevCart,
         { ...product, quantity: 1, branchid: selectedBranch },
       ]);
     }
-
-    setAlertMessage("");
   };
 
   useEffect(() => {
@@ -165,23 +156,18 @@ const SalesPage = () => {
 
   const handleCheckout = () => {
     if (!selectedBranch) {
-      setAlertMessage("Select branch before checkout");
-      setTimeout(() => {
-        setAlertMessage("");
-      }, 2000);
+      toast.warning("Select branch before checkout");
       return;
     }
 
     if (cart.length === 0) {
-      setAlertMessage("Your cart is empty, select some products to checkout");
-      setTimeout(() => {
-        setAlertMessage("");
-      }, 2000);
+      toast.warning("Your cart is empty, select some products to checkout");
       return;
     }
 
     setCart([]);
     setTotalAmount(0);
+    toast.success("Checkout successful!");
   };
 
   const handleIncreaseQuantity = (productId) => {

@@ -360,7 +360,7 @@ const InventoryPage = () => {
                   return (
                   <tr key={item.productid} className="hover:bg-gray-100">
                     <td className="border border-gray-300 text-center">{rowIndex}</td>
-                    <td className="border py-2 px-4 border-gray-300 text-black">{products[item.productid]}</td>               
+                    <td className="border py-2 px-4 border-gray-300 text-black">{products[item.productid]}</td>            
                     <td
                       className={`border py-2 px-4 border-gray-300 font-bold ${
                         item.quantity < 100 ? "text-red-500" :

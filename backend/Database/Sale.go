@@ -183,20 +183,59 @@ func UpdateSale(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
-// ลบ Sale
+// ลบ Sale และข้อมูลที่เกี่ยวข้อง
 func DeleteSale(db *gorm.DB, c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("id") // รับ sale_id
+
+	// ค้นหา Sale
 	var sale Models.Sales
 	if err := db.Where("sale_id = ?", id).First(&sale).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Sale not found",
 		})
 	}
-	if err := db.Delete(&sale).Error; err != nil {
+
+	// ใช้ Transaction เพื่อความปลอดภัย
+	tx := db.Begin()
+
+	// ค้นหา receipt_id ที่เกี่ยวข้องกับ sale_id
+	var receipt Models.Receipts
+	if err := tx.Where("sale_id = ?", id).First(&receipt).Error; err == nil {
+		// ลบ ReceiptItems ที่มี receipt_id นี้
+		if err := tx.Where("receipt_id = ?", receipt.ReceiptID).Delete(&Models.ReceiptItems{}).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to delete receipt items: " + err.Error(),
+			})
+		}
+
+		// ลบ Receipts
+		if err := tx.Where("sale_id = ?", id).Delete(&Models.Receipts{}).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to delete receipt: " + err.Error(),
+			})
+		}
+	}
+
+	// ลบ SaleItems ที่เกี่ยวข้อง
+	if err := tx.Where("sale_id = ?", id).Delete(&Models.SaleItems{}).Error; err != nil {
+		tx.Rollback()
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete sale items: " + err.Error(),
+		})
+	}
+
+	// ลบ Sale
+	if err := tx.Delete(&sale).Error; err != nil {
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete sale: " + err.Error(),
 		})
 	}
+
+	tx.Commit()
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
