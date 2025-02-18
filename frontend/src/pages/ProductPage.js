@@ -10,6 +10,7 @@ import { TrashIcon } from "@heroicons/react/outline";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import CategoryModal from "../components/layout/ui/CategoryModal";
+import ProductDetailModal from "../components/layout/ui/ProductDetailModal";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A"; // ตรวจสอบค่าว่าง
@@ -114,35 +115,6 @@ const ProductPage = () => {
     setSearchQuery(e.target.value);
   };
 
-  const matchesSearch = (item) => {
-    return searchQuery
-      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-  };
-
-  // ฟังก์ชันสำหรับการเปลี่ยนแปลงการเรียงลำดับ
-  const handleSortChange = (key, direction) => {
-    setSortKey(key);
-    setSortDirection(direction);
-
-    const sortedData = [...products].sort((a, b) => {
-      const aValue = a[key];
-      const bValue = b[key];
-
-      if (aValue < bValue) return direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setProducts(sortedData);
-  };
-
-  const sortOptions = [
-    { key: "productname", label: "Product Name" },
-    { key: "price", label: "Price" },
-    { key: "createdat", label: "Created At" },
-  ];
-
   useEffect(() => {
     fetchProducts();
     
@@ -155,14 +127,35 @@ const ProductPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // ฟังก์ชันสำหรับ pagination
-  const totalProductPages = Math.ceil(products.length / itemsPerPage);
+  const filteredProducts = selectedCategory
+    ? products.filter((product) => product.categoryid === selectedCategory)
+    : products;
 
+  // คำนวณจำนวนหน้าทั้งหมด
+  const totalProductPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // ตรวจสอบและรีเซ็ต currentProductPage ถ้ามันเกินจำนวนหน้าที่มีจริง
+  useEffect(() => {
+    if (currentProductPage > totalProductPages) {
+      setCurrentProductPage(totalProductPages > 0 ? totalProductPages : 1);
+    }
+  }, [filteredProducts, totalProductPages]);
+
+
+  // ฟังก์ชันสำหรับแบ่งหน้าข้อมูลสินค้า
   const getPaginatedProducts = () => {
     const startIndex = (currentProductPage - 1) * itemsPerPage;
-    return products.slice(startIndex, startIndex + itemsPerPage);
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
   };
 
+  // ป้องกัน pagination แสดงหน้าที่เกินจำนวนที่มี
+  useEffect(() => {
+    if (currentProductPage > totalProductPages) {
+      setCurrentProductPage(1);
+    }
+  }, [filteredProducts, totalProductPages]);
+
+  // ฟังก์ชันการเปลี่ยนหน้า
   const handlePreviousPageProduct = () => {
     if (currentProductPage > 1) {
       setCurrentProductPage(currentProductPage - 1);
@@ -174,6 +167,12 @@ const ProductPage = () => {
       setCurrentProductPage(currentProductPage + 1);
     }
   };
+
+  // รีเซ็ตหน้าเมื่อมีการค้นหาหรือเปลี่ยนหมวดหมู่
+  useEffect(() => {
+    setCurrentProductPage(1);
+  }, [searchQuery, selectedCategory]);
+
 
   const fetchCategories = async () => {
     try {
@@ -220,14 +219,8 @@ const ProductPage = () => {
         <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
         <p className="text-red-500 text-xl">{error}</p>
       </div>
-
-
     );
   }
-
-  const filteredProducts = selectedCategory
-    ? products.filter((product) => product.categoryid === selectedCategory)
-    : products;
 
   const paginatedProducts = getPaginatedProducts();
 
@@ -294,7 +287,7 @@ const ProductPage = () => {
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="Search by Product Code"
+            placeholder="Search by Product Code / Product Name"
             className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
           
@@ -308,17 +301,21 @@ const ProductPage = () => {
           )}
         </div>
 
+        {/* 🔹 Show Detail Modal when a product is selected */}
+        {selectedProduct && <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
+
         {/* Scrollable Product Grid */}
         <div
-          className="grid grid-cols-5 gap-4 max-h-96 overflow-y-auto"  // This makes the grid scrollable
+          className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-96 overflow-y-auto"  // This makes the grid scrollable
           style={{ maxHeight: '400px' }}  // You can adjust the height as needed
         >
           {filteredProducts
             .filter((product) =>
               searchQuery
-                ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase())
+                ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  product.productname.toLowerCase().includes(searchQuery.toLowerCase())
                 : true
-            )
+            )            
             .map((product) => (
               <div
                 key={product.productid}
@@ -387,14 +384,17 @@ const ProductPage = () => {
               {paginatedProducts
                 .filter((product) =>
                   searchQuery
-                    ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase())
+                    ? product.productcode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      product.productname.toLowerCase().includes(searchQuery.toLowerCase())
                     : true
-                )
-                .map((product, index) => (
+                )                
+                .map((product) => (
                   <tr key={product.productid} className="hover:bg-gray-100">
                     {/* <td className="border border-gray-300 px-4 py-2">{index + 1}</td> */}
                     <td className="border border-gray-300 px-4 py-2">{product.productcode}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.productname}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <div className="truncate max-w-xs">{product.productname}</div>
+                    </td>
                     <td className="border border-gray-300 px-4 py-2">
                       <div className="truncate max-w-xs">{product.description}</div>
                     </td>

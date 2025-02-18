@@ -23,6 +23,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
 
+
 // Utility function to format date
 const formatDate = (dateString) => {
   const zonedDate = toZonedTime(dateString, 'UTC');
@@ -456,15 +457,6 @@ const DashboardPage = () => {
           </div>
 
           <div className="bg-white shadow-lg rounded-lg p-4">
-            <h2 className="font-semibold mb-4">Key Metrics (Bar Chart)</h2>
-            <div className="w-72 mx-auto">
-              <Bar data={barData} options={{ maintainAspectRatio: false }} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6 text-gray-600">
-          <div className="bg-white shadow-lg rounded-lg p-4">
             <h2 className="font-semibold mb-4">Sales Summary (Table)</h2>
             <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
               <thead className="bg-gray-100 text-gray-600">
@@ -482,7 +474,10 @@ const DashboardPage = () => {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>    
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6 text-gray-600">
 
           <ProductMovementChart />
 

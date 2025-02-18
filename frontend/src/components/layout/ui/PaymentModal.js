@@ -330,7 +330,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
               {cartData.map((item, index) => (
                 <li key={index} className="text-gray-600 py-2 flex justify-between">
                   <span>
-                  x<span className="mr-2">{item.quantity}</span> {item.productname} 
+                  x<span className="mr-2 truncate w-16">{item.quantity}</span> {item.productname} 
                   </span>
                   <span className="mr-2">฿{(item.price * item.quantity).toFixed(2)}</span>
                 </li>

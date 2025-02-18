@@ -20,6 +20,7 @@ const SalesPage = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // New state for search query
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -90,17 +91,19 @@ const SalesPage = () => {
 
   const filterInventoryByProduct = () => {
     if (!selectedBranch) return [];
-
+  
     return products.filter((product) => {
-      const inInventory = inventory.some(
+      const inventoryItem = inventory.find(
         (item) => item.productid === product.productid && item.branchid === selectedBranch
       );
-      const inCategory =
-        !selectedCategory || product.categoryid === selectedCategory;
+      const inCategory = !selectedCategory || product.categoryid === selectedCategory;
       const matchesSearchQuery =
         !searchQuery || product.productcode.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return inInventory && inCategory && matchesSearchQuery;
+  
+      // ถ้า checkbox เปิดอยู่ จะแสดงเฉพาะสินค้าที่มี stock (quantity > 0)
+      const hasStock = !showAvailableOnly || (inventoryItem && inventoryItem.quantity > 0);
+  
+      return inventoryItem && inCategory && matchesSearchQuery && hasStock;
     });
   };
 
@@ -168,7 +171,6 @@ const SalesPage = () => {
 
     setCart([]);
     setTotalAmount(0);
-    toast.success("Checkout successful!");
   };
 
   const handleIncreaseQuantity = (productId) => {
@@ -296,24 +298,35 @@ const SalesPage = () => {
         ))}
       </motion.div>
 
-
       <div className="flex flex-col md:flex-row gap-4">
+
         {/* รายการสินค้า */}
         <div className="w-full md:w-3/5">
-          <div className="my-6"> 
-            {/* ค้นหาสินค้า */}
+
+          <div className="my-6 flex items-center gap-4">
+            {/* ช่องค้นหา */}
             <input
               type="text"
               placeholder="🔍 Search by Product code"
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-3/4 border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
-          </div> 
-
+            
+            {/* Checkbox สำหรับกรองเฉพาะสินค้าที่มีอยู่ */}
+            <label className="flex items-center space-x-2 text-gray-600">
+              <input
+                type="checkbox"
+                checked={showAvailableOnly}
+                onChange={() => setShowAvailableOnly(!showAvailableOnly)}
+                className="checkbox border-teal-600 [--chkbg:theme(colors.teal.500)] [--chkfg:white] checked:border-teal-600 text-teal-600"
+              />
+              <span>Show Available Only</span>
+            </label>
+          </div>
+ 
           {/* รายการสินค้า */}
-          <p className="text-black mb-6">Product Lists</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-34 overflow-y-auto mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-1/2 overflow-y-auto mb-6">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
                 const stock =

@@ -254,7 +254,7 @@ const InventoryPage = () => {
         {/* Search Bar */}
         <div className="flex items-center space-x-4 flex-grow">
           <label htmlFor="searchInput" className="text-black font-semibold whitespace-nowrap">
-            Search by Product Name
+             Search by Product Name
           </label>
           <div className="relative flex-grow">
             <input

@@ -218,14 +218,23 @@ const SalesHistoryPage = () => {
 
   const handlePrint = () => {
     const element = document.getElementById('print-area');
-    
-    html2canvas(element).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png');
-      const doc = new jsPDF();
-      doc.addImage(imgData, 'PNG', 50, 0);
-      doc.save('receipt.pdf');
-    });
+
+    html2canvas(element, {
+        scale: 2, // ปรับให้ชัดขึ้น
+        useCORS: true // ป้องกันปัญหารูปภาพข้ามโดเมน
+    }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const doc = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: [80, 120] // ขนาดใบเสร็จ
+        });
+
+        doc.addImage(imgData, 'PNG', 5, 5, 70, 110);
+        doc.save('receipt.pdf');
+      });
   };
+
   
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -361,8 +370,8 @@ const SalesHistoryPage = () => {
       {/* ส่วนของ Modal */}
       {modalData && (
         <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg w-96 max-w-screen-sm">
-            <div className="p-6 rounded shadow-lg max-w-screen" id="print-area">
+          <div className="bg-white p-6 rounded shadow-lg max-w-screen-sm">
+            <div id="print-area">
               {/* Use ReactPrinter to display receipt content */}
               <ReceiptPrinter modalData={modalData} />
             </div>

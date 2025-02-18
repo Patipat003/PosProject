@@ -6,7 +6,7 @@ import {
   HiShoppingCart,
   HiDocumentText,
   HiUser,
-  HiArrowLeft,
+  HiOfficeBuilding,
   HiCube,
   HiMenu,
   HiX,
@@ -110,6 +110,15 @@ const MainLayout = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+
+      {/* Burger Icon */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed ml-4 z-20 text-white bg-teal-600 py-4"
+      >
+        {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
+      </button>
+
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 w-full z-10">
         <Header />
@@ -161,19 +170,11 @@ const MainLayout = ({ children }) => {
               </SidebarDropdown>
             )}
             {( isSuperAdmin ) && (
-              <SidebarItem label="Branches Management" link="/branchesManagement" icon={<HiCube />} />
+              <SidebarItem label="Branches Management" link="/branchesManagement" icon={<HiOfficeBuilding />} />
             )}
           </nav>
         </aside>
       </div>
-      
-      {/* Burger Icon */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed ml-4 z-40 text-white bg-teal-600 pt-4"
-      >
-        {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
-      </button>
 
       {/* Main Content */}
       <main

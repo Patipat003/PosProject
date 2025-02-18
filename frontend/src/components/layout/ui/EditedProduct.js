@@ -171,17 +171,32 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <InputField label="Product Name" value={productName} onChange={setProductName} />
                 <InputField label="Price" value={price} onChange={setPrice} type="number" />
 
-                {/* ปุ่มอัปโหลดรูปภาพ */}
+                {/* กล่องอัปโหลดรูปและใส่ URL */}
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white"
-                  />
-                  {isUploading && <p className="text-sm text-gray-500">Uploading...</p>}
+                  <label className="block text-gray-700 font-medium mb-1">Upload Image or Paste URL</label>
+                    <div className="border border-gray-300 p-4 rounded-lg">
+                    {/* Input อัปโหลดไฟล์ */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                    />
+
+                    {/* หรือ กรอก URL รูปภาพ */}
+                    <input
+                      type="text"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full p-2 mt-2 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-teal-500"
+                      placeholder="Paste image URL here..."
+                    />
+
+                    {/* แสดงสถานะอัปโหลด */}
+                    {isUploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
+                  </div>
                 </div>
+
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Category</label>

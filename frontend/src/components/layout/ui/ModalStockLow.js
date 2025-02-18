@@ -186,7 +186,7 @@ const ModalStockLow = ({ closeModal }) => {
                         alt={product.productname}
                         className="w-16 h-16 object-cover mb-2 rounded mx-auto"
                       />
-                      <span className="block text-gray-700 font-semibold text-center">{product.productname}</span>
+                      <span className="block text-gray-700 font-semibold text-center truncate w-36">{product.productname}</span>
                       <span className="block text-gray-500 text-sm text-center">Stock: {stock ? stock.quantity : 0} left</span>
                     </div>
                     <button

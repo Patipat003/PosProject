@@ -80,8 +80,6 @@ const SelectBranchPage = () => {
         // Save new token to localStorage
         localStorage.setItem("authToken", response.data.token);
 
-        toast.success("Branch updated successfully!", { position: "top-right" });
-
         // Navigate to Dashboard
         navigate("/");
       } else {

@@ -292,7 +292,7 @@ const SalesPage = () => {
             {/* Search Input */}
             <input
               type="text"
-              placeholder="Search by product code"
+              placeholder="🔍 Search by product code"
               value={searchQuery}
               onChange={handleSearchChange}
               className="w-1/3 bg-white border border-gray-300 text-gray-500 font-semibold p-3 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition"

@@ -4,7 +4,7 @@ const ReceiptPrinter = ({ modalData }) => {
   const { receiptnumber, createdat, items, bname, location } = modalData;
 
   return (
-    <div className="p-6 bg-white border border-gray-300 rounded-lg">
+    <div className="p-6 bg-white border border-gray-300 rounded-lg w-[350px] mx-4">
       <div className="text-center text-black mb-6">
         <h1 className="text-xl font-bold">Store ({bname})</h1>  {/* Display branch name */}
         <p className="text-sm">Location: {location}</p>  {/* Display branch location */}
