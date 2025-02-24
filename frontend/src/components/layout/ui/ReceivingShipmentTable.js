@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { FaShippingFast, FaCheckCircle, FaTimesCircle } from "react-icons/fa"; // นำเข้าไอคอน
+import { jwtDecode } from "jwt-decode";
 
 const ReceivingShipmentTable = ({
   currentReceivedRequests,
@@ -12,6 +13,17 @@ const ReceivingShipmentTable = ({
   currentReceivedPage,
   totalReceivedPages,
 }) => {
+
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role);
+    }
+  }, []);  
 
   return (
     <>
@@ -26,7 +38,9 @@ const ReceivingShipmentTable = ({
                 <th className="border text-sm px-4 py-2">Quantity</th>
                 <th className="border text-sm px-4 py-2">Created At</th>
                 <th className="border text-sm px-4 py-2">Status</th>
-                <th className="border text-sm px-4 py-2">Actions</th>
+                {(userRole === "Manager" || userRole === "Super Admin") && (
+                  <th className="border text-sm px-4 py-2">Actions</th>
+                )}
                 </tr>
             </thead>
             <tbody>
@@ -57,41 +71,43 @@ const ReceivingShipmentTable = ({
 
                 return (
                     <tr key={request.requestid} className="hover:bg-teal-50">
-                    <td className="border px-4 py-2">
-                        {fromBranch ? fromBranch.bname : "Warehouse"}
-                    </td>
-                    <td className="border px-4 py-2">
-                        {product ? product.productname : "-"}
-                    </td>
-                    <td className="border px-4 py-2">{request.quantity}</td>
-                    <td className="border px-4 py-2">
-                        {moment.utc(request.createdat).format("L, HH:mm")}
-                    </td>
-                    <td className="border px-4 py-2 flex items-center justify-center">{getStatusIcon(request.status)}</td>
-                    <td className="border px-4 py-2 text-center space-x-2">
-                        {fromBranch ? "" : "Warehouse" && request.status === "Pending" && (
-                            <>
+                      <td className="border px-4 py-2">
+                          {fromBranch ? fromBranch.bname : "Warehouse"}
+                      </td>
+                      <td className="border px-4 py-2">
+                          {product ? product.productname : "-"}
+                      </td>
+                      <td className="border px-4 py-2">{request.quantity}</td>
+                      <td className="border px-4 py-2">
+                          {moment.utc(request.createdat).format("L, HH:mm")}
+                      </td>
+                      <td className="border px-4 py-2 flex items-center justify-center">{getStatusIcon(request.status)}</td>
+                        {(userRole === "Manager" || userRole === "Super Admin") && (
+                          <td className="border px-4 py-2 text-center space-x-2">
+                            {fromBranch ? "" : "Warehouse" && request.status === "Pending" && (
+                              <>
                                 <button
-                                    onClick={() => handleUpdateStatus(request.requestid, "complete")}
-                                    className="text-green-500 hover:text-green-700 text-xl"
-                                    title="Mark as Complete"
+                                  onClick={() => handleUpdateStatus(request.requestid, "complete")}
+                                  className="text-green-500 hover:text-green-700 text-xl"
+                                  title="Mark as Complete"
                                 >
-                                    <FaCheckCircle />
+                                  <FaCheckCircle />
                                 </button>
                                 <button
-                                    onClick={() => handleUpdateStatus(request.requestid, "reject")}
-                                    className="text-red-500 hover:text-red-700 text-xl"
-                                    title="Reject Request"
+                                  onClick={() => handleUpdateStatus(request.requestid, "reject")}
+                                  className="text-red-500 hover:text-red-700 text-xl"
+                                  title="Reject Request"
                                 >
-                                    <FaTimesCircle />
+                                  <FaTimesCircle />
                                 </button>
-                            </>
+                              </>
+                            )}
+                          </td>
                         )}
-                    </td>
                     </tr>
-                );
+                  );
                 })}
-            </tbody>
+              </tbody>
             </table>
         </div>
 

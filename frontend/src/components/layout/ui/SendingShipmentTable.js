@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { FaShippingFast, FaCheckCircle, FaTimesCircle } from "react-icons/fa"; // นำเข้าไอคอน
+import { jwtDecode } from "jwt-decode";
 
 const SendingShipmentTable = ({
   currentSentRequests = [],
@@ -12,6 +13,17 @@ const SendingShipmentTable = ({
   currentSentPage = 1,
   totalSentPages = 1,
 }) => {
+
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role); // ✅ ตั้งค่าแค่ครั้งเดียวเมื่อ component ถูก mount
+    }
+  }, []); // 👈 useEffect ทำงานแค่ครั้งเดียวตอน component mount
+
   return (
     <>
       {/* Sending Shipment Table */}
@@ -27,7 +39,9 @@ const SendingShipmentTable = ({
               <th className="border text-sm px-4 py-2">Quantity</th>
               <th className="border text-sm px-4 py-2">Created At</th>
               <th className="border text-sm px-4 py-2">Status</th>
-              <th className="border text-sm px-4 py-2">Actions</th>
+              {(userRole === "Manager" || userRole === "Super Admin") && (
+                <th className="border text-sm px-4 py-2">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -64,26 +78,28 @@ const SendingShipmentTable = ({
                     </td>
                     {/* 🎯 ใช้ไอคอนแทนสถานะ */}
                     <td className="border px-4 py-2 flex items-center justify-center">{getStatusIcon(request.status)}</td>
-                    <td className="border px-4 py-2 text-center space-x-2">
-                    {request.status === "pending" && (
-                        <>
-                        <button
-                            onClick={() => handleUpdateStatus(request.requestid, "complete")}
-                            className="text-green-500 hover:text-green-700 text-xl"
-                            title="Mark as Complete"
-                        >
-                            <FaCheckCircle />
-                        </button>
-                        <button
-                            onClick={() => handleUpdateStatus(request.requestid, "reject")}
-                            className="text-red-500 hover:text-red-700 text-xl"
-                            title="Reject Request"
-                        >
-                            <FaTimesCircle />
-                        </button>
-                        </>
+                    {(userRole === "Manager" || userRole === "Super Admin") && (
+                      <td className="border px-4 py-2 text-center space-x-2">
+                      {request.status === "pending" && (
+                          <>
+                          <button
+                              onClick={() => handleUpdateStatus(request.requestid, "complete")}
+                              className="text-green-500 hover:text-green-700 text-xl"
+                              title="Mark as Complete"
+                          >
+                              <FaCheckCircle />
+                          </button>
+                          <button
+                              onClick={() => handleUpdateStatus(request.requestid, "reject")}
+                              className="text-red-500 hover:text-red-700 text-xl"
+                              title="Reject Request"
+                          >
+                              <FaTimesCircle />
+                          </button>
+                          </>
+                      )}
+                      </td>
                     )}
-                    </td>
                   </tr>
                 );
               })

@@ -241,7 +241,7 @@ const InventoryPage = () => {
       <p className="text-black mb-4">Manage your Inventory here.</p>
 
       <div className="flex space-x-4 mb-6">
-        {(userRole === "Super Admin") && (
+        {(userRole === "Audit" || userRole === "Manager" || userRole === "Super Admin") && (
           <>
             <RequestInventory onProductAdded={fetchInventory} />
             <RequestShipment />
