@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
-import ExportButtons from "../components/layout/ui/ExportButtons";
 import RequestInventory from "../components/layout/ui/RequestInventory";
+import RequestShipment from "../components/layout/ui/RequestShipment";
 import { toZonedTime, format } from 'date-fns-tz';
 import { HiOutlineEye  } from "react-icons/hi";
 import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
@@ -242,6 +242,7 @@ const InventoryPage = () => {
 
       <div className="flex space-x-4 mb-4">
         <RequestInventory onProductAdded={fetchInventory} />
+        <RequestShipment />
         <button
           onClick={exportToCSV}
           className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"

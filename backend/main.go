@@ -73,9 +73,11 @@ func main() {
 		&Models.Receipts{},
 		&Models.ReceiptItems{},
 		&Models.Requests{},
-		&Models.Shipments{},
 		&Models.Category{},
+		&Models.Shipments{},
+		&Models.ShipmentItems{},
 	)
+
 	if err != nil {
 		log.Fatalf("AutoMigrate failed for PosDB: %v", err)
 	}

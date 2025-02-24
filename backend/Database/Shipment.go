@@ -1,6 +1,8 @@
 package Database
 
 import (
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,61 +11,107 @@ import (
 	"gorm.io/gorm"
 )
 
-// เพิ่ม Shipment และอัปเดต Inventory
+func generateShipmentNumber() (string, error) {
+	// ตั้งค่า seed สำหรับสุ่มค่า
+	rand.Seed(time.Now().UnixNano())
+
+	// ดึงวันที่ปัจจุบันในรูปแบบ YYYYMMDD
+	today := time.Now().Format("20060102")
+
+	// สุ่มตัวเลข 5 หลัก (10000 - 99999)
+	randomNumber := rand.Intn(90000) + 10000
+
+	// คืนค่า Shipment Number
+	return fmt.Sprintf("SHIP-%s-%05d", today, randomNumber), nil
+}
+
 func AddShipment(db *gorm.DB, c *fiber.Ctx) error {
-	var req Models.Shipments
+	var req struct {
+		BranchID string                 `json:"branchid" binding:"required"`
+		Items    []Models.ShipmentItems `json:"items" binding:"required"`
+	}
+
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	// สร้าง Shipment ใหม่
-	req.ShipmentID = uuid.New().String()
-	req.CreatedAt = time.Now()
+	// ตรวจสอบ Branch
+	var branch Models.Branches
+	if err := db.Where("branch_id = ?", req.BranchID).First(&branch).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Branch not found",
+		})
+	}
 
-	// เพิ่มข้อมูล Shipment ลงใน DB
-	if err := db.Create(&req).Error; err != nil {
+	// สร้าง Shipment Number
+	shipmentNumber, err := generateShipmentNumber()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate shipment number: " + err.Error(),
+		})
+	}
+
+	// เริ่ม Transaction
+	tx := db.Begin()
+
+	newShipment := Models.Shipments{
+		ShipmentID:     uuid.New().String(),
+		ShipmentNumber: shipmentNumber, // ✅ ใช้ค่าที่สร้างได้
+		BranchID:       req.BranchID,
+		Status:         "pending",
+		CreatedAt:      time.Now(),
+	}
+
+	if err := tx.Create(&newShipment).Error; err != nil {
+		tx.Rollback()
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create shipment: " + err.Error(),
 		})
 	}
 
-	// คำนวณจำนวนสินค้าที่จะเพิ่มใน Inventory (จำนวนกล่อง * จำนวนชิ้นในแต่ละกล่อง)
-	quantity := req.Quantity * req.UnitsPerBox
-
-	// อัปเดตหรือสร้าง Inventory ในสาขาที่รับสินค้า
-	var inventory Models.Inventory
-	if err := db.Where("product_id = ? AND branch_id = ?", req.ProductID, req.ToBranchID).First(&inventory).Error; err != nil {
-		// ถ้าไม่มีข้อมูล Inventory สำหรับสินค้าตัวนี้ ให้เพิ่มใหม่
-		inventory.InventoryID = uuid.New().String()
-		inventory.ProductID = req.ProductID
-		inventory.BranchID = req.ToBranchID
-		inventory.Quantity = quantity
-		inventory.UpdatedAt = time.Now()
-		if err := db.Create(&inventory).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to update inventory: " + err.Error(),
+	// เพิ่ม ShipmentItems
+	for _, item := range req.Items {
+		var product Models.Product
+		if err := db.Where("product_id = ?", item.ProductID).First(&product).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Product with ID " + item.ProductID + " not found",
 			})
 		}
-	} else {
-		// ถ้ามีข้อมูล Inventory อยู่แล้ว ให้เพิ่มจำนวนสินค้าเข้าไป
-		inventory.Quantity += quantity
-		inventory.UpdatedAt = time.Now()
-		if err := db.Save(&inventory).Error; err != nil {
+
+		item.ShipmentItemID = uuid.New().String()
+		item.ShipmentID = newShipment.ShipmentID
+
+		if err := tx.Create(&item).Error; err != nil {
+			tx.Rollback()
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to update inventory: " + err.Error(),
+				"error": "Failed to add shipment item: " + err.Error(),
 			})
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New": req})
+	tx.Commit()
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"New Shipment": newShipment})
 }
 
-// ดู Shipment ทั้งหมด
+// ดู Shipment ทั้งหมด พร้อมตัวกรอง
 func LookShipments(db *gorm.DB, c *fiber.Ctx) error {
 	var shipments []Models.Shipments
-	if err := db.Find(&shipments).Error; err != nil {
+	query := db.Preload("Items") // ✅ Load Items ของ Shipment
+
+	// กรองตาม query parameters
+	if status := c.Query("status"); status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if branchID := c.Query("branchid"); branchID != "" {
+		query = query.Where("branch_id = ?", branchID)
+	}
+
+	// ค้นหา shipments
+	if err := query.Find(&shipments).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to find shipments: " + err.Error(),
 		})
@@ -75,7 +123,7 @@ func LookShipments(db *gorm.DB, c *fiber.Ctx) error {
 func FindShipment(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var shipment Models.Shipments
-	if err := db.Where("shipment_id = ?", id).First(&shipment).Error; err != nil {
+	if err := db.Preload("Items").Where("shipment_id = ?", id).First(&shipment).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Shipment not found",
 		})
@@ -83,7 +131,7 @@ func FindShipment(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"Data": shipment})
 }
 
-// อัปเดต Shipment
+// อัปเดต Status ของ Shipment
 func UpdateShipment(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var shipment Models.Shipments
@@ -93,20 +141,20 @@ func UpdateShipment(db *gorm.DB, c *fiber.Ctx) error {
 		})
 	}
 
-	var req Models.Shipments
+	var req struct {
+		Status string `json:"status"`
+	}
+
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format: " + err.Error(),
 		})
 	}
 
-	shipment.RequestID = req.RequestID
-	shipment.FromBranchID = req.FromBranchID
-	shipment.ToBranchID = req.ToBranchID
-	shipment.ProductID = req.ProductID
-	shipment.Quantity = req.Quantity
-	shipment.UnitsPerBox = req.UnitsPerBox
-	shipment.CreatedAt = time.Now()
+	if req.Status != "" {
+		shipment.Status = req.Status
+		shipment.UpdatedAt = time.Now()
+	}
 
 	if err := db.Save(&shipment).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -116,7 +164,7 @@ func UpdateShipment(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Updated": "Succeed"})
 }
 
-// ลบ Shipment
+// ลบ Shipment พร้อม ShipmentItems
 func DeleteShipment(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	var shipment Models.Shipments
@@ -125,6 +173,15 @@ func DeleteShipment(db *gorm.DB, c *fiber.Ctx) error {
 			"error": "Shipment not found",
 		})
 	}
+
+	// ลบ ShipmentItems ก่อน
+	if err := db.Where("shipment_id = ?", id).Delete(&Models.ShipmentItems{}).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete shipment items: " + err.Error(),
+		})
+	}
+
+	// ลบ Shipment
 	if err := db.Delete(&shipment).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to delete shipment: " + err.Error(),
@@ -133,8 +190,8 @@ func DeleteShipment(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Deleted": "Succeed"})
 }
 
+// ตั้งค่า Routes
 func ShipmentRoutes(app *fiber.App, db *gorm.DB) {
-	// Route สำหรับ Shipments
 	app.Get("/shipments", func(c *fiber.Ctx) error {
 		return LookShipments(db, c)
 	})

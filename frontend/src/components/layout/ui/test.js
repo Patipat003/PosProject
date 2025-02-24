@@ -1,140 +1,178 @@
-import React, { useEffect, useState } from "react";
-import ApexCharts from "react-apexcharts";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { toZonedTime, format } from 'date-fns-tz';
-import { AiOutlineExclamationCircle } from "react-icons/ai";
-import { Player } from "@lottiefiles/react-lottie-player";
-import moment from "moment";
-import SoldProductsModal from "../components/layout/ui/SoldProductsModal";
-import { HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineCube } from 'react-icons/hi';
+import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 
-const POLLING_INTERVAL = 5000;
-
-// Utility function to format date
-const formatDate = (dateString) => {
-  const zonedDate = toZonedTime(dateString, 'UTC');
-  return format(zonedDate, "d/MM/yyyy, HH:mm");
-};
-
-// Utility function to calculate sales by time range (day, month, year)
-const calculateSalesByTime = (salesData, range) => {
-  const salesByTime = {};
-
-  salesData.forEach(sale => {
-    const date = new Date(sale.createdat);
-    let key;
-
-    if (range === "day") {
-      key = format(date, "yyyy-MM-dd");
-    } else if (range === "month") {
-      key = format(date, "yyyy-MM");
-    } else if (range === "year") {
-      key = format(date, "yyyy");
-    }
-
-    if (!salesByTime[key]) {
-      salesByTime[key] = 0;
-    }
-    salesByTime[key] += sale.totalamount;
-  });
-
-  return Object.entries(salesByTime).map(([time, sales]) => ({ time, sales }));
-};
-
-// Fetch data function
-const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => {
-  const config = { headers: { Authorization: `Bearer ${token}` } };
-  const endpoints = ["saleitems", "sales", "products", "branches", "inventory", "receipts", "employees"];
-  const responses = await Promise.all(endpoints.map(endpoint => axios.get(`http://localhost:5050/${endpoint}`, config)));
-  const [saleItemsData, salesData] = responses.map(res => res.data.Data);
-
-  const filteredSales = selectedBranch === "all"
-    ? salesData
-    : salesData.filter(sale => sale.branchid === branchid);
-
-  const salesByTime = calculateSalesByTime(filteredSales, timeRange);
-
-  return { salesByTime };
-};
-
-const DashboardPage = () => {
-  const [salesByTime, setSalesByTime] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState("all");
-  const [userBranchId, setUserBranchId] = useState(null);
-  const [timeRange, setTimeRange] = useState("day");
+const RequestShipment = ({ selectedBranchId }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [shipments, setShipments] = useState([]); // ✅ เก็บรายการ Shipments
+  const [selectedShipment, setSelectedShipment] = useState(null); // ✅ Shipment ที่เลือกสำหรับดู Items
+  const [isItemsModalOpen, setIsItemsModalOpen] = useState(false); // ✅ เปิด/ปิด Items Modal
+  const [shipmentItems, setShipmentItems] = useState([]);
+  const [userBranchId, setUserBranchId] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const decodedToken = JSON.parse(atob(token.split('.')[1]));
-    const branchid = decodedToken.branchid;
-    setUserBranchId(branchid);
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) return;
 
-    const loadData = async () => {
-      try {
-        const { salesByTime } = await fetchData(token, selectedBranch, branchid, timeRange);
-        setSalesByTime(salesByTime);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
-        setLoading(false);
+    axios
+      .get("http://localhost:5050/products", { headers: { Authorization: `Bearer ${authToken}` } })
+      .then((res) => setProducts(res.data.Data || []))
+      .catch(() => setProducts([]));
+
+    try {
+      const decodedToken = jwtDecode(authToken);
+      if (decodedToken.branchid) {
+        setUserBranchId(decodedToken.branchid);
       }
-    };
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+  }, []);
 
-    loadData();
-    const intervalId = setInterval(loadData, POLLING_INTERVAL);
-    return () => clearInterval(intervalId);
-  }, [selectedBranch, timeRange]);
+  // ✅ ดึงข้อมูล Shipments เฉพาะ branch ของผู้ใช้
+  useEffect(() => {
+    if (!userBranchId) return;
+    const authToken = localStorage.getItem("authToken");
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-42 flex-col">
-        <Player autoplay loop src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" style={{ height: "200px", width: "200px" }} />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
-      </div>
-    );
-  }
+    axios
+      .get(`http://localhost:5050/shipments?branchid=${userBranchId}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      .then((res) => setShipments(res.data.Data || []))
+      .catch(() => setShipments([]));
+  }, [userBranchId]);
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-42 flex-col">
-        <AiOutlineExclamationCircle className="text-red-500 text-6xl mb-4" />
-        <p className="text-red-500 text-xl">{error}</p>
-      </div>
-    );
-  }
-
-  // Sales Graph Data (ApexCharts)
-  const salesGraphOptions = {
-    chart: { type: "line", height: 350 },
-    xaxis: { categories: salesByTime.map(data => moment(data.time).format("D/M/YY")) },
-    stroke: { curve: "smooth" },
-    markers: { size: 4 },
-    tooltip: { theme: "dark" },
-    colors: ["#FF6384"],
-    yaxis: { title: { text: "Total Sales (THB)" } },
+  // ✅ เปิด Items Modal และโหลดรายการสินค้าใน Shipment นั้น
+  const handleViewItems = (shipment) => {
+    setSelectedShipment(shipment);
+    setShipmentItems(shipment.items || []);
+    setIsItemsModalOpen(true);
   };
 
-  const salesGraphSeries = [{ name: "Sales", data: salesByTime.map(data => data.sales) }];
-
   return (
-    <div className="p-4 min-h-screen">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
+    <div>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+      >
+        Request Shipment
+      </button>
 
-      {/* Sales Trend Chart */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <h2 className="font-semibold mb-4">Sales Trend</h2>
-        <div className="flex space-x-2 mb-4">
-          <button onClick={() => setTimeRange("day")} className={`btn ${timeRange === "day" ? "bg-teal-500 text-white" : "bg-gray-200"}`}>Daily</button>
-          <button onClick={() => setTimeRange("month")} className={`btn ${timeRange === "month" ? "bg-teal-500 text-white" : "bg-gray-200"}`}>Monthly</button>
-          <button onClick={() => setTimeRange("year")} className={`btn ${timeRange === "year" ? "bg-teal-500 text-white" : "bg-gray-200"}`}>Yearly</button>
-        </div>
-        <ApexCharts options={salesGraphOptions} series={salesGraphSeries} type="line" height={350} />
-      </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-60 overflow-y-auto max-h-screen"
+            >
+              <h2 className="text-2xl font-semibold text-gray-700 mb-4">Request Shipment</h2>
+
+              {/* ✅ ตารางแสดง Shipments */}
+              <h3 className="text-lg font-semibold text-gray-600 mt-4">Shipments</h3>
+              <table className="w-full border-collapse border border-gray-300 mt-2">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-2">Shipment ID</th>
+                    <th className="border border-gray-300 px-4 py-2">Status</th>
+                    <th className="border border-gray-300 px-4 py-2">Updated At</th>
+                    <th className="border border-gray-300 px-4 py-2">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shipments.map((shipment) => (
+                    <tr key={shipment.shipmentid} className="border border-gray-300">
+                      <td className="px-4 py-2">{shipment.shipmentid}</td>
+                      <td className="px-4 py-2">{shipment.status}</td>
+                      <td className="px-4 py-2">{new Date(shipment.updatedat).toLocaleString()}</td>
+                      <td className="px-4 py-2">
+                        <button
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                          onClick={() => handleViewItems(shipment)}
+                        >
+                          View Items
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* ปุ่มปิด modal */}
+              <button
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 mt-4"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ✅ Modal สำหรับแสดงรายการสินค้าใน Shipment */}
+      <AnimatePresence>
+        {isItemsModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full relative z-60 overflow-y-auto max-h-screen"
+            >
+              <h2 className="text-2xl font-semibold text-gray-700 mb-4">Shipment Items</h2>
+              <p className="text-gray-600 mb-2">Shipment ID: {selectedShipment?.shipmentid}</p>
+
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-2">Product Name</th>
+                    <th className="border border-gray-300 px-4 py-2">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shipmentItems.map((item, index) => {
+                    const product = products.find((p) => p.productid === item.productid);
+                    return (
+                      <tr key={index} className="border border-gray-300">
+                        <td className="px-4 py-2">{product?.productname || "Unknown"}</td>
+                        <td className="px-4 py-2">{item.quantity}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <button
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 mt-4"
+                onClick={() => setIsItemsModalOpen(false)}
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default DashboardPage;
+export default RequestShipment;

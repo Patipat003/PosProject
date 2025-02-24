@@ -15,6 +15,7 @@ const RequestInventory = () => {
   const [branches, setBranches] = useState([]);
   const [products, setProducts] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [categories, setCategories] = useState([]); // เพิ่ม categories เป็น state
   const [newRequest, setNewRequest] = useState({
     frombranchid: "",
     tobranchid: "",
@@ -98,6 +99,19 @@ const RequestInventory = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {  Authorization: `Bearer ${token}` },
+      };
+      const response = await axios.get("http://localhost:5050/categories", config);
+      setCategories(response.data.Data || []);
+    } catch (error) {
+      console.error("Error fetching categories", error);
+    }
+  };
+
   const fetchWarehouse = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -144,6 +158,7 @@ const RequestInventory = () => {
     fetchRequests();
     fetchInventory();
     fetchWarehouse();
+    fetchCategories(); // เรียกใช้ฟังก์ชัน fetchCategories
   }, []);
 
   useEffect(() => {
@@ -377,6 +392,7 @@ const RequestInventory = () => {
                   branches={branches}
                   products={products}
                   inventory={inventory}
+                  categories={categories} // ต้องแน่ใจว่ามี categories ตรงนี้
                   branchid={branchid}
                   branchName={branchName}
                   handleAddRequest={handleAddRequest}

@@ -54,35 +54,41 @@ const AddRequestModal = ({
         </div>
 
         <div className="grid grid-cols-2 gap-6 mb-6">
-        <div>
+          <div>
             <label className="block text-gray-700 font-medium mb-2">
-            Product
+              Product
             </label>
             <select
-            className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-            value={newRequest.productid}
-            onChange={(e) =>
+              className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              value={newRequest.productid}
+              onChange={(e) =>
                 setNewRequest({ ...newRequest, productid: e.target.value })
-            }
+              }
             >
-            <option value="">Select Product</option>
-            {products.map((product) => {
-                // Find the inventory for this product in the selected "To Branch"
-                const branchInventory = inventory.find(
-                (item) => item.productid === product.productid && item.branchid === newRequest.frombranchid
-                );
-                const quantity = branchInventory ? branchInventory.quantity : 0;
+              <option value="">Select Product</option>
+              {products
+                .map((product) => {
+                  // Find the inventory for this product in the selected "To Branch"
+                  const branchInventory = inventory.find(
+                    (item) => item.productid === product.productid && item.branchid === newRequest.frombranchid
+                  );
+                  const quantity = branchInventory ? branchInventory.quantity : 0;
 
-                return (
-                <option key={product.productid} value={product.productid}>
-                    {product.productname} ({quantity})
-                </option>
-                );
-            })}
+                  // Filter to show only products with quantity > 1
+                  if (quantity > 1) {
+                    return (
+                      <option key={product.productid} value={product.productid}>
+                        {product.productname} ({quantity})
+                      </option>
+                    );
+                  }
+                  return null; // Skip if quantity is 1 or less
+                })
+              }
             </select>
-        </div>
+          </div>
 
-        <div>
+          <div>
             <label className="block text-gray-700 font-medium mb-2">
             Quantity
             </label>
@@ -98,7 +104,7 @@ const AddRequestModal = ({
             }
             min="0"
             />
-        </div>
+         </div>
         </div>
 
         <button

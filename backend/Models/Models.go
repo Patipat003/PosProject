@@ -149,18 +149,27 @@ func (Requests) TableName() string {
 
 // Shipments struct
 type Shipments struct {
-	ShipmentID   string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"shipmentid"`
-	RequestID    string    `gorm:"type:uuid;foreignKey:RequestID" json:"requestid"`
-	FromBranchID string    `gorm:"type:uuid;foreignKey:BranchID" json:"frombranchid"`
-	ToBranchID   string    `gorm:"type:uuid;foreignKey:BranchID" json:"tobranchid"`
-	ProductID    string    `gorm:"type:uuid;foreignKey:ProductID" json:"productid"`
-	Quantity     int       `gorm:"type:int;not null" json:"quantity"`    // จำนวนที่ส่งมาทั้งหมด
-	UnitsPerBox  int       `gorm:"type:int;not null" json:"unitsperbox"` // จำนวนสินค้าต่อกล่อง
-	CreatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
+	ShipmentID     string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"shipmentid"`
+	ShipmentNumber string    `gorm:"type:varchar(20);unique;not null" json:"shipmentnumber"` // ✅ เพิ่ม Shipment Number
+	BranchID       string    `gorm:"type:uuid;not null" json:"branchid"`
+	Status         string    `gorm:"type:varchar(50);default:'pending'" json:"status"`
+	CreatedAt      time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"createdat"`
+	UpdatedAt      time.Time `gorm:"type:timestamp;autoUpdateTime" json:"updatedat"`
+
+	// ✅ เชื่อมโยง Items (ShipmentItems) ด้วย foreignKey: ShipmentID
+	Items []ShipmentItems `gorm:"foreignKey:ShipmentID;constraint:OnDelete:CASCADE" json:"items"`
 }
 
-func (Shipments) TableName() string {
-	return "Shipments"
+// ShipmentItems struct
+type ShipmentItems struct {
+	ShipmentItemID string `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"shipmentitemid"`
+	ShipmentID     string `gorm:"type:uuid;not null;index" json:"shipmentid"`
+	ProductID      string `gorm:"type:uuid;not null;index" json:"productid"`
+	Quantity       int    `gorm:"type:int;not null" json:"quantity"`
+}
+
+func (ShipmentItems) TableName() string {
+	return "ShipmentItems"
 }
 
 // Category struct
