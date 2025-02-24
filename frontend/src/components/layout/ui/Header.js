@@ -181,7 +181,7 @@ const Header = () => {
     <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
       {/* โลโก้ อยู่ตรงกลาง */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
-        <Link to="/sales">
+        <Link to="/">
           <img src="/image/x10logo.png" alt="x10" className="h-10 w-auto" />
         </Link>
       </div>
@@ -213,7 +213,9 @@ const Header = () => {
         )}
 
         {/* ชื่อสาขา */}
-        <p className="text-white">{branchName || "Loading branch..."}</p>
+        <Link to="/sales">
+          <p className="text-white">{branchName || "Loading branch..."}</p>
+        </Link>
 
         {/* Dropdown ของ User */}
         <div className="relative" ref={dropdownRef}>
