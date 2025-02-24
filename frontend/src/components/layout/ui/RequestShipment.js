@@ -22,7 +22,9 @@ const RequestShipment = ({ selectedBranchId }) => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentShipments = shipments.slice(indexOfFirstItem, indexOfLastItem);
+  const currentShipments = [...shipments]
+    .sort((a, b) => new Date(b.updatedat) - new Date(a.updatedat)) // เรียงจากใหม่ไปเก่า
+    .slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
