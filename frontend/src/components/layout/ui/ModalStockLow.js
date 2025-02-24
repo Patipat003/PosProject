@@ -144,6 +144,7 @@ const ModalStockLow = ({ closeModal }) => {
               <table className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
                 <thead>
                   <tr className="bg-gray-100 text-gray-600">
+                    <th className="border border-gray-300 px-4 py-2">No.</th>
                     <th className="border border-gray-300 px-4 py-2">Image</th>
                     <th className="border border-gray-300 px-4 py-2">Product Code</th>
                     <th className="border border-gray-300 px-4 py-2">Product Name</th>
@@ -152,12 +153,13 @@ const ModalStockLow = ({ closeModal }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((product) => {
+                  {filteredProducts.map((product, index) => {
                     const stock = inventory.find(
                       (item) => item.productid === product.productid && item.branchid === branchId
                     );
                     return (
                       <tr key={product.productid} className="text-center">
+                        <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
                         <td className="border border-gray-300 px-4 py-2">
                           <img
                             src={product.imageurl}

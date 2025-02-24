@@ -329,7 +329,7 @@ const ProductPage = () => {
                     className="w-full h-full object-cover rounded"
                   />
                 </div>        
-                <div className="text-gray-600 text-sm mb-2 font-semibold truncate w-32">{product.productname}</div>
+                <div className="text-gray-600 text-sm mb-2 font-semibold truncate w-32 text-center">{product.productname}</div>
 
                 <div className="text-gray-600 text-xs mb-2 font-semibold">{product.productcode}</div>
                 <div className="text-gray-600 text-sm">Price : ฿{product.price.toFixed(2)}</div>
@@ -342,7 +342,7 @@ const ProductPage = () => {
       <div className="min-w-full">
         <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
-        {(userRole === "Manager" || userRole === "Super Admin") && (
+        {(userRole === "Super Admin") && (
           <>
             <ProductForm onProductAdded={handleProductAdded} />
             {/* Category */}
@@ -372,10 +372,10 @@ const ProductPage = () => {
                 <th className="border text-sm px-4 py-2">Description</th>
                 <th className="border text-sm px-4 py-2">Category</th>
                 <th className="border text-sm px-4 py-2">Price</th>
-                {(userRole === "Manager" || userRole === "Super Admin") && (
+                {(userRole === "Super Admin") && (
                   <th className="border text-sm px-4 py-2">Created</th>
                 )}
-                {(userRole === "Manager" || userRole === "Super Admin") && (
+                {(userRole === "Super Admin") && (
                   <th className="border border-gray-300 py-2 px-4 text-sm">Action</th>
                 )}
               </tr>
@@ -400,10 +400,10 @@ const ProductPage = () => {
                     </td>
                     <td className="border border-gray-300 px-4 py-2">{getCategoryName(product.categoryid)}</td>
                     <td className="border border-gray-300 px-4 py-2">฿{product.price.toFixed(2)}</td>
-                    {(userRole === "Manager" || userRole === "Super Admin") && (
+                    {(userRole === "Super Admin") && (
                       <td className="border border-gray-300 px-4 py-2">{formatDate(product.createdat)}</td>
                     )}
-                    {(userRole === "Manager" || userRole === "Super Admin") && (
+                    {(userRole === "Super Admin") && (
                       <>
                         <td className="border border-gray-300 text-center justify-center items-center">
                           <EditedProduct

@@ -240,9 +240,13 @@ const InventoryPage = () => {
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
       <p className="text-black mb-4">Manage your Inventory here.</p>
 
-      <div className="flex space-x-4 mb-4">
-        <RequestInventory onProductAdded={fetchInventory} />
-        <RequestShipment />
+      <div className="flex space-x-4 mb-6">
+        {(userRole === "Super Admin") && (
+          <>
+            <RequestInventory onProductAdded={fetchInventory} />
+            <RequestShipment />
+          </>
+        )}  
         <button
           onClick={exportToCSV}
           className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
@@ -251,7 +255,7 @@ const InventoryPage = () => {
         </button>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-4">
+      <div className="my-4 flex flex-wrap items-center gap-4">
         {/* Search Bar */}
         <div className="flex items-center space-x-4 flex-grow">
           <label htmlFor="searchInput" className="text-black font-semibold whitespace-nowrap">
