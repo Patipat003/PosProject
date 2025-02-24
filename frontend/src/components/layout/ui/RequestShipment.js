@@ -235,7 +235,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                 {/* ✅ ช่องค้นหาตาม productcode */}
                 <input
                   type="text"
-                  placeholder="Search by Product Code"
+                  placeholder="🔍 Search by Product Code"
                   className="w-1/3 p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

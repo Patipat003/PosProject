@@ -164,7 +164,7 @@ const ModalStockLow = ({ closeModal }) => {
           </h2>
 
           <p className="text-gray-600 mb-6">
-            You are viewing products with low stock in your branch. These are the items with less than 100 units remaining. You can submit a request to replenish stock by clicking on the "Request Inventory" button for each product.
+            Create Auto Request to other branch by Clicking Request Inventory button.
           </p>
 
           {filteredProducts.length === 0 ? (

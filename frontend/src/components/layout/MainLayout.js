@@ -111,19 +111,20 @@ const MainLayout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* Burger Icon */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed ml-4 z-20 text-white bg-teal-600 py-4"
-      >
-        {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
-      </button>
+      
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 w-full z-10">
+      <div className="fixed top-0 left-0 w-full z-20">
+
+        {/* Burger Icon */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="fixed ml-4 z-20 text-white bg-teal-600 mt-4 "
+        >
+          {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
+        </button>
+
         <Header />
-        {/* Show the back button only on /sales */}
-        
       </div>
 
       <div className="flex flex-1 pt-6">
