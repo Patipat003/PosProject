@@ -455,27 +455,41 @@ const UserManagementPage = () => {
         </button>
       </div>
 
-      {/* Password Update Modal */}
-      {showPasswordModal && (
+      {/* Update Modal */}
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Password</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password"
+              placeholder="New Password (optional)"
               className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             <div className="flex justify-end space-x-4">
               <button
-                onClick={handlePasswordChange}
+                onClick={handleUpdateProfile}
                 className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Update
               </button>
               <button
-                onClick={() => setShowPasswordModal(false)}
+                onClick={() => setShowModal(false)}
                 className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
@@ -484,6 +498,7 @@ const UserManagementPage = () => {
           </div>
         </div>
       )}
+
        {/* Add Employee Modal */}
        {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
