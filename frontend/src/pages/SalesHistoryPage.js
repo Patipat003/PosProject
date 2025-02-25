@@ -270,7 +270,7 @@ const SalesHistoryPage = () => {
           type="text"
           value={searchTerm}
           onChange={handleSearch}
-          placeholder="Search by Receipt Number"
+          placeholder="🔍 Search by Receipt Number"
           className="border bg-white border-gray-300 px-6 w-3/4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
         <select

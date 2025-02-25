@@ -9,15 +9,11 @@ import ProductPage from "./pages/ProductPage";
 import ReportsPage from "./pages/ReportsPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import DetailReportPage from "./pages/DetailReportPage";
-import CustomerRankPage from "./pages/CustomerRankPage";
-import CashFlowPage from "./pages/CashFlowPage";
 import EmployeeTransferPage from "./pages/EmployeeTransferPage";
-import PaymentPage from "./pages/PaymentPage";
 import InventoryPage from "./pages/InventoryPage";
 import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
-import ReceiptsPage from "./pages/ReceiptsPage";
 import { ToastContainer } from "react-toastify";
 import SelectBranchPage from "./pages/SelectBranchPage";
 import BranchesPage from "./pages/BranchesPage";
@@ -39,8 +35,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-
           {/* Protected Routes */}
           <Route
             path="/"
@@ -55,7 +49,7 @@ function App() {
           <Route
             path="/sales"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Cashier', 'Super Admin', 'Manager']}>
                 <MainLayout>
                   <SalesPage />
                 </MainLayout>
@@ -65,7 +59,7 @@ function App() {
           <Route
             path="/salesHistory"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Cashier', 'Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
                   <SalesHistoryPage />
                 </MainLayout>
@@ -75,7 +69,7 @@ function App() {
           <Route
             path="/product"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Cashier', 'Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
                   <ProductPage />
                 </MainLayout>
@@ -85,7 +79,7 @@ function App() {
           <Route
             path="/reports"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
                   <ReportsPage />
                 </MainLayout>
@@ -95,7 +89,7 @@ function App() {
           <Route
             path="/userManagement"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin', 'Manager']}>
                 <MainLayout>
                   <UserManagementPage />
                 </MainLayout>
@@ -105,7 +99,7 @@ function App() {
           <Route
             path="/detailReport"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
                   <DetailReportPage />
                 </MainLayout>
@@ -113,29 +107,9 @@ function App() {
             }
           />
           <Route
-            path="/customerRank"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CustomerRankPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/cashFlow"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CashFlowPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/employeeTransfer"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin']}>
                 <MainLayout>
                   <EmployeeTransferPage />
                 </MainLayout>
@@ -143,19 +117,9 @@ function App() {
             }
           />
           <Route
-            path="/payment"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <PaymentPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/inventory"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit', 'Cashier']}>
                 <MainLayout>
                   <InventoryPage />
                 </MainLayout>
@@ -163,19 +127,9 @@ function App() {
             }
           />
           <Route
-            path="/receipts"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <ReceiptsPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/branchesManagement"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin']}>
                 <MainLayout>
                   <BranchesPage />
                 </MainLayout>
@@ -185,7 +139,7 @@ function App() {
           <Route
             path="/employeeReports"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
                   <ReportsEmployeePage />
                 </MainLayout>

@@ -165,11 +165,12 @@ const MainLayout = ({ children }) => {
             {(isSuperAdmin || isManager) && (
               <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
-                  { label: "User Lists", link: "/userManagement", icon: (<HiUser />)},
-                  { label: "Employee Transfer", link: "/employeeTransfer" },
+                  { label: "User Lists", link: "/userManagement", icon: <HiUser /> },
+                  ...(isSuperAdmin ? [{ label: "Employee Transfer", link: "/employeeTransfer" }] : [])
                 ]}
               </SidebarDropdown>
             )}
+
             {( isSuperAdmin ) && (
               <SidebarItem label="Branches Management" link="/branchesManagement" icon={<HiOfficeBuilding />} />
             )}
