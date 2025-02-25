@@ -12,6 +12,7 @@ const RequestShipment = ({ selectedBranchId }) => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [shipmentItems, setShipmentItems] = useState([]);
+  const [userRole, setUserRole] = useState(null);
   const [userBranchId, setUserBranchId] = useState(""); // ✅ เก็บ branchid ของผู้ใช้
   const [shipments, setShipments] = useState([]); // ✅ เก็บรายการ Shipments
   const [selectedShipment, setSelectedShipment] = useState(null); // ✅ Shipment ที่เลือกสำหรับดู Items
@@ -58,6 +59,10 @@ const RequestShipment = ({ selectedBranchId }) => {
         if (decodedToken.branchid) {
           setUserBranchId(decodedToken.branchid); // ✅ ตั้งค่า branchid ของผู้ใช้
         }
+        if (decodedToken.role) {
+          setUserRole(decodedToken.role); // ✅ ตั้งค่า role ของผู้ใช้
+        }
+
       } catch (error) {
         console.error("Error decoding token:", error);
       }
@@ -229,105 +234,108 @@ const RequestShipment = ({ selectedBranchId }) => {
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
                 Request Shipment from Warehouse
               </h3>
+              {(userRole === "Manager"|| userRole === "Super Admin") && (
+                <>
+                  <div className="flex gap-4 mb-4">
+                  
+                    {/* ✅ ช่องค้นหาตาม productcode */}
+                    <input
+                      type="text"
+                      placeholder="🔍 Search by Product Code"
+                      className="w-1/3 p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
-              <div className="flex gap-4 mb-4">
+                    <select
+                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={selectedProduct}
+                      onChange={(e) => setSelectedProduct(e.target.value)}
+                    >
+                      <option value="">Select a product</option>
+                      {filteredProducts.map((product) => (
+                        <option key={product.productid} value={product.productid}>
+                          {product.productcode} - {product.productname}
+                        </option>
+                      ))}
+                    </select>
 
-                {/* ✅ ช่องค้นหาตาม productcode */}
-                <input
-                  type="text"
-                  placeholder="🔍 Search by Product Code"
-                  className="w-1/3 p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-1/6 p-3 border text-black text-center border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Number(e.target.value))}
+                    />
 
-                <select
-                  className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={selectedProduct}
-                  onChange={(e) => setSelectedProduct(e.target.value)}
-                >
-                  <option value="">Select a product</option>
-                  {filteredProducts.map((product) => (
-                    <option key={product.productid} value={product.productid}>
-                       {product.productcode} - {product.productname}
-                    </option>
-                  ))}
-                </select>
+                    <button
+                      onClick={handleAddItem}
+                      className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                    >
+                      Add
+                    </button>
+                  </div>
 
-                <input
-                  type="number"
-                  min="1"
-                  className="w-1/6 p-3 border text-black text-center border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                />
-
-                <button
-                  onClick={handleAddItem}
-                  className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
-                >
-                  Add
-                </button>
-              </div>
-
-              <table className="table-auto table-xs w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
-                <thead className="bg-gray-100 text-gray-600">
-                  <tr>
-                    <th className="border text-sm px-4 py-2">Product Code</th>
-                    <th className="border text-sm px-4 py-2">Product Name</th>
-                    <th className="border text-sm px-4 py-2">Quantity</th>
-                    <th className="border text-sm px-4 py-2">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shipmentItems.map((item) => {
-                    const product = products.find((p) => p.productid === item.productid);
-                    return (
-                      <tr key={item.productid} className="bg-gray-80 ">
-                        <td className="border px-4 py-2">{product?.productcode || "Unknown"}</td>
-                        <td className="border px-4 py-2">{product?.productname || "Unknown"}</td>
-                        <td className="border px-4 py-2 text-center">
-                          <input
-                            type="number"
-                            min="1"
-                            className="border bg-white p-1 rounded w-20 text-center"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(item.productid, Number(e.target.value))
-                            }
-                          />
-                        </td>
-                        <td className="px-4 py-2 flex items-center justify-center space-x-4">
-                          <button
-                            onClick={() => handleRemoveItem(item.productid)}
-                            className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
-                            >
-                              <FaTrash /> Delete
-                          </button>
-                        </td>
+                  <table className="table-auto table-xs w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
+                    <thead className="bg-gray-100 text-gray-600">
+                      <tr>
+                        <th className="border text-sm px-4 py-2">Product Code</th>
+                        <th className="border text-sm px-4 py-2">Product Name</th>
+                        <th className="border text-sm px-4 py-2">Quantity</th>
+                        <th className="border text-sm px-4 py-2">Action</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {shipmentItems.map((item) => {
+                        const product = products.find((p) => p.productid === item.productid);
+                        return (
+                          <tr key={item.productid} className="bg-gray-80 ">
+                            <td className="border px-4 py-2">{product?.productcode || "Unknown"}</td>
+                            <td className="border px-4 py-2">{product?.productname || "Unknown"}</td>
+                            <td className="border px-4 py-2 text-center">
+                              <input
+                                type="number"
+                                min="1"
+                                className="border bg-white p-1 rounded w-20 text-center"
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleQuantityChange(item.productid, Number(e.target.value))
+                                }
+                              />
+                            </td>
+                            <td className="px-4 py-2 flex items-center justify-center space-x-4">
+                              <button
+                                onClick={() => handleRemoveItem(item.productid)}
+                                className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                                >
+                                  <FaTrash /> Delete
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
 
-              <div className="flex justify-end items-center mt-6">
-                <div className="flex gap-3">
-                  <button
-                    className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
-                    onClick={handleSubmit}
-                  >
-                    Submit Request
-                  </button>
-                  <button
-                    onClick={() => setShipmentItems([])}
-                    className="btn border-none bg-red-500 text-white font-medium py-3 px-6 rounded hover:bg-red-800 transition duration-300"
-                  >
-                    <FaTrash />
-                  Clear All
-                </button>       
-                </div>
-              </div>
+                  <div className="flex justify-end items-center mt-6">
+                    <div className="flex gap-3">
+                      <button
+                        className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                        onClick={handleSubmit}
+                      >
+                        Submit Request
+                      </button>
+                      <button
+                        onClick={() => setShipmentItems([])}
+                        className="btn border-none bg-red-500 text-white font-medium py-3 px-6 rounded hover:bg-red-800 transition duration-300"
+                      >
+                        <FaTrash />
+                      Clear All
+                    </button>       
+                    </div>
+                  </div>
+                </>  
+              )}  
 
               <h3 className="text-lg font-semibold text-gray-600 my-4">Shipments Table</h3>
               <table className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
@@ -354,12 +362,15 @@ const RequestShipment = ({ selectedBranchId }) => {
                           >
                             <FaEye /> View
                         </button>
-                        <button
-                            onClick={() => handleDeleteShipment(shipment.shipmentid)}
-                            className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
-                          >
-                            <FaTrash /> Delete
-                        </button>
+
+                        {(userRole === "Manager" || userRole === "Super Admin") && (
+                          <button
+                              onClick={() => handleDeleteShipment(shipment.shipmentid)}
+                              className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                            >
+                              <FaTrash /> Delete
+                          </button>
+                        )}  
                       </td>
                     </tr>
                   ))}
