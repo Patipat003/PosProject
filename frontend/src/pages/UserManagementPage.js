@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
+import { motion, AnimatePresence } from "framer-motion";
 import { toZonedTime, format } from 'date-fns-tz';
 import { AiOutlineExclamationCircle } from "react-icons/ai"; 
 import { Player } from "@lottiefiles/react-lottie-player"; 
@@ -481,161 +482,203 @@ const UserManagementPage = () => {
       </div>
 
       {/* Update Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password (optional)"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleUpdateProfile}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
-              >
-                Update
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-       {/* Add Employee Modal */}
-       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-96 space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-700 text-center mb-6">Add Employee</h2>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-            <input
-              type="text"
-              value={newEmployee.name}
-              onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-              placeholder="Name"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <input
-              type="email"
-              value={newEmployee.email}
-              onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-              placeholder="Email"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <input
-              type="password"
-              value={newEmployee.password}
-              onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
-              placeholder="Password"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <select
-              value={newEmployee.role}
-              onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-              className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <option value="" disabled>
-                Select Role
-              </option>
-              <option value="Manager">Manager</option>
-              <option value="Cashier">Cashier</option>
-              <option value="Audit">Audit</option>
-            </select>
-            {userRole === "Super Admin" ? (
-              <select
-                value={newEmployee.branchid}
-                onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
-                className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-              >
-                <option value="">Select Branch</option>
-                {branches.map((branch) => (
-                  <option key={branch.branchid} value={branch.branchid}>
-                    {branch.bname}
-                  </option>
-                ))}
-              </select>
-            ) : (
+              <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
               <input
                 type="text"
-                value={getBranchName(userBranchId)}
-                readOnly
-                className="w-full px-6 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-600"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
-            )}
-      
-            <div className="flex space-x-4 justify-end">
-              <button
-                onClick={handleAddEmployee}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
-              >
-                Submit
-              </button>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>      
-      )}
-      
-      {/* Role Update Modal */}
-      {showRoleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Role</h2>
-            <select
-              value={roleToUpdate}
-              onChange={(e) => setRoleToUpdate(e.target.value)}
-              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password (optional)"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={handleUpdateProfile}
+                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {/* Add Employee Modal */}
+        {showAddModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <option value="" disabled>Select Role</option>
-              <option value="Manager">Manager</option>
-              <option value="Cashier">Cashier</option>
-              <option value="Audit">Audit</option>
-            </select>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleRoleChange}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+           
+              <h2 className="text-2xl font-semibold text-gray-700 text-center mb-6">Add Employee</h2>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                <input
+                  type="text"
+                  value={newEmployee.name}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                  placeholder="Name"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <input
+                  type="email"
+                  value={newEmployee.email}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                  placeholder="Email"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <input
+                  type="password"
+                  value={newEmployee.password}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                  placeholder="Password"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <select
+                  value={newEmployee.role}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                  className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                >
+                  <option value="" disabled>
+                    Select Role
+                  </option>
+                  <option value="Manager">Manager</option>
+                  <option value="Cashier">Cashier</option>
+                  <option value="Audit">Audit</option>
+                </select>
+                {userRole === "Super Admin" ? (
+                  <select
+                    value={newEmployee.branchid}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
+                    className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch.branchid} value={branch.branchid}>
+                        {branch.bname}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={getBranchName(userBranchId)}
+                    readOnly
+                    className="w-full px-6 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-600"
+                  />
+                )}
+          
+                <div className="flex space-x-4 justify-end">
+                  <button
+                    onClick={handleAddEmployee}
+                    className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>   
+        )} 
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {/* Role Update Modal */}
+        {showRoleModal && (
+           <motion.div
+           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           exit={{ opacity: 0 }}
+           onClick={() => setShowAddModal(false)} // ปิด modal เมื่อคลิกที่พื้นหลัง
+         >
+           <motion.div
+             className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+             initial={{ scale: 0.9, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             exit={{ scale: 0.9, opacity: 0 }}
+             transition={{ duration: 0.3, ease: "easeOut" }}
+             onClick={(e) => e.stopPropagation()} // ป้องกันการปิด modal เมื่อคลิกด้านใน
+           >
+              <h2 className="text-xl font-bold mb-4 text-gray-600">Update Role</h2>
+              <select
+                value={roleToUpdate}
+                onChange={(e) => setRoleToUpdate(e.target.value)}
+                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
-                Update
-              </button>
-              <button
-                onClick={() => setShowRoleModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <option value="" disabled>Select Role</option>
+                <option value="Manager">Manager</option>
+                <option value="Cashier">Cashier</option>
+                <option value="Audit">Audit</option>
+              </select>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={handleRoleChange}
+                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => setShowRoleModal(false)}
+                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
