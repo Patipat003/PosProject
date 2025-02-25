@@ -425,34 +425,54 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border px-6 py-3 flex justify-center items-center space-x-2">
-              {(userRole === "Super Admin") && (
-                <HiOutlineUser 
-                  className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
-                  onClick={() => {
-                    setemployeeid(employee.employeeid);
-                    setRoleToUpdate(employee.role);
-                    setShowRoleModal(true);
-                  }}
-                />
-              )}
-              <button
-                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
-                onClick={() => {
-                  setemployeeid(employee.employeeid);
-                  setShowModal(true);
-                }}
-              >
-                <HiOutlinePencil className="text-xl" />
-              </button>
-              {(userRole === "Super Admin") && (
-                <button
-                  className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
-                  onClick={() => handleDeleteEmployee(employee.employeeid)}
-                >
-                  <HiOutlineTrash className="text-xl" />
-                </button>
-              )}
+            <td className="border px-4 py-2">
+              <div className="flex justify-center items-center space-x-3">
+                <div className="dropdown dropdown-end">
+                  <label tabIndex={0} className="btn btn-sm bg-teal-500 hover:bg-teal-600 border-none text-white">
+                    Edit
+                  </label>
+                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-lg w-52 mt-1 border border-gray-200">
+                    {(userRole === "Super Admin") && (
+                      <li>
+                        <button
+                          className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
+                          onClick={() => {
+                            setemployeeid(employee.employeeid);
+                            setRoleToUpdate(employee.role);
+                            setShowRoleModal(true);
+                          }}
+                        >
+                          <HiOutlineUser className="mr-2 text-teal-500" />
+                          Change Role
+                        </button>
+                      </li>
+                    )}
+                    <li>
+                      <button
+                        className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
+                        onClick={() => {
+                          setemployeeid(employee.employeeid);
+                          setShowModal(true);
+                        }}
+                      >
+                        <HiOutlinePencil className="mr-2 text-teal-500" />
+                        Edit Profile
+                      </button>
+                    </li>
+                    {(userRole === "Super Admin") && (
+                      <li>
+                        <button
+                          className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
+                          onClick={() => handleDeleteEmployee(employee.employeeid)}
+                        >
+                          <HiOutlineTrash className="mr-2 text-red-500" />
+                          Delete User
+                        </button>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
             </td>
           </tr>
           );
