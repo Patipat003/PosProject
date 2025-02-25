@@ -140,7 +140,7 @@ const MainLayout = ({ children }) => {
               <SidebarDropdown label="Sales Management" icon={<HiShoppingCart />}>
                 {[
                   !isAudit && { label: "Sales Product", link: "/sales" },
-                  { label: "Sales History", link: "/salesHistory" },
+                  { label: "Sales History", link: "/sales-history" },
                   
                   // { label: "Payment", link: "/payment" },
                   // { label: "Receipts", link: "/receipts" },
@@ -157,22 +157,22 @@ const MainLayout = ({ children }) => {
               <SidebarDropdown label="Reports" icon={<HiDocumentText />}>
                 {[
                   { label: "Sales Reports", link: "/reports" },
-                  { label: "Detail Report", link: "/detailReport" },
-                  { label: "Employee Report", link: "/employeeReports" },              
+                  { label: "Detail Report", link: "/detail-report" },
+                  { label: "Employee Report", link: "/employee-reports" },              
                 ]}
               </SidebarDropdown>
             )}
             {(isSuperAdmin || isManager) && (
               <SidebarDropdown label="User Management" icon={<HiMiniUserGroup />}>
                 {[
-                  { label: "User Lists", link: "/userManagement", icon: <HiUser /> },
-                  ...(isSuperAdmin ? [{ label: "Employee Transfer", link: "/employeeTransfer" }] : [])
+                  { label: "User Lists", link: "/user-management", icon: <HiUser /> },
+                  ...(isSuperAdmin ? [{ label: "Employee Transfer", link: "/employee-transfer" }] : [])
                 ]}
               </SidebarDropdown>
             )}
 
             {( isSuperAdmin ) && (
-              <SidebarItem label="Branches Management" link="/branchesManagement" icon={<HiOfficeBuilding />} />
+              <SidebarItem label="Branches Management" link="/branches-management" icon={<HiOfficeBuilding />} />
             )}
           </nav>
         </aside>

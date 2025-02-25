@@ -57,7 +57,7 @@ function App() {
             }
           />
           <Route
-            path="/salesHistory"
+            path="/sales-history"
             element={
               <ProtectedRoute allowedRoles={['Cashier', 'Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
@@ -87,7 +87,7 @@ function App() {
             }
           />
           <Route
-            path="/userManagement"
+            path="/user-management"
             element={
               <ProtectedRoute allowedRoles={['Super Admin', 'Manager']}>
                 <MainLayout>
@@ -97,7 +97,7 @@ function App() {
             }
           />
           <Route
-            path="/detailReport"
+            path="/detail-report"
             element={
               <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
@@ -107,7 +107,7 @@ function App() {
             }
           />
           <Route
-            path="/employeeTransfer"
+            path="/employee-transfer"
             element={
               <ProtectedRoute allowedRoles={['Super Admin']}>
                 <MainLayout>
@@ -127,7 +127,7 @@ function App() {
             }
           />
           <Route
-            path="/branchesManagement"
+            path="/branches-management"
             element={
               <ProtectedRoute allowedRoles={['Super Admin']}>
                 <MainLayout>
@@ -137,7 +137,7 @@ function App() {
             }
           />
           <Route
-            path="/employeeReports"
+            path="/employee-reports"
             element={
               <ProtectedRoute allowedRoles={['Super Admin', 'Manager', 'Audit']}>
                 <MainLayout>
