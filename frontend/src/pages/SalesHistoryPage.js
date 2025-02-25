@@ -23,6 +23,8 @@ const SalesHistoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const decoded = jwtDecode(token);
@@ -34,11 +36,11 @@ const SalesHistoryPage = () => {
   const fetchSalesData = async (branchId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
-      const salesResponse = await axios.get("http://localhost:5050/sales", config);
-      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
-      const receiptResponse = await axios.get("http://localhost:5050/receipts", config);
+      const salesResponse = await axios.get(`${API_BASE_URL}/sales`, config);
+      const employeeResponse = await axios.get(`${API_BASE_URL}/employees`, config);
+      const receiptResponse = await axios.get(`${API_BASE_URL}/receipts`, config);
 
       const salesArray = salesResponse.data.Data || [];
       const employeesArray = employeeResponse.data.Data || [];
@@ -82,9 +84,9 @@ const SalesHistoryPage = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
-      await axios.delete(`http://localhost:5050/sales/${saleId}`, config);
+      await axios.delete(`${API_BASE_URL}/sales/${saleId}`, config);
       
       // อัปเดต state หลังจากลบสำเร็จ
       const updatedSales = sales.filter((sale) => sale.saleid !== saleId);
@@ -170,13 +172,13 @@ const SalesHistoryPage = () => {
   const fetchSaleItems = async (saleId, createdAt) => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } };
   
       // เรียกข้อมูลต่าง ๆ
-      const saleItemsResponse = await axios.get("http://localhost:5050/saleitems", config);
-      const productResponse = await axios.get("http://localhost:5050/products", config);
-      const receiptResponse = await axios.get("http://localhost:5050/receipts", config);
-      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+      const saleItemsResponse = await axios.get(`${API_BASE_URL}/saleitems`, config);
+      const productResponse = await axios.get(`${API_BASE_URL}/products`, config);
+      const receiptResponse = await axios.get(`${API_BASE_URL}/receipts`, config);
+      const branchResponse = await axios.get(`${API_BASE_URL}/branches`, config);
   
       const saleItems = Array.isArray(saleItemsResponse.data.Data)
         ? saleItemsResponse.data.Data.filter((item) => item.saleid === saleId)

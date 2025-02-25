@@ -23,6 +23,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // Utility function to format date
 const formatDate = (dateString) => {
@@ -60,12 +61,12 @@ const calculateSalesByTime = (salesData, range) => {
 
 // Utility function to fetch data
 const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => {
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
   const endpoints = [
     "saleitems", "sales", "products", "branches", "inventory", "receipts", "employees"
   ];
   const responses = await Promise.all(endpoints.map(endpoint => 
-    axios.get(`http://localhost:5050/${endpoint}`, config)
+    axios.get(`${API_BASE_URL}/${endpoint}`, config)
   ));
   const [saleItemsData, salesData, productsData, branchesData, inventory, receiptsData, employeesData] = 
     responses.map(res => res.data.Data);

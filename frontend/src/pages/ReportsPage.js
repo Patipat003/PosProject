@@ -41,18 +41,25 @@ const ReportsPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(""); // Declare the selectedEmployee state
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const fetchSalesData = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true" 
+        }
       };
 
-      const salesResponse = await axios.get("http://localhost:5050/sales", config);
-      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+      const salesResponse = await axios.get(`${API_BASE_URL}/sales`, config);
+      const branchResponse = await axios.get(`${API_BASE_URL}/branches`, config);
 
       setSalesData(salesResponse.data.Data);
       setBranches(branchResponse.data.Data);
+      console.log(salesResponse.data.Data);
+      console.log(branchResponse.data.Data);
       setLoading(false);
 
       const userBranch = getUserBranch(); // Get user branch id from token

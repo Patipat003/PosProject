@@ -29,11 +29,13 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+
+    const API_BASE_URL = process.env.REACT_APP_API_URL;
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:5050/categories", config);
+        const response = await axios.get(`${API_BASE_URL}/categories`, config);
         setCategories(response.data.Data);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -43,7 +45,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     const fetchProduct = async () => {
       if (!productId) return;
       try {
-        const response = await axios.get(`http://localhost:5050/Products/${productId}`, config);
+        const response = await axios.get(`${API_BASE_URL}/Products/${productId}`, config);
         const product = response.data.Data;
         setProductCode(product.productcode);
         setProductName(product.productname);
@@ -98,9 +100,9 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
       const response = await axios.put(
-        `http://localhost:5050/products/${productId}`,
+        `${API_BASE_URL}/products/${productId}`,
         {
           productcode: productCode,
           productname: productName,

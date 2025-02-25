@@ -21,6 +21,8 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
       cardHolderName: "",
       email: "",
     });
+
+    const API_BASE_URL = process.env.REACT_APP_API_URL;
   
     const fetchBranchName = useCallback(async (branchid) => {
       try {
@@ -28,8 +30,8 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         if (!token) return;
   
         const response = await axios.get(
-          `http://localhost:5050/branches/${branchid}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `${API_BASE_URL}/branches/${branchid}`,
+          { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } }
         );
         setBranchName(response.data.Data.bname);
       } catch (err) {
@@ -54,8 +56,8 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
           Promise.all(
             storedCartData.map(async (item) => {
               try {
-                const response = await axios.get(`http://localhost:5050/products/${item.productid}`, {
-                  headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+                const response = await axios.get(`${API_BASE_URL}/products/${item.productid}`, {
+                  headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}`,"ngrok-skip-browser-warning": "true" },
                 });
                 return { ...item, name: response.data.Data.pname };
               } catch (error) {
@@ -139,8 +141,8 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         return;
       }
     
-      axios.post("http://localhost:5050/sales", saleData, {
-        headers: { Authorization: `Bearer ${token}` },
+      axios.post(`${API_BASE_URL}/sales`, saleData, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
       })
         .then(() => {
           toast.success("Payment successfully processed!");

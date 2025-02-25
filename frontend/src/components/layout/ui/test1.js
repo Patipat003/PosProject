@@ -42,16 +42,16 @@ const SalesPage = () => {
       if (!token) throw new Error("No token found");
 
       const [productRes, branchRes, inventoryRes, categoryRes] = await Promise.all([
-        axios.get("http://localhost:5050/products", {
+        axios.get("${API_BASE_URL}/products", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5050/branches", {
+        axios.get("${API_BASE_URL}/branches", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5050/inventory", {
+        axios.get("${API_BASE_URL}/inventory", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5050/categories", {
+        axios.get("${API_BASE_URL}/categories", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

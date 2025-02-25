@@ -13,6 +13,8 @@ const ModalStockLow = ({ closeModal }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showQuantityModal, setShowQuantityModal] = useState(false);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const getBranchIdFromToken = () => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -26,8 +28,8 @@ const ModalStockLow = ({ closeModal }) => {
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const response = await axios.get("http://localhost:5050/products", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API_BASE_URL}/products`, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
       });
       setProducts(response.data.Data);
     } catch (err) {
@@ -41,9 +43,9 @@ const ModalStockLow = ({ closeModal }) => {
       if (!token || !branchId) return;
 
       const response = await axios.get(
-        `http://localhost:5050/inventory?branchid=${branchId}`,
+        `${API_BASE_URL}/inventory?branchid=${branchId}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
         }
       );
       setInventory(response.data.Data);
@@ -65,9 +67,9 @@ const ModalStockLow = ({ closeModal }) => {
 
       try {
         const response = await axios.post(
-          "http://localhost:5050/requests/auto",
+          `${API_BASE_URL}/requests/auto`,
           requestData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } }
         );
 
         if (response.status === 200) {

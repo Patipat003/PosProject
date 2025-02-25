@@ -11,6 +11,8 @@ const ProductMovementChart = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // จำนวนรายการต่อหน้า
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -28,10 +30,10 @@ const ProductMovementChart = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const requestsRes = await axios.get("http://localhost:5050/requests", config);
-      const salesRes = await axios.get("http://localhost:5050/sales", config);
-      const saleItemsRes = await axios.get("http://localhost:5050/saleitems", config);
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+      const requestsRes = await axios.get(`${API_BASE_URL}/requests`, config);
+      const salesRes = await axios.get(`${API_BASE_URL}/sales`, config);
+      const saleItemsRes = await axios.get(`${API_BASE_URL}/saleitems`, config);
 
       const requests = requestsRes.data.Data;
       const sales = salesRes.data.Data;

@@ -10,12 +10,14 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState([]);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // ดึงข้อมูล Category ทั้งหมด
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get("http://localhost:5050/categories", config);
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+      const response = await axios.get(`${API_BASE_URL}/categories`, config);
       setCategories(response.data.Data);
     } catch (error) {
       console.error("Error fetching categories", error);
@@ -28,8 +30,8 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5050/categories/${categoryID}`, config);
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+      await axios.delete(`${API_BASE_URL}/categories/${categoryID}`, config);
       fetchCategories();
       toast.success("Category deleted successfully!", { theme: "colored" });
     } catch (error) {
@@ -54,8 +56,8 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post("http://localhost:5050/categories", { categoryname: categoryName }, config);
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+      await axios.post(`${API_BASE_URL}/categories`, { categoryname: categoryName }, config);
       setCategoryName("");
       fetchCategories();
       onCategoryAdded();

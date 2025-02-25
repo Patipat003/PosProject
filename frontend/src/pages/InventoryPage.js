@@ -35,6 +35,8 @@ const InventoryPage = () => {
   const itemsPerPage = 20; // ตั้งค่าแสดง 10 รายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // Function to fetch inventory data
   const fetchInventory = async () => {
     try {
@@ -45,14 +47,14 @@ const InventoryPage = () => {
 
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
 
       const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
-        axios.get("http://localhost:5050/inventory", config),
-        axios.get("http://localhost:5050/products", config),
-        axios.get("http://localhost:5050/branches", config),
+        axios.get(`${API_BASE_URL}/inventory`, config),
+        axios.get(`${API_BASE_URL}/products`, config),
+        axios.get(`${API_BASE_URL}/branches`, config),
       ]);
 
       const productMap = {};

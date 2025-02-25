@@ -9,14 +9,20 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5050/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        email, password },
+      {
+        headers: {
+          "ngrok-skip-browser-warning": "true"
+        }
+      }
+    );
       const token = response.data.token;
 
       // เก็บเฉพาะ Token ใน LocalStorage

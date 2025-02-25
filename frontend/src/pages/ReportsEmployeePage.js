@@ -26,7 +26,9 @@ const ReportsEmployeePage = () => {
   const [userBranchId, setUserBranchId] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [currentPage, setCurrentPage] = useState(1); 
-  const itemsPerPage = 10; 
+  const itemsPerPage = 10;
+
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   const fetchData = async () => {
     try {
@@ -39,13 +41,13 @@ const ReportsEmployeePage = () => {
       setUserRole(userRole);
   
       const config = {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
       };
   
       const [employeeResponse, branchResponse, receiptsResponse] = await Promise.all([
-        axios.get("http://localhost:5050/employees", config),
-        axios.get("http://localhost:5050/branches", config),
-        axios.get("http://localhost:5050/receipts", config),
+        axios.get(`${API_BASE_URL}/employees`, config),
+        axios.get(`${API_BASE_URL}/branches`, config),
+        axios.get(`${API_BASE_URL}/receipts`, config),
       ]);
   
       const receiptsData = receiptsResponse.data.Data;

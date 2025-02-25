@@ -16,6 +16,8 @@ const EmployeeTransferPage = () => {
   });
   const [error, setError] = useState(null);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const getUserDetailsFromToken = () => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -28,10 +30,10 @@ const EmployeeTransferPage = () => {
   const fetchEmployeesAndBranches = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
       const [employeeResponse, branchResponse] = await Promise.all([
-        axios.get("http://localhost:5050/employees", config),
-        axios.get("http://localhost:5050/branches", config),
+        axios.get(`${API_BASE_URL}/employees`, config),
+        axios.get(`${API_BASE_URL}/branches`, config),
       ]);
       setEmployees(employeeResponse.data.Data);
       setBranches(branchResponse.data.Data);
@@ -74,11 +76,11 @@ const EmployeeTransferPage = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
       const payload = { branchid: formData.newBranch, transferDate: formData.date, transferTime: formData.time };
 
       const response = await axios.patch(
-        `http://localhost:5050/employees/${formData.id}`,
+        `${API_BASE_URL}/employees/${formData.id}`,
         payload,
         config
       );

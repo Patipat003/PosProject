@@ -22,6 +22,8 @@ const SalesPage = () => {
   const [searchQuery, setSearchQuery] = useState(""); // New state for search query
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
   
@@ -44,20 +46,13 @@ const SalesPage = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("No token found");
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
       const [productRes, branchRes, inventoryRes, categoryRes] = await Promise.all([
-        axios.get("http://localhost:5050/products", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/branches", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/inventory", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5050/categories", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        axios.get(`${API_BASE_URL}/products`,config),
+        axios.get(`${API_BASE_URL}/branches`, config),
+        axios.get(`${API_BASE_URL}/inventory`, config),
+        axios.get(`${API_BASE_URL}/categories`, config),
       ]);
 
       setProducts(productRes.data.Data);

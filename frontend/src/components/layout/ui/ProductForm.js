@@ -16,12 +16,14 @@ const ProductForm = ({ onProductAdded }) => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const response = await axios.get("http://localhost:5050/categories", config);
+        const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+        const response = await axios.get(`${API_BASE_URL}/categories`, config);
         setCategories(response.data.Data);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -37,7 +39,7 @@ const ProductForm = ({ onProductAdded }) => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
       const productData = {
         productname: productName,
@@ -48,7 +50,7 @@ const ProductForm = ({ onProductAdded }) => {
         categoryid: selectedCategory,
       };
 
-      const response = await axios.post("http://localhost:5050/products", productData, config);
+      const response = await axios.post(`${API_BASE_URL}/products`, productData, config);
       if (response.data) onProductAdded();
       toast.success("✅ Add Product Complete!", { position: "top-right", autoClose: 3000 });
       setIsModalOpen(false);

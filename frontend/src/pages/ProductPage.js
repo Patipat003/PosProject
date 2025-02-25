@@ -39,6 +39,8 @@ const ProductPage = () => {
   const itemsPerPage = 20; // จำนวนรายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // ฟังก์ชันดึงข้อมูลสินค้าและสต็อก
   const fetchProducts = async () => {
     try {
@@ -47,14 +49,14 @@ const ProductPage = () => {
       setUserRole(decodedToken.role);
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" // แนบ token ไปกับ header ของคำขอ
+        }
       };
 
       const [productResponse, inventoryResponse, categoryResponse] = await Promise.all([
-        axios.get("http://localhost:5050/products", config),
-        axios.get("http://localhost:5050/inventory", config),
-        axios.get("http://localhost:5050/categories", config),
+        axios.get(`${API_BASE_URL}/products`, config),
+        axios.get(`${API_BASE_URL}/inventory`, config),
+        axios.get(`${API_BASE_URL}/categories`, config),
       ]);
       
       const inventoryMap = {};
@@ -86,11 +88,11 @@ const ProductPage = () => {
         setUserRole(decodedToken.role);
         const config = {
           headers: {
-            Authorization: `Bearer ${token}`, // แนบ token ไปกับ header ของคำขอ
-          },
+            Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" // แนบ token ไปกับ header ของคำขอ
+          }
         };
 
-        const response = await axios.delete(`http://localhost:5050/products/${productId}`, config);
+        const response = await axios.delete(`${API_BASE_URL}/products/${productId}`, config);
         if (response.status === 200) {
           // หากการลบสำเร็จ รีเฟรชข้อมูลสินค้า
           fetchProducts();
@@ -179,11 +181,11 @@ const ProductPage = () => {
       const token = localStorage.getItem("authToken"); 
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`, 
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" 
+        }
       };
 
-      const categoryResponse = await axios.get("http://localhost:5050/categories", config);
+      const categoryResponse = await axios.get(`${API_BASE_URL}/categories`, config);
       setCategories(categoryResponse.data.Data);
     } catch (err) {
       console.error("Failed to fetch categories", err);

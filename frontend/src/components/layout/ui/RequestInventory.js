@@ -37,17 +37,19 @@ const RequestInventory = () => {
     return format(date, "d/MM/yyyy, HH:mm");
   };
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // Fetch data from API
   const fetchRequests = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
 
-      const response = await axios.get("http://localhost:5050/Requests", config);
+      const response = await axios.get(`${API_BASE_URL}/Requests`, config);
       setRequests(response.data.Data || []);
     } catch (err) {
       console.error("Error fetching requests:", err);
@@ -59,10 +61,10 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
-      const response = await axios.get("http://localhost:5050/branches", config);
+      const response = await axios.get(`${API_BASE_URL}/branches`, config);
       setBranches(response.data.Data || []);
     } catch (err) {
       console.error("Error fetching branches:", err);
@@ -74,10 +76,10 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
-      const response = await axios.get("http://localhost:5050/products", config);
+      const response = await axios.get(`${API_BASE_URL}/products`, config);
       setProducts(response.data.Data || []);
     } catch (err) {
       console.error("Error fetching products:", err);
@@ -89,10 +91,10 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
-      const response = await axios.get("http://localhost:5050/inventory", config);
+      const response = await axios.get(`${API_BASE_URL}/inventory`, config);
       setInventory(response.data.Data || []);
     } catch (err) {
       console.error("Error fetching inventory:", err);
@@ -103,9 +105,9 @@ const RequestInventory = () => {
     try {
       const token = localStorage.getItem("authToken");
       const config = {
-        headers: {  Authorization: `Bearer ${token}` },
+        headers: {  Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
       };
-      const response = await axios.get("http://localhost:5050/categories", config);
+      const response = await axios.get(`${API_BASE_URL}/categories`, config);
       setCategories(response.data.Data || []);
     } catch (error) {
       console.error("Error fetching categories", error);
@@ -117,10 +119,10 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
-      const response = await axios.get("http://localhost:5050/warehouse", config);
+      const response = await axios.get(`${API_BASE_URL}/warehouse`, config);
       setWarehouse(response.data.Data || []);
     } catch (err) {
       console.error("Error fetching warehouse:", err);
@@ -129,8 +131,8 @@ const RequestInventory = () => {
 
   const fetchInventoryForBranch = async (branchid) => {
     try {
-      const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchid}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
+      const response = await axios.get(`${API_BASE_URL}/inventory?branchid=${branchid}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}`,"ngrok-skip-browser-warning": "true" },
       });
       setInventory(response.data);
     } catch (error) {
@@ -212,11 +214,11 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
 
-      await axios.post("http://localhost:5050/Requests", newRequest, config);
+      await axios.post(`${API_BASE_URL}/Requests`, newRequest, config);
       toast.success("Request successfully added!");
       fetchRequests();
       setNewRequest({
@@ -242,11 +244,11 @@ const RequestInventory = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
       await axios.put(
-        `http://localhost:5050/Requests/${requestId}`,
+        `${API_BASE_URL}/Requests/${requestId}`,
         { status },
         config
       );

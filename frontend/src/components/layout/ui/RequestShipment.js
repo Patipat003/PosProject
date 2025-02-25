@@ -27,11 +27,13 @@ const RequestShipment = ({ selectedBranchId }) => {
     .sort((a, b) => new Date(b.updatedat) - new Date(a.updatedat)) // เรียงจากใหม่ไปเก่า
     .slice(indexOfFirstItem, indexOfLastItem);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;  
+
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
   
-    axios.get("http://localhost:5050/products", {
-        headers: { Authorization: `Bearer ${authToken}` },
+    axios.get(`${API_BASE_URL}/products`, {
+        headers: { Authorization: `Bearer ${authToken}`,"ngrok-skip-browser-warning": "true" },
       })
       .then((res) => {
         console.log("Fetched products:", res.data); // ✅ Debug ดูข้อมูลจาก API
@@ -71,8 +73,8 @@ const RequestShipment = ({ selectedBranchId }) => {
 
   const fetchShipments = () => {
     const authToken = localStorage.getItem("authToken");
-    axios.get(`http://localhost:5050/shipments?branchid=${userBranchId}`, {
-        headers: { Authorization: `Bearer ${authToken}` },
+    axios.get(`${API_BASE_URL}/shipments?branchid=${userBranchId}`, {
+        headers: { Authorization: `Bearer ${authToken}`,"ngrok-skip-browser-warning": "true" },
       })
       .then((res) => setShipments(res.data.Data || []))
       .catch(() => setShipments([]));
@@ -93,8 +95,8 @@ const RequestShipment = ({ selectedBranchId }) => {
   
     const fetchShipments = () => {
       axios
-        .get(`http://localhost:5050/shipments?branchid=${userBranchId}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
+        .get(`${API_BASE_URL}/shipments?branchid=${userBranchId}`, {
+          headers: { Authorization: `Bearer ${authToken}`,"ngrok-skip-browser-warning": "true" },
         })
         .then((res) => setShipments(res.data.Data || []))
         .catch(() => setShipments([]));
@@ -158,8 +160,8 @@ const RequestShipment = ({ selectedBranchId }) => {
   const handleDeleteShipment = (shipmentId) => {
     const authToken = localStorage.getItem("authToken");
   
-    axios.delete(`http://localhost:5050/shipments/${shipmentId}`, {
-        headers: { Authorization: `Bearer ${authToken}` },
+    axios.delete(`${API_BASE_URL}/shipments/${shipmentId}`, {
+        headers: { Authorization: `Bearer ${authToken}`,"ngrok-skip-browser-warning": "true" },
       })
       .then(() => {
         toast.success("Shipment deleted successfully!");
@@ -191,8 +193,8 @@ const RequestShipment = ({ selectedBranchId }) => {
   
     const authToken = localStorage.getItem("authToken");
   
-    axios.post("http://localhost:5050/shipments", requestData, {
-        headers: { Authorization: `Bearer ${authToken}` },
+    axios.post(`${API_BASE_URL}/shipments`, requestData, {
+        headers: { Authorization: `Bearer ${authToken}`,"ngrok-skip-browser-warning": "true" },
       })
       .then(() => {
         toast.success("Shipment request created successfully!");

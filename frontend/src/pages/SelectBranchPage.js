@@ -11,6 +11,8 @@ const SelectBranchPage = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // Fetch branch data from API
   const fetchBranches = async () => {
     try {
@@ -21,8 +23,8 @@ const SelectBranchPage = () => {
         return;
       }
 
-      const response = await axios.get("http://localhost:5050/branches", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API_BASE_URL}/branches`, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
       });
 
       if (Array.isArray(response.data.Data)) {
@@ -71,10 +73,11 @@ const SelectBranchPage = () => {
         email: decodedToken.email,
         password: password,
         branchid: selectedBranch,
+        "ngrok-skip-browser-warning": "true",
       };
 
       // Send request to API for a new token with branch ID
-      const response = await axios.post("http://localhost:5050/login", loginData);
+      const response = await axios.post(`${API_BASE_URL}/login`, loginData);
 
       if (response.data && response.data.token) {
         // Save new token to localStorage

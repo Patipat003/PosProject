@@ -25,17 +25,19 @@ const BranchViewModal = ({ branch, onClose }) => {
   const itemsPerPage = 20; // ✅ กำหนดให้แสดงหน้าละ 20 รายการ
 
   const token = localStorage.getItem("authToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const config = { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } };
+  
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         const [salesRes, saleItemsRes, employeesRes, inventoryRes, productsRes] = await Promise.all([
-          axios.get("http://localhost:5050/sales", config),
-          axios.get("http://localhost:5050/saleitems", config),
-          axios.get("http://localhost:5050/employees", config),
-          axios.get("http://localhost:5050/inventory", config),
-          axios.get("http://localhost:5050/products", config),
+          axios.get(`${API_BASE_URL}/sales`, config),
+          axios.get(`${API_BASE_URL}/saleitems`, config),
+          axios.get(`${API_BASE_URL}/employees`, config),
+          axios.get(`${API_BASE_URL}/inventory`, config),
+          axios.get(`${API_BASE_URL}/products`, config),
         ]);
 
         const sales = salesRes.data.Data || [];

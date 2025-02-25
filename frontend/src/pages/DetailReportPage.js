@@ -6,9 +6,6 @@ import autoTable from "jspdf-autotable";
 import { CSVLink } from "react-csv";
 import { Player } from "@lottiefiles/react-lottie-player";
 
-
-
-
 const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
   <div className="flex space-x-4 items-center">
     <input
@@ -53,20 +50,22 @@ const DetailReportPage = () => {
   const [error, setError] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const decodedToken = jwtDecode(token);
       const userBranchId = decodedToken.branchid;
 
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
       const [saleItemsResponse, productsResponse, salesResponse, employeesResponse, branchesResponse] = await Promise.all([
-        axios.get("http://localhost:5050/saleitems", config),
-        axios.get("http://localhost:5050/products", config),
-        axios.get("http://localhost:5050/sales", config),
-        axios.get("http://localhost:5050/employees", config),
-        axios.get("http://localhost:5050/branches", config),
+        axios.get(`${API_BASE_URL}/saleitems`, config),
+        axios.get(`${API_BASE_URL}/products`, config),
+        axios.get(`${API_BASE_URL}/sales`, config),
+        axios.get(`${API_BASE_URL}/employees`, config),
+        axios.get(`${API_BASE_URL}/branches`, config),
       ]);
 
       const productMap = {};

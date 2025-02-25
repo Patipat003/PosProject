@@ -47,7 +47,9 @@ const UserManagementPage = () => {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [currentPage, setCurrentPage] = useState(1); 
-  const itemsPerPage = 10; 
+  const itemsPerPage = 10;
+
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   const fetchData = async () => {
     try {
@@ -61,12 +63,12 @@ const UserManagementPage = () => {
   
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+        }
       };
   
-      const employeeResponse = await axios.get("http://localhost:5050/employees", config);
-      const branchResponse = await axios.get("http://localhost:5050/branches", config);
+      const employeeResponse = await axios.get(`${API_BASE_URL}/employees`, config);
+      const branchResponse = await axios.get(`${API_BASE_URL}/branches`, config);
   
       // กรองพนักงานตามสาขาที่มาจาก token
       if (userRole === "Super Admin") {
@@ -126,14 +128,14 @@ const UserManagementPage = () => {
   
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
   
       const payload = {
         ...newEmployee,
         branchid: userRole === "Super Admin" ? newEmployee.branchid : userBranchId,
       };
   
-      await axios.post("http://localhost:5050/employees", payload, config);
+      await axios.post(`${API_BASE_URL}/employees`, payload, config);
       setShowAddModal(false);
       fetchData();
       toast.success("Employee added successfully.");
@@ -156,12 +158,12 @@ const UserManagementPage = () => {
       const token = localStorage.getItem("authToken");
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
         },
       };
 
       const response = await axios.patch(
-        `http://localhost:5050/employees/${employeeid}`,
+        `${API_BASE_URL}/employees/${employeeid}`,
         { role: roleToUpdate },
         config
       );
@@ -188,12 +190,12 @@ const UserManagementPage = () => {
         const token = localStorage.getItem("authToken");
         const config = {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
+          }
         };
   
         const response = await axios.delete(
-          `http://localhost:5050/employees/${employeeid}`,
+          `${API_BASE_URL}/employees/${employeeid}`,
           config
         );
   
@@ -214,8 +216,8 @@ const UserManagementPage = () => {
     const fetchEmployeeData = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const response = await axios.get(`http://localhost:5050/employees/${employeeid}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await axios.get(`${API_BASE_URL}/employees/${employeeid}`, {
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
         });
 
         if (response.status === 200) {
@@ -245,9 +247,9 @@ const UserManagementPage = () => {
       if (newPassword) updatedData.password = newPassword;
 
       const response = await axios.patch(
-        `http://localhost:5050/employees/${employeeid}`,
+        `${API_BASE_URL}/employees/${employeeid}`,
         updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } }
       );
 
       if (response.status === 200) {

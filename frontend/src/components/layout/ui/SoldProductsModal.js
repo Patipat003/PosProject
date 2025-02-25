@@ -8,6 +8,8 @@ const SoldProductsModal = ({ show, closeModal }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     if (!show) return;
 
@@ -23,8 +25,8 @@ const SoldProductsModal = ({ show, closeModal }) => {
         const branchid = decoded.branchid;
 
         // ดึงข้อมูล Sales ตาม branchid
-        const salesRes = await axios.get("http://localhost:5050/sales", {
-          headers: { Authorization: `Bearer ${token}` },
+        const salesRes = await axios.get(`${API_BASE_URL}/sales`, {
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
         });
         const salesData = salesRes.data.Data || [];
         const filteredSales = salesData.filter((sale) => sale.branchid === branchid);
@@ -37,8 +39,8 @@ const SoldProductsModal = ({ show, closeModal }) => {
         }
 
         // ดึงข้อมูล SaleItems ตาม saleid
-        const saleItemsRes = await axios.get("http://localhost:5050/saleitems", {
-          headers: { Authorization: `Bearer ${token}` },
+        const saleItemsRes = await axios.get(`${API_BASE_URL}/saleitems`, {
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
         });
         const saleItemsData = saleItemsRes.data.Data || [];
         const filteredSaleItems = saleItemsData.filter((item) => saleIds.includes(item.saleid));
@@ -53,8 +55,8 @@ const SoldProductsModal = ({ show, closeModal }) => {
         }, {});
 
         // ดึงข้อมูลสินค้า /products
-        const productsRes = await axios.get("http://localhost:5050/products", {
-          headers: { Authorization: `Bearer ${token}` },
+        const productsRes = await axios.get(`${API_BASE_URL}/products`, {
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
         });
 
         const productData = productsRes.data.Data || [];

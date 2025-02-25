@@ -33,7 +33,9 @@ const BranchesPage = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
 
   const token = localStorage.getItem("authToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchBranches();
@@ -41,7 +43,7 @@ const BranchesPage = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await axios.get("http://localhost:5050/branches", config);
+      const response = await axios.get(`${API_BASE_URL}/branches`, config);
       setBranches(response.data.Data || []);
     } catch (error) {
       console.error("Error fetching branches:", error);
@@ -82,7 +84,7 @@ const BranchesPage = () => {
   
     try {
       await axios.post(
-        "http://localhost:5050/branches",
+        `${API_BASE_URL}/branches`,
         {
           bname: newBranch.bname,
           location: newBranch.location,
@@ -110,7 +112,7 @@ const BranchesPage = () => {
     }
   
     try {
-      await axios.put(`http://localhost:5050/branches/${editBranch?.branchid}`, {
+      await axios.put(`${API_BASE_URL}/branches/${editBranch?.branchid}`, {
         bname: editData?.bname,
         location: editData?.location,
         google_location: editData?.googleLocation,
@@ -131,7 +133,7 @@ const BranchesPage = () => {
   const deleteBranch = async (id) => {
     if (!window.confirm("⚠️ Are you sure you want to delete this branch?")) return;
     try {
-      await axios.delete(`http://localhost:5050/branches/${id}`, config);
+      await axios.delete(`${API_BASE_URL}/branches/${id}`, config);
       setBranches((prev) => prev.filter((branch) => branch.branchid !== id));
       toast.success("🗑️ Branch deleted successfully!");
       setTimeout(() => {

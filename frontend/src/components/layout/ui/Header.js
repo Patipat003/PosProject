@@ -19,6 +19,8 @@ const Header = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const navigate = useNavigate();
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const dropdownRef = useRef(null);  // Reference to the dropdown container
 
   const getUserDataFromToken = useCallback(() => {
@@ -34,10 +36,11 @@ const Header = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) return;
-      const response = await axios.get("http://localhost:5050/branches", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API_BASE_URL}/branches`, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
       });
       setBranches(response.data);
+      console.log("API Response:", response.data);
     } catch (err) {
       console.error("Error fetching branches:", err);
     }
@@ -47,8 +50,8 @@ const Header = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) return;
-      const response = await axios.get(`http://localhost:5050/branches/${branchid}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API_BASE_URL}/branches/${branchid}`, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
       });
       setBranchName(response.data.Data.bname);
     } catch (err) {
@@ -85,8 +88,8 @@ const Header = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) return;
-      const response = await axios.get(`http://localhost:5050/inventory?branchid=${branchid}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API_BASE_URL}/inventory?branchid=${branchid}`, {
+        headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
       });
       const inventory = response.data.Data;
       const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 100);
@@ -108,9 +111,9 @@ const Header = () => {
       const branchid = decodedToken.branchid;
 
       const response = await axios.get(
-        `http://localhost:5050/requests`,
+        `${API_BASE_URL}/requests`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
         }
       );
 

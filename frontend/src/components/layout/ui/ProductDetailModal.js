@@ -7,6 +7,8 @@ const ProductDetailModal = ({ product, onClose }) => {
   const [categoryName, setCategoryName] = useState("");
   const [isOpen, setIsOpen] = useState(!!product); // ควบคุมการแสดงผล modal
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     if (product) {
       setIsOpen(true); // เปิด modal เมื่อมีข้อมูลสินค้า
@@ -17,9 +19,9 @@ const ProductDetailModal = ({ product, onClose }) => {
   const fetchCategoryName = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
-      const response = await axios.get("http://localhost:5050/categories", config);
+      const response = await axios.get(`${API_BASE_URL}/categories`, config);
       const categories = response.data.Data;
 
       const matchedCategory = categories.find(

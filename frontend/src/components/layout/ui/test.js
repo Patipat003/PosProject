@@ -18,7 +18,7 @@ const RequestShipment = ({ selectedBranchId }) => {
     if (!authToken) return;
 
     axios
-      .get("http://localhost:5050/products", { headers: { Authorization: `Bearer ${authToken}` } })
+      .get("${API_BASE_URL}/products", { headers: { Authorization: `Bearer ${authToken}` } })
       .then((res) => setProducts(res.data.Data || []))
       .catch(() => setProducts([]));
 
@@ -38,7 +38,7 @@ const RequestShipment = ({ selectedBranchId }) => {
     const authToken = localStorage.getItem("authToken");
 
     axios
-      .get(`http://localhost:5050/shipments?branchid=${userBranchId}`, {
+      .get(`${API_BASE_URL}/shipments?branchid=${userBranchId}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       })
       .then((res) => setShipments(res.data.Data || []))
