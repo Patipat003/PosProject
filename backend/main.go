@@ -87,7 +87,7 @@ func main() {
 
 	// กำหนด CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",                                                                       // อนุญาตให้ React app ที่รันที่ localhost:3000 เข้าถึง
+		AllowOrigins:     "http://127.0.0.1:3000",                                                   // อนุญาตให้ React app ที่รันที่ localhost:3000 เข้าถึง
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",                                               // อนุญาต HTTP methods
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, ngrok-skip-browser-warning", // อนุญาต headers
 		AllowCredentials: true,                                                                      // อนุญาตการใช้ credentials เช่น cookies, authorization headers
