@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ExportButtons from "../components/layout/ui/ExportButtons";
+import { motion, AnimatePresence } from "framer-motion";
 import { toZonedTime, format } from 'date-fns-tz';
 import { AiOutlineExclamationCircle } from "react-icons/ai"; 
 import { Player } from "@lottiefiles/react-lottie-player"; 
@@ -41,7 +42,9 @@ const UserManagementPage = () => {
   const [sortByDate, setSortByDate] = useState(false);
   const [userBranchId, setUserBranchId] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false); 
+  const [showModal, setShowModal] = useState(false); 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [currentPage, setCurrentPage] = useState(1); 
   const itemsPerPage = 10; 
@@ -207,37 +210,56 @@ const UserManagementPage = () => {
     }
   };  
 
-  const handlePasswordChange = async () => {
-    if (!newPassword) {
-      alert("Please enter a new password.");
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:5050/employees/${employeeid}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 200) {
+          const { name, email } = response.data;
+          setName(name);
+          setEmail(email);
+        }
+      } catch (err) {
+        console.error("Failed to fetch employee data:", err);
+      }
+    };
+
+    if (employeeid) {
+      fetchEmployeeData();
+    }
+  }, [employeeid]);
+
+  const handleUpdateProfile = async () => {
+    if (!name || !email) {
+      alert("Name and Email cannot be empty.");
       return;
     }
 
     try {
       const token = localStorage.getItem("authToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+      const updatedData = { name, email };
+      if (newPassword) updatedData.password = newPassword;
 
       const response = await axios.patch(
         `http://localhost:5050/employees/${employeeid}`,
-        { password: newPassword },
-        config
+        updatedData,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.status === 200) {
-        alert("Password updated successfully.");
-        setShowPasswordModal(false);
-        fetchData();
+        alert("Profile updated successfully.");
+        setShowModal(false);
+        fetchData(); // รีเฟรชข้อมูลใหม่
       } else {
-        console.error("Failed to update password:", response.data);
-        alert("Failed to update password.");
+        alert("Failed to update profile.");
       }
     } catch (err) {
-      console.error("Failed to update password:", err);
-      alert("Failed to update password.");
+      console.error("Failed to update profile:", err);
+      alert("Failed to update profile.");
     }
   };
 
@@ -404,29 +426,33 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
             <td className="border px-6 py-3 flex justify-center items-center space-x-2">
-              <HiOutlineUser 
-                className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
-                onClick={() => {
-                  setemployeeid(employee.employeeid);
-                  setRoleToUpdate(employee.role);
-                  setShowRoleModal(true);
-                }}
-              />
+              {(userRole === "Super Admin") && (
+                <HiOutlineUser 
+                  className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                  onClick={() => {
+                    setemployeeid(employee.employeeid);
+                    setRoleToUpdate(employee.role);
+                    setShowRoleModal(true);
+                  }}
+                />
+              )}
               <button
                 className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
-                  setShowPasswordModal(true);
+                  setShowModal(true);
                 }}
               >
                 <HiOutlinePencil className="text-xl" />
               </button>
-              <button
-                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
-                onClick={() => handleDeleteEmployee(employee.employeeid)}
-              >
-                <HiOutlineTrash className="text-xl" />
-              </button>
+              {(userRole === "Super Admin") && (
+                <button
+                  className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                  onClick={() => handleDeleteEmployee(employee.employeeid)}
+                >
+                  <HiOutlineTrash className="text-xl" />
+                </button>
+              )}
             </td>
           </tr>
           );
@@ -456,161 +482,203 @@ const UserManagementPage = () => {
       </div>
 
       {/* Update Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password (optional)"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleUpdateProfile}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
-              >
-                Update
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-       {/* Add Employee Modal */}
-       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-96 space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-700 text-center mb-6">Add Employee</h2>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-            <input
-              type="text"
-              value={newEmployee.name}
-              onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-              placeholder="Name"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <input
-              type="email"
-              value={newEmployee.email}
-              onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-              placeholder="Email"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <input
-              type="password"
-              value={newEmployee.password}
-              onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
-              placeholder="Password"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-            />
-            <select
-              value={newEmployee.role}
-              onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-              className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <option value="" disabled>
-                Select Role
-              </option>
-              <option value="Manager">Manager</option>
-              <option value="Cashier">Cashier</option>
-              <option value="Audit">Audit</option>
-            </select>
-            {userRole === "Super Admin" ? (
-              <select
-                value={newEmployee.branchid}
-                onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
-                className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-              >
-                <option value="">Select Branch</option>
-                {branches.map((branch) => (
-                  <option key={branch.branchid} value={branch.branchid}>
-                    {branch.bname}
-                  </option>
-                ))}
-              </select>
-            ) : (
+              <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
               <input
                 type="text"
-                value={getBranchName(userBranchId)}
-                readOnly
-                className="w-full px-6 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-600"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
-            )}
-      
-            <div className="flex space-x-4 justify-end">
-              <button
-                onClick={handleAddEmployee}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
-              >
-                Submit
-              </button>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>      
-      )}
-      
-      {/* Role Update Modal */}
-      {showRoleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Role</h2>
-            <select
-              value={roleToUpdate}
-              onChange={(e) => setRoleToUpdate(e.target.value)}
-              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password (optional)"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={handleUpdateProfile}
+                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {/* Add Employee Modal */}
+        {showAddModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <option value="" disabled>Select Role</option>
-              <option value="Manager">Manager</option>
-              <option value="Cashier">Cashier</option>
-              <option value="Audit">Audit</option>
-            </select>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleRoleChange}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+           
+              <h2 className="text-2xl font-semibold text-gray-700 text-center mb-6">Add Employee</h2>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                <input
+                  type="text"
+                  value={newEmployee.name}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                  placeholder="Name"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <input
+                  type="email"
+                  value={newEmployee.email}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                  placeholder="Email"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <input
+                  type="password"
+                  value={newEmployee.password}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                  placeholder="Password"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                />
+                <select
+                  value={newEmployee.role}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                  className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                >
+                  <option value="" disabled>
+                    Select Role
+                  </option>
+                  <option value="Manager">Manager</option>
+                  <option value="Cashier">Cashier</option>
+                  <option value="Audit">Audit</option>
+                </select>
+                {userRole === "Super Admin" ? (
+                  <select
+                    value={newEmployee.branchid}
+                    onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
+                    className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch.branchid} value={branch.branchid}>
+                        {branch.bname}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={getBranchName(userBranchId)}
+                    readOnly
+                    className="w-full px-6 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-600"
+                  />
+                )}
+          
+                <div className="flex space-x-4 justify-end">
+                  <button
+                    onClick={handleAddEmployee}
+                    className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>   
+        )} 
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {/* Role Update Modal */}
+        {showRoleModal && (
+           <motion.div
+           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           exit={{ opacity: 0 }}
+           onClick={() => setShowAddModal(false)} // ปิด modal เมื่อคลิกที่พื้นหลัง
+         >
+           <motion.div
+             className="bg-white p-8 rounded-md shadow-md w-96 space-y-4"
+             initial={{ scale: 0.9, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             exit={{ scale: 0.9, opacity: 0 }}
+             transition={{ duration: 0.3, ease: "easeOut" }}
+             onClick={(e) => e.stopPropagation()} // ป้องกันการปิด modal เมื่อคลิกด้านใน
+           >
+              <h2 className="text-xl font-bold mb-4 text-gray-600">Update Role</h2>
+              <select
+                value={roleToUpdate}
+                onChange={(e) => setRoleToUpdate(e.target.value)}
+                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
-                Update
-              </button>
-              <button
-                onClick={() => setShowRoleModal(false)}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <option value="" disabled>Select Role</option>
+                <option value="Manager">Manager</option>
+                <option value="Cashier">Cashier</option>
+                <option value="Audit">Audit</option>
+              </select>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={handleRoleChange}
+                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => setShowRoleModal(false)}
+                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
