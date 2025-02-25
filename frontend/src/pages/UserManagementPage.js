@@ -41,9 +41,7 @@ const UserManagementPage = () => {
   const [sortByDate, setSortByDate] = useState(false);
   const [userBranchId, setUserBranchId] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [showModal, setShowModal] = useState(false); 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false); 
   const [newPassword, setNewPassword] = useState("");
   const [currentPage, setCurrentPage] = useState(1); 
   const itemsPerPage = 10; 
@@ -209,56 +207,37 @@ const UserManagementPage = () => {
     }
   };  
 
-  useEffect(() => {
-    const fetchEmployeeData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const response = await axios.get(`http://localhost:5050/employees/${employeeid}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.status === 200) {
-          const { name, email } = response.data;
-          setName(name);
-          setEmail(email);
-        }
-      } catch (err) {
-        console.error("Failed to fetch employee data:", err);
-      }
-    };
-
-    if (employeeid) {
-      fetchEmployeeData();
-    }
-  }, [employeeid]);
-
-  const handleUpdateProfile = async () => {
-    if (!name || !email) {
-      alert("Name and Email cannot be empty.");
+  const handlePasswordChange = async () => {
+    if (!newPassword) {
+      alert("Please enter a new password.");
       return;
     }
 
     try {
       const token = localStorage.getItem("authToken");
-      const updatedData = { name, email };
-      if (newPassword) updatedData.password = newPassword;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
       const response = await axios.patch(
         `http://localhost:5050/employees/${employeeid}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { password: newPassword },
+        config
       );
 
       if (response.status === 200) {
-        alert("Profile updated successfully.");
-        setShowModal(false);
-        fetchData(); // รีเฟรชข้อมูลใหม่
+        alert("Password updated successfully.");
+        setShowPasswordModal(false);
+        fetchData();
       } else {
-        alert("Failed to update profile.");
+        console.error("Failed to update password:", response.data);
+        alert("Failed to update password.");
       }
     } catch (err) {
-      console.error("Failed to update profile:", err);
-      alert("Failed to update profile.");
+      console.error("Failed to update password:", err);
+      alert("Failed to update password.");
     }
   };
 
@@ -424,54 +403,30 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
             <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
-            <td className="border px-4 py-2">
-              <div className="flex justify-center items-center space-x-3">
-                <div className="dropdown dropdown-end">
-                  <label tabIndex={0} className="btn btn-sm bg-teal-500 hover:bg-teal-600 border-none text-white">
-                    Edit
-                  </label>
-                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-lg w-52 mt-1 border border-gray-200">
-                    {(userRole === "Super Admin") && (
-                      <li>
-                        <button
-                          className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
-                          onClick={() => {
-                            setemployeeid(employee.employeeid);
-                            setRoleToUpdate(employee.role);
-                            setShowRoleModal(true);
-                          }}
-                        >
-                          <HiOutlineUser className="mr-2 text-teal-500" />
-                          Change Role
-                        </button>
-                      </li>
-                    )}
-                    <li>
-                      <button
-                        className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
-                        onClick={() => {
-                          setemployeeid(employee.employeeid);
-                          setShowModal(true);
-                        }}
-                      >
-                        <HiOutlinePencil className="mr-2 text-teal-500" />
-                        Edit Profile
-                      </button>
-                    </li>
-                    {(userRole === "Super Admin") && (
-                      <li>
-                        <button
-                          className="flex items-center text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
-                          onClick={() => handleDeleteEmployee(employee.employeeid)}
-                        >
-                          <HiOutlineTrash className="mr-2 text-red-500" />
-                          Delete User
-                        </button>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              </div>
+            <td className="border px-6 py-3 flex justify-center items-center space-x-2">
+              <HiOutlineUser 
+                className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setRoleToUpdate(employee.role);
+                  setShowRoleModal(true);
+                }}
+              />
+              <button
+                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                onClick={() => {
+                  setemployeeid(employee.employeeid);
+                  setShowPasswordModal(true);
+                }}
+              >
+                <HiOutlinePencil className="text-xl" />
+              </button>
+              <button
+                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                onClick={() => handleDeleteEmployee(employee.employeeid)}
+              >
+                <HiOutlineTrash className="text-xl" />
+              </button>
             </td>
           </tr>
           );
@@ -500,41 +455,27 @@ const UserManagementPage = () => {
         </button>
       </div>
 
-      {/* Update Modal */}
-      {showModal && (
+      {/* Password Update Modal */}
+      {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-md shadow-md w-96 space-y-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
+            <h2 className="text-xl font-bold mb-4 text-gray-600">Update Password</h2>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password (optional)"
+              placeholder="New Password"
               className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             <div className="flex justify-end space-x-4">
               <button
-                onClick={handleUpdateProfile}
+                onClick={handlePasswordChange}
                 className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
               >
                 Update
               </button>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowPasswordModal(false)}
                 className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
               >
                 Cancel
@@ -543,7 +484,6 @@ const UserManagementPage = () => {
           </div>
         </div>
       )}
-
        {/* Add Employee Modal */}
        {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
