@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
 import RequestInventory from "../components/layout/ui/RequestInventory";
 import RequestShipment from "../components/layout/ui/RequestShipment";
 import { toZonedTime, format } from 'date-fns-tz';
-import { HiOutlineEye  } from "react-icons/hi";
+import { HiOutlineEye } from "react-icons/hi";
 import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import DatePicker from "react-datepicker";
@@ -29,10 +29,10 @@ const InventoryPage = () => {
   const [userRole, setUserRole] = useState("");
   const [userBranchId, setUserBranchId] = useState("");
 
-  const [startDate, setStartDate] = useState(null);  // ช่วงเวลาเริ่มต้น
-  const [endDate, setEndDate] = useState(null);  // ช่วงเวลาสิ้นสุด
+  const [startDate, setStartDate] = useState(null); // ช่วงเวลาเริ่มต้น
+  const [endDate, setEndDate] = useState(null); // ช่วงเวลาสิ้นสุด
 
-  const itemsPerPage = 20; // ตั้งค่าแสดง 10 รายการต่อหน้า
+  const itemsPerPage = 20; // ตั้งค่าแสดง 20 รายการต่อหน้า
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
@@ -47,21 +47,28 @@ const InventoryPage = () => {
 
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true"
-        }
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        },
       };
 
+      // ดึงข้อมูล inventory, products, branches พร้อมกัน
       const [inventoryResponse, productResponse, branchResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/inventory`, config),
         axios.get(`${API_BASE_URL}/products`, config),
         axios.get(`${API_BASE_URL}/branches`, config),
       ]);
 
+      // 🔹 แมปข้อมูล products
       const productMap = {};
       productResponse.data.Data.forEach((product) => {
-        productMap[product.productid] = product.productname;
+        productMap[product.productid] = {
+          productname: product.productname,
+          productcode: product.productcode, // ✅ เพิ่ม productcode
+        };
       });
 
+      // 🔹 แมปข้อมูล branches
       const branchMap = {};
       branchResponse.data.Data.forEach((branch) => {
         branchMap[branch.branchid] = {
@@ -70,18 +77,17 @@ const InventoryPage = () => {
         };
       });
 
-      let newInventory = inventoryResponse.data.Data;
+      // 🔹 แมป productcode + productname เข้า inventory
+      let newInventory = inventoryResponse.data.Data.map((item) => ({
+        ...item,
+        productname: productMap[item.productid]?.productname || "N/A",
+        productcode: productMap[item.productid]?.productcode || "N/A", // ✅ ใส่ productcode
+      }));
 
-      // เรียงลำดับค่าเริ่มต้นตาม `updatedat` ในลำดับ `desc`
-      newInventory = newInventory.sort((a, b) => {
-        const aValue = new Date(a.updatedat);
-        const bValue = new Date(b.updatedat);
+      // 🔹 เรียงลำดับ `updatedat` (ล่าสุดขึ้นก่อน)
+      newInventory.sort((a, b) => new Date(b.updatedat) - new Date(a.updatedat));
 
-        if (aValue < bValue) return -1;
-        if (aValue > bValue) return 1;
-        return 0;
-      }).reverse();
-
+      // อัปเดต state
       setInventory(newInventory);
       setProducts(productMap);
       setBranches(branchMap);
@@ -94,14 +100,14 @@ const InventoryPage = () => {
 
   useEffect(() => {
     fetchInventory();
-  
+
     // Poll every 5 seconds
     const interval = setInterval(() => {
       fetchInventory();
     }, 5000);
-  
+
     return () => clearInterval(interval); // Clean up the interval on component unmount
-  }, []);  
+  }, []);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
@@ -114,7 +120,7 @@ const InventoryPage = () => {
   // ฟังก์ชันกรองข้อมูลตามวันที่เลือก
   const filteredInventory = inventory.filter((item) => {
     const matchesSearch = searchQuery
-      ? products[item.productid]?.toLowerCase().includes(searchQuery.toLowerCase())
+      ? products[item.productid]?.productcode?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
       : true;
 
     const matchesDate =
@@ -194,39 +200,40 @@ const InventoryPage = () => {
     const relatedInventory = inventory.filter(
       (item) => item.productid === selectedItem.productid
     );
-  
+
     // ตรวจสอบว่ามี productname หรือไม่ก่อนที่จะส่ง
-    const productName = products[selectedItem.productid] || "No Product Name Available";
-    
+    const productName = products[selectedItem.productid]?.productname || "No Product Name Available";
+
     setSelectedInventory({ ...selectedItem, productname: productName, relatedInventory });
   };
-  
+
   const handleCloseModal = () => {
     console.log("Modal Closed");
     setSelectedInventory(null);
   };
-  
+
   const exportToCSV = () => {
     if (filteredInventory.length === 0) {
       alert("No data available to export.");
       return;
     }
-  
+
     const BOM = "\uFEFF"; // เพิ่ม BOM เพื่อรองรับ UTF-8 ใน Excel
     const csvRows = [];
-    const headers = ["Product Name", "Product ID", "Quantity", "Updated At"];
+    const headers = ["Product Name", "Product Code", "Product ID", "Quantity", "Updated At"];
     csvRows.push(headers.join(",")); // เพิ่ม Header
-  
+
     filteredInventory.forEach((item) => {
       const row = [
-        `"${products[item.productid] || "Unknown"}"`, // ใส่ "" ป้องกันปัญหา comma
+        `"${products[item.productid]?.productname || "Unknown"}"`, // ใส่ "" ป้องกันปัญหา comma
+        `"${products[item.productid]?.productcode || "N/A"}"`, // เพิ่ม productcode
         `"${item.productid}"`,
         `"${item.quantity}"`,
         `"${formatDate(item.updatedat)}"`
       ];
       csvRows.push(row.join(","));
     });
-  
+
     const csvString = BOM + csvRows.join("\n"); // ใส่ BOM นำหน้า
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
@@ -236,7 +243,7 @@ const InventoryPage = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
-  
+
   return (
     <div className="p-4 bg-white">
       <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
@@ -248,7 +255,7 @@ const InventoryPage = () => {
             <RequestInventory onProductAdded={fetchInventory} />
             <RequestShipment />
           </>
-        )}  
+        )}
         <button
           onClick={exportToCSV}
           className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
@@ -261,7 +268,7 @@ const InventoryPage = () => {
         {/* Search Bar */}
         <div className="flex items-center space-x-4 flex-grow">
           <label htmlFor="searchInput" className="text-black font-semibold whitespace-nowrap">
-             Search by Product Name
+            Search by Product Code
           </label>
           <div className="relative flex-grow">
             <input
@@ -269,7 +276,7 @@ const InventoryPage = () => {
               type="text"
               value={searchQuery}
               onChange={handleSearch}
-              placeholder="Search by product name"
+              placeholder="Search by product code"
               className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             {searchQuery && (
@@ -318,7 +325,6 @@ const InventoryPage = () => {
         </div>
       </div>
 
-
       {/* แสดงรายละเอียดสินค้าใน Modal */}
       {selectedInventory && (
         <InventoryModal
@@ -331,13 +337,11 @@ const InventoryPage = () => {
 
       {/* Inventory table */}
       <div className="overflow-x-auto mb-6">
-        
         {groupedInventory && Object.keys(groupedInventory).map((branchName) => (
           <div key={branchName} className="mb-6">
-
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
-              
+
               {/* Sort by Quantity */}
               <button
                 onClick={sortByQuantity}
@@ -351,6 +355,7 @@ const InventoryPage = () => {
               <thead className="bg-gray-100 text-gray-600">
                 <tr>
                   <th className="border text-sm text-center">No.</th>
+                  <th className="border py-2 px-4 text-sm">Product Code</th>
                   <th className="border py-2 px-4 text-sm">Product Name</th>
                   <th className="border py-2 px-4 text-sm">Quantity</th>
                   <th className="border py-2 px-4 text-sm">Updated At</th>
@@ -363,31 +368,33 @@ const InventoryPage = () => {
                 {getPaginatedRequests(groupedInventory[branchName]).map((item, index) => {
                   const rowIndex = (currentProductPage - 1) * itemsPerPage + index + 1; // Calculate row index
                   return (
-                  <tr key={item.productid} className="hover:bg-gray-100">
-                    <td className="border border-gray-300 text-center">{rowIndex}</td>
-                    <td className="border py-2 px-4 border-gray-300 text-black">{products[item.productid]}</td>            
-                    <td
-                      className={`border py-2 px-4 border-gray-300 font-bold ${
-                        item.quantity < 100 ? "text-red-500" :
-                        item.quantity >= 90 && item.quantity <= 110 ? "text-yellow-500" :
-                        "text-green-500"
-                      }`}
-                    >
-                      {item.quantity}
-                    </td>
-                    <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
-                    {(userRole === "Manager" || userRole === "Super Admin") && (
-                      <td className="border border-gray-300 text-center justify-center items-center">
-                        <button
-                          onClick={() => handleViewDetails(item)}
-                          className="hover:border-b-2 border-gray-400 transition duration-30"
-                        >
-                          <HiOutlineEye className="text-teal-500 h-6 w-6" />
-                        </button>
+                    <tr key={item.productid} className="hover:bg-gray-100">
+                      <td className="border border-gray-300 text-center">{rowIndex}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-black">{item.productcode}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-black">{item.productname}</td>
+                      <td
+                        className={`border py-2 px-4 border-gray-300 font-bold ${
+                          item.quantity < 100 ? "text-red-500" :
+                          item.quantity >= 90 && item.quantity <= 110 ? "text-yellow-500" :
+                          "text-green-500"
+                        }`}
+                      >
+                        {item.quantity}
                       </td>
-                    )}
-                  </tr>
-                )})}
+                      <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
+                      {(userRole === "Manager" || userRole === "Super Admin") && (
+                        <td className="border border-gray-300 text-center justify-center items-center">
+                          <button
+                            onClick={() => handleViewDetails(item)}
+                            className="hover:border-b-2 border-gray-400 transition duration-30"
+                          >
+                            <HiOutlineEye className="text-teal-500 h-6 w-6" />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -396,24 +403,24 @@ const InventoryPage = () => {
 
       {/* Pagination Controls */}
       <div className="flex justify-center mt-4 space-x-4">
-          <button
-            onClick={handlePreviousPageProduct}
-            disabled={currentProductPage === 1}
-            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-          >
-            Previous
-          </button>
-          <div className="flex items-center">
-            Page {currentProductPage} of {totalProductPages}
-          </div>
-          <button
-            onClick={handleNextPageProduct}
-            disabled={currentProductPage === totalProductPages}
-            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
-          >
-            Next
-          </button>
+        <button
+          onClick={handlePreviousPageProduct}
+          disabled={currentProductPage === 1}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+        >
+          Previous
+        </button>
+        <div className="flex items-center">
+          Page {currentProductPage} of {totalProductPages}
         </div>
+        <button
+          onClick={handleNextPageProduct}
+          disabled={currentProductPage === totalProductPages}
+          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
