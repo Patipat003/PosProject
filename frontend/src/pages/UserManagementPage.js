@@ -46,6 +46,11 @@ const UserManagementPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [currentEmployee, setCurrentEmployee] = useState({
+    name: "",
+    email: "",
+    newPassword: "",
+  });
   const [currentPage, setCurrentPage] = useState(1); 
   const itemsPerPage = 10;
 
@@ -184,6 +189,29 @@ const UserManagementPage = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(`${API_BASE_URL}/employees/${employeeid}`, {
+          headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" },
+        });
+  
+        if (response.status === 200) {
+          const { name, email } = response.data;
+          setCurrentEmployee({ name, email, newPassword: "" }); // เก็บข้อมูลเดิม
+        }
+      } catch (err) {
+        console.error("Failed to fetch employee data:", err);
+        toast.error("Failed to fetch employee data.");
+      }
+    };
+  
+    if (employeeid) {
+      fetchEmployeeData();
+    }
+  }, [employeeid]);
+
   const handleDeleteEmployee = async (employeeid) => {
     if (window.confirm("Are you sure you want to delete this employee?")) {
       try {
@@ -236,32 +264,35 @@ const UserManagementPage = () => {
   }, [employeeid]);
 
   const handleUpdateProfile = async () => {
-    if (!name || !email) {
-      alert("Name and Email cannot be empty.");
+    if (!currentEmployee.name || !currentEmployee.email) {
+      toast.error("Name and Email cannot be empty.");
       return;
     }
-
+  
     try {
       const token = localStorage.getItem("authToken");
-      const updatedData = { name, email };
-      if (newPassword) updatedData.password = newPassword;
-
+      const updatedData = { 
+        name: currentEmployee.name, 
+        email: currentEmployee.email 
+      };
+      if (currentEmployee.newPassword) updatedData.password = currentEmployee.newPassword;
+  
       const response = await axios.patch(
         `${API_BASE_URL}/employees/${employeeid}`,
         updatedData,
         { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } }
       );
-
+  
       if (response.status === 200) {
-        alert("Profile updated successfully.");
+        toast.success("Profile updated successfully.");
         setShowModal(false);
         fetchData(); // รีเฟรชข้อมูลใหม่
       } else {
-        alert("Failed to update profile.");
+        toast.error("Failed to update profile.");
       }
     } catch (err) {
       console.error("Failed to update profile:", err);
-      alert("Failed to update profile.");
+      toast.error("Failed to update profile.");
     }
   };
 
@@ -429,14 +460,16 @@ const UserManagementPage = () => {
             <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdat)}</td>
             <td className="border px-6 py-3 flex justify-center items-center space-x-2">
               {(userRole === "Super Admin") && (
-                <HiOutlineUser 
+                <button
                   className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
                   onClick={() => {
                     setemployeeid(employee.employeeid);
                     setRoleToUpdate(employee.role);
                     setShowRoleModal(true);
                   }}
-                />
+                >
+                  <HiOutlineUser className="text-xl" />
+                </button>
               )}
               <button
                 className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
@@ -502,22 +535,22 @@ const UserManagementPage = () => {
               <h2 className="text-xl font-bold mb-4 text-gray-600">Update Profile</h2>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={currentEmployee.name}
+                onChange={(e) => setCurrentEmployee({ ...currentEmployee, name: e.target.value })}
                 placeholder="Name"
                 className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={currentEmployee.email}
+                onChange={(e) => setCurrentEmployee({ ...currentEmployee, email: e.target.value })}
                 placeholder="Email"
                 className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
               <input
                 type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                value={currentEmployee.newPassword}
+                onChange={(e) => setCurrentEmployee({ ...currentEmployee, newPassword: e.target.value })}
                 placeholder="New Password (optional)"
                 className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
@@ -529,7 +562,10 @@ const UserManagementPage = () => {
                   Update
                 </button>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setCurrentEmployee({ name: "", email: "", newPassword: "" }); // รีเซ็ตข้อมูล
+                  }}
                   className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
                 >
                   Cancel

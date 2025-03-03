@@ -3,10 +3,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 import ProductForm from "../components/layout/ui/ProductForm";
 import EditedProduct from "../components/layout/ui/EditedProduct";
-import ExportButtons from "../components/layout/ui/ExportButtons";
-import SortByDropdown from "../components/layout/ui/SortByDropdown";
 import { toZonedTime, format } from 'date-fns-tz';
-import { TrashIcon } from "@heroicons/react/outline";
+import { FaTrash } from "react-icons/fa";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import CategoryModal from "../components/layout/ui/CategoryModal";
@@ -407,20 +405,18 @@ const ProductPage = () => {
                     )}
                     {(userRole === "Super Admin") && (
                       <>
-                        <td className="border border-gray-300 text-center justify-center items-center">
+                        <td className="border px-4 py-2 flex justify-center space-x-4">
                           <EditedProduct
                             productId={product.productid}
                             onProductUpdated={fetchProducts}
                           />
-                        </td>
-                          {/* <td className="border border-gray-300 text-center justify-center items-center">
-                            <button
-                              onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <TrashIcon className="w-6 h-6" />
-                            </button>
-                          </td>  */}
+                          <button
+                            onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
+                            className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                          >
+                            <FaTrash className="mr-1" />Delete
+                          </button>
+                        </td>                       
                       </>
                     )}
                   </tr>

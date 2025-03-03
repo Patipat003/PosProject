@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { PencilIcon } from "@heroicons/react/outline";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaPencilAlt } from "react-icons/fa";
 
 const InputField = ({ label, value, onChange, type = "text" }) => (
   <div>
@@ -125,9 +125,9 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="hover:text-teal-500 transition duration-300"
+        className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center w-20"
       >
-        <PencilIcon className="text-teal-500 h-6 w-6" />
+        <FaPencilAlt />Edit
       </button>
 
       <AnimatePresence>

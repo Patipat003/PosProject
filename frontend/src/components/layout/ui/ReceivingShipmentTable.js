@@ -33,14 +33,14 @@ const ReceivingShipmentTable = ({
             <table className="table-auto table-xs w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
             <thead className="bg-gray-100 text-gray-600">
                 <tr>
-                <th className="border text-sm px-4 py-2">From Branch</th>
-                <th className="border text-sm px-4 py-2">Product Name</th>
-                <th className="border text-sm px-4 py-2">Quantity</th>
-                <th className="border text-sm px-4 py-2">Created At</th>
-                <th className="border text-sm px-4 py-2">Status</th>
-                {(userRole === "Manager" || userRole === "Super Admin") && (
-                  <th className="border text-sm px-4 py-2">Actions</th>
-                )}
+                  <th className="border text-sm px-4 py-2">From Branch</th>
+                  <th className="border text-sm px-4 py-2">Product Name</th>
+                  <th className="border text-sm px-4 py-2">Quantity</th>
+                  <th className="border text-sm px-4 py-2">Created At</th>
+                  <th className="border text-sm px-4 py-2">Status</th>
+                  {(userRole === "Manager" || userRole === "Super Admin") && (
+                    <th className="border text-sm px-4 py-2">Actions</th>
+                  )}
                 </tr>
             </thead>
             <tbody>
@@ -70,7 +70,7 @@ const ReceivingShipmentTable = ({
                 };
 
                 return (
-                    <tr key={request.requestid} className="hover:bg-teal-50">
+                    <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-100">
                       <td className="border px-4 py-2">
                           {fromBranch ? fromBranch.bname : "Warehouse"}
                       </td>

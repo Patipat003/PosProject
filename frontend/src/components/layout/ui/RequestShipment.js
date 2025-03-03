@@ -4,7 +4,7 @@ import axios from "axios";
 import { FaEye, FaTrash } from "react-icons/fa"; // Import receipt and print icons
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode"; // ✅ Import jwt-decode
-
+import { FaShippingFast, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
 const RequestShipment = ({ selectedBranchId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -204,7 +204,20 @@ const RequestShipment = ({ selectedBranchId }) => {
       .catch(() => {
         toast.error("Failed to create shipment.");
       });
-  };  
+  };
+
+  const renderStatusIcon = (status) => {
+    switch (status) {
+      case "pending":
+        return <FaShippingFast className="text-yellow-500 text-lg" title="Pending" />;
+      case "complete":
+        return <FaCheckCircle className="text-green-500 text-lg" title="Complete" />;
+      case "reject":
+        return <FaTimesCircle className="text-red-500 text-lg" title="Rejected" />;
+      default:
+        return <span className="text-gray-500">Unknown</span>;
+    }
+  };
 
   return (
     <div>
@@ -353,7 +366,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                   {currentShipments.map((shipment) => (
                     <tr key={shipment.shipmentid} className="hover:bg-gray-100">
                       <td className="border py-2 px-4 border-gray-300 text-black">{shipment.shipmentnumber}</td>
-                      <td className="border py-2 px-4 border-gray-300 text-black">{shipment.status}</td>
+                      <td className="border py-4 px-4 flex justify-center">{renderStatusIcon(shipment.status)}</td>
                       <td className="border py-2 px-4 border-gray-300 text-black">
                         {new Date(shipment.updatedat).toISOString().slice(0, 16).replace("T", " ")}
                       </td>

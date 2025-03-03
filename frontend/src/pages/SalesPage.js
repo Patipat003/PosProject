@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import PaymentModal from "../components/layout/ui/PaymentModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; 
 
 const SalesPage = () => {
   const [products, setProducts] = useState([]);

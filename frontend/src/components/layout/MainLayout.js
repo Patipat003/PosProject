@@ -119,7 +119,7 @@ const MainLayout = ({ children }) => {
         {/* Burger Icon */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed ml-4 z-20 text-white bg-teal-600 mt-4 "
+          className="fixed ml-4 z-20 text-white mt-6"
         >
           {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
         </button>

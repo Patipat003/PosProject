@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiBell, HiTruck } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiOutlineBell, HiBell, HiTruck } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -9,6 +9,7 @@ import ModalStockLow from "./ModalStockLow";
 const Header = () => {
   const [branchName, setBranchName] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [salesNotifications, setSalesNotifications] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
@@ -22,6 +23,7 @@ const Header = () => {
   const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   const dropdownRef = useRef(null);  // Reference to the dropdown container
+  const notificationDropdownRef = useRef(null);  // Reference to the notification dropdown container
 
   const getUserDataFromToken = useCallback(() => {
     const token = localStorage.getItem("authToken");
@@ -161,6 +163,9 @@ const Header = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target)) {
+        setNotificationDropdownOpen(false);
+      }
     };
 
     // Add event listener
@@ -173,11 +178,15 @@ const Header = () => {
   }, []);
 
   const handleNotificationClick = () => {
-    navigate("/inventory", { state: { openModal: true } });
+    setNotificationDropdownOpen(!notificationDropdownOpen);
   };
 
-  const handleNotificationClick1 = () => {
-    setIsModalOpen(true);
+  const handleNotificationItemClick = (type) => {
+    if (type === "sales") {
+      navigate("/inventory", { state: { openModal: true } });
+    } else if (type === "lowStock") {
+      setIsModalOpen(true);
+    }
   };
 
   return (
@@ -190,38 +199,61 @@ const Header = () => {
       </div>
 
       {/* แจ้งเตือน + User Info (อยู่ขวา) */}
-      <div className="flex items-center space-x-4 ml-auto">
-        {salesNotifications.length > 0 && (
-          <button
-            onClick={handleNotificationClick}
-            className="relative flex items-center p-2 bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
-          >
-            <HiTruck className="h-6 w-6" />
-            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">
-              {salesNotifications.length}
-            </span>
-          </button>
-        )}
-
-        {lowStockProducts.length > 0 && (
-          <button
-            onClick={handleNotificationClick1}
-            className="relative flex items-center p-2 bg-red-500 rounded-full shadow-md z-20 transition duration-200 ease-in-out focus:ring-2 focus:ring-red-300 focus:outline-none"
-          >
-            <HiBell className="h-6 w-6" />
-            <span className="absolute top-0 right-0 bg-yellow-400 text-black rounded-full text-xs px-2 py-1">
-              {lowStockProducts.length}
-            </span>
-          </button>
-        )}
+      <div className="flex items-center ml-auto">
 
         {/* ชื่อสาขา */}
         <Link to="/sales">
-          <p className="text-white">{branchName || "Loading branch..."}</p>
+          <button className="btn border-red-600 boreder-2 bg-teal-600 rounded-lg text-white hover:bg-red-800">
+             {branchName || "Loading branch..."}
+          </button>
         </Link>
 
+
+        {(salesNotifications.length > 0 || lowStockProducts.length > 0) && (
+          <div className="relative" ref={notificationDropdownRef}>
+            <button
+              onClick={handleNotificationClick}
+              className="px-4 py-2 text-white"
+            >
+              <HiOutlineBell className="h-8 w-8" />
+              {(salesNotifications.length > 0 || lowStockProducts.length > 0) && (
+                <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-2 py-1">
+                  {salesNotifications.length + lowStockProducts.length}
+                </span>
+              )}
+            </button>
+
+            {notificationDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg py-2 text-black">
+                {salesNotifications.length > 0 && (
+                  <div
+                    onClick={() => handleNotificationItemClick("sales")}
+                    className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <HiTruck className="text-teal-600 mr-2" />
+                      <span>{salesNotifications.length} Sales Notifications</span>
+                    </div>
+                  </div>
+                )}
+                {lowStockProducts.length > 0 && (
+                  <div
+                    onClick={() => handleNotificationItemClick("lowStock")}
+                    className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <HiBell className="text-teal-600 mr-2" />
+                      <span>{lowStockProducts.length} Low Stock Products</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Dropdown ของ User */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative ml-2" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
