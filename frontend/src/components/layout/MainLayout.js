@@ -28,7 +28,7 @@ const SidebarDropdown = ({ label, children, icon }) => {
   return (
     <li className="my-2">
       <div
-        className="flex justify-between items-center w-full p-3 bg-teal-600 hover:bg-teal-700 rounded-lg text-white cursor-pointer text-sm"
+        className="flex justify-between items-center w-full p-3 bg-white hover:bg-gray-200 rounded-lg text-red-800 cursor-pointer text-sm"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center space-x-2">
@@ -46,13 +46,13 @@ const SidebarDropdown = ({ label, children, icon }) => {
           isOpen ? "max-h-96" : "max-h-0"
         }`}
       >
-        <ul className="bg-teal-600 rounded-lg p-2 list-none ml-4">
+        <ul className="bg-white rounded-lg p-2 list-none ml-4">
           {children.map((child, index) => (
             <li key={index}>
               <Link
                 to={child.link}
-                className={`block w-full p-3 hover:bg-teal-700 text-white rounded-lg text-sm ${
-                  location.pathname === child.link ? "bg-teal-700" : ""
+                className={`block w-full p-3 hover:bg-gray-200 text-red-800 rounded-lg text-sm ${
+                  location.pathname === child.link ? "bg-gray-200" : ""
                 }`}
               >
                 {child.label}
@@ -75,8 +75,8 @@ const SidebarItem = ({ label, link, icon }) => {
       <Link
         to={link}
         className={`block w-full p-3 rounded-lg text-sm ${
-          isActive ? "bg-teal-700" : "bg-teal-600"
-        } hover:bg-teal-700 text-white`}
+          isActive ? "bg-gray-200" : "bg-white"
+        } hover:bg-gray-200 text-red-800`}
       >
         <div className="flex items-center space-x-2">
           {icon && <span className="text-lg">{icon}</span>}
@@ -119,7 +119,7 @@ const MainLayout = ({ children }) => {
         {/* Burger Icon */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed ml-4 z-20 text-white mt-6"
+          className="fixed ml-4 z-20 text-red-600 mt-6"
         >
           {isSidebarOpen ? <HiX size={32} /> : <HiMenu size={32} />}
         </button>
@@ -130,7 +130,7 @@ const MainLayout = ({ children }) => {
       <div className="flex flex-1 pt-6">
         {/* Sidebar */}
         <aside
-          className={`fixed top-16 left-0 w-64 bg-teal-600 shadow-md h-full overflow-y-auto transition-transform duration-300 ${
+          className={`fixed top-16 left-0 w-64 bg-white shadow-md h-full overflow-y-auto transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -181,7 +181,7 @@ const MainLayout = ({ children }) => {
       {/* Main Content */}
       <main
         onClick={() => isSidebarOpen && setIsSidebarOpen(false)} 
-        className={`flex-1 p-6 bg-white transition-all duration-300 ${
+        className={`flex-1 p-6 bg-gray-100 transition-all duration-300 ${
          isSidebarOpen ? "ml-64 pt-16" : "ml-0 pt-16"
         }`}
       >

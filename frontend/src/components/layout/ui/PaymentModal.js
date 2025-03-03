@@ -187,7 +187,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
             borderRight: "1px solid #e5e7eb",
           }}
         >
-          <h2 className="text-2xl text-teal-600 font-semibold mb-4">Payment</h2>
+          <h2 className="text-2xl text-red-600 font-semibold mb-4">Payment</h2>
 
           <div>
             <span className="block text-gray-600 text-sm mb-2 font-medium">
@@ -200,9 +200,9 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
                   onClick={() => handlePaymentMethodChange(method)}
                   className={`btn block w-full rounded-lg text-sm font-medium text-left py-2 px-4 transition-all duration-300 ease-in-out ${
                     paymentMethod === method
-                      ? "bg-teal-500 text-white border-2 border-teal-600"
+                      ? "bg-white text-red-600 border-2 border-red-600"
                       : "bg-white text-gray-600 border-2 border-gray-300"
-                  } hover:bg-teal-500 hover:border-teal-500 hover:text-white focus:outline-none`}
+                  } hover:bg-red-800 hover:border-red-500 hover:text-white focus:outline-none`}
                 >
                   {method === "credit-card" && (
                     <span className="flex items-center">
@@ -226,7 +226,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
 
           {paymentMethod === "credit-card" && (
             <div className="mt-4">
-              <h3 className="text-lg text-teal-600 font-semibold mb-4">Credit Card Details</h3>
+              <h3 className="text-lg text-red-600 font-semibold mb-4">Credit Card Details</h3>
               <div className="space-y-4">
                 <input
                   name="cardNumber"
@@ -278,7 +278,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
             <div className="mt-4">
                 <label
                     htmlFor="amount-paid"
-                    className="block text-lg text-teal-600 font-semibold mb-2"
+                    className="block text-lg text-red-600 font-semibold mb-2"
                 >
                 Amount Paid
                 </label>
@@ -295,14 +295,14 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
                     <button
                     key={num}
                     onClick={() => handleNumpadInput(num.toString())}
-                    className="btn bg-white border-teal-500 text-gray-600 p-3 rounded-lg hover:border-none hover:bg-teal-500 hover:text-white"
+                    className="btn bg-white border-red-500 text-gray-600 p-3 rounded-lg hover:border-none hover:bg-red-800 hover:text-white"
                     >
                     {num}
                     </button>
                 ))}
                 <button
                     onClick={() => handleNumpadInput("clear")}
-                    className="btn bg-red-500 text-white p-3 border-none rounded-lg hover:bg-red-600"
+                    className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 >
                     Delete
                 </button>
@@ -326,7 +326,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         >
 
           {/* Cart Summary */}
-          <h3 className="text-xl text-teal-600 font-medium mb-4">Cart Summary</h3>
+          <h3 className="text-xl text-red-600 font-medium mb-4">Cart Summary</h3>
           <div className="mt-4" style={{ maxHeight: "330px", overflowY: "auto" }}>
             <ul className="divide-y divide-gray-200">
               {cartData.map((item, index) => (
@@ -369,7 +369,7 @@ const PaymentModal = ({ isOpen, onClose, onCheckout }) => {
         <div className="absolute bottom-6 right-6">
           <button
             onClick={handleConfirmPayment}
-            className="btn bg-teal-500 text-white border-none px-6 py-2 rounded-lg shadow-md hover:bg-teal-600 focus:outline-none"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Confirm Payment
           </button>

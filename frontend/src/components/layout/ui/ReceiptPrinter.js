@@ -5,19 +5,19 @@ const ReceiptPrinter = ({ modalData }) => {
 
   return (
     <div className="p-6 bg-white border border-gray-300 rounded-lg w-[350px] mx-4">
-      <div className="text-center text-black mb-6">
+      <div className="text-center text-gray-600 mb-6">
         <h1 className="text-xl font-bold">Store ({bname})</h1>  {/* Display branch name */}
         <p className="text-sm">Location: {location}</p>  {/* Display branch location */}
         <p className="text-sm">Phone: 123-456-7890</p>
         <p className="text-sm">www.storewebsite.com</p>
       </div>
       
-      <div className="border-t border-gray-300 text-black pt-4 mb-6">
+      <div className="border-t border-gray-300 text-gray-600 pt-4 mb-6">
         <h2 className="text-sm font-bold mb-2">Receipt #{receiptnumber}</h2>
         <p className="text-xs mb-2">Date: {createdat}</p>
       </div>
 
-      <div className="text-black rounded">
+      <div className="text-gray-600 rounded">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-300 mb-6">
@@ -39,7 +39,7 @@ const ReceiptPrinter = ({ modalData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td className="font-semibold pt-4 text-black">Total</td>
+              <td className="font-semibold pt-4 text-gray-600">Total</td>
               <td></td>
               <td className="font-semibold text-right">฿
                 {items
@@ -54,7 +54,7 @@ const ReceiptPrinter = ({ modalData }) => {
         </table>
       </div>
 
-      <div className="border-t border-gray-300 text-black pt-4 mt-6">
+      <div className="border-t border-gray-300 text-gray-600 pt-4 mt-6">
         <div className="flex justify-between">
           <span className="text-sm">Thank you for shopping with us!</span>
         </div>

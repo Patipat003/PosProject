@@ -29,7 +29,7 @@ const ReceivingShipmentTable = ({
     <>
         {/* Receiving Shipment Table */}
         <div className="mb-6">
-            <h3 className="text-xl font-semibold text-teal-600 mb-4">Receiving Shipment</h3>
+            <h3 className="text-xl font-semibold text-red-600 mb-4">Receiving Shipment</h3>
             <table className="table-auto table-xs w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
             <thead className="bg-gray-100 text-gray-600">
                 <tr>
@@ -116,7 +116,7 @@ const ReceivingShipmentTable = ({
             <button
                     onClick={handlePreviousPageReceived}
                     disabled={currentReceivedPage === 1}
-                    className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                    className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 >
                 Previous
             </button>
@@ -128,7 +128,7 @@ const ReceivingShipmentTable = ({
             <button
                 onClick={handleNextPageReceived}
                 disabled={currentReceivedPage === totalReceivedPages}
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
             >
             Next
             </button>

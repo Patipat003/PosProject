@@ -45,7 +45,7 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative">
         {/* แสดงชื่อสินค้า */}
-        <h2 className="text-2xl font-bold mb-4 text-center text-teal-600">
+        <h2 className="text-2xl font-bold mb-4 text-center text-red-600">
           {selectedInventory.productname || "No Product Name Available"}
         </h2>
 
@@ -60,7 +60,7 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
             <div
               key={index}
               className={`flex justify-between items-center ${
-                item.isUserBranch ? "font-bold text-teal-600" : ""
+                item.isUserBranch ? "font-bold text-red-600" : ""
               }`}
             >
               <span>
@@ -79,7 +79,7 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
 
         <button
           onClick={handleCloseModal}
-          className="btn border-none w-full bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md hover:bg-teal-600 transition duration-300"
+          className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
         >
           Close
         </button>

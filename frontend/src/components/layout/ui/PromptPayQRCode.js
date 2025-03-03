@@ -15,7 +15,7 @@ const PromptPayQRCode = ({ totalAmount }) => {
     <div className="mt-6 p-4 bg-white rounded-lg shadow-lg max-w-md mx-auto">
       <label
         htmlFor="mobile-pay"
-        className="block text-2xl text-teal-600 font-semibold mb-4 text-center"
+        className="block text-2xl text-red-600 font-semibold mb-4 text-center"
       >
         Scan PromptPay QR Code
       </label>

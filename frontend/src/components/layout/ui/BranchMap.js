@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, LayersControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { motion } from "framer-motion";
 
 // ตั้งค่าไอคอนหมุด
 const customIcon = new L.Icon({
@@ -43,12 +42,32 @@ const BranchMap = ({ branches, onBranchClick }) => {
 
       {/* Layer Control */}
       <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="OpenStreetMap">
+        <LayersControl.BaseLayer checked name="TopPlus">
+          <TileLayer url="http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png" />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="OpenStreetMap">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         </LayersControl.BaseLayer>
         <LayersControl.BaseLayer name="Google Satellite">
           <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={["mt0", "mt1", "mt2", "mt3"]} />
         </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Red Planet">
+          <TileLayer url="https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-1/all/{z}/{x}/{y}.png" />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Stadia">
+          <TileLayer url="https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png" />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Moon">
+          <TileLayer url="https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png" />
+        </LayersControl.BaseLayer>  
+        
+
+        <LayersControl.Overlay checked name="OpenRailwayMap">
+          <TileLayer url="https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png" />
+        </LayersControl.Overlay>
+
+        
+          
       </LayersControl>
 
       {/* Marker ของสาขา */}

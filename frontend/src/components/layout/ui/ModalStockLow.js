@@ -178,7 +178,7 @@ const ModalStockLow = ({ closeModal }) => {
                               setSelectedProduct(product);
                               setShowQuantityModal(true);
                             }}
-                            className="btn btn-sm border-none bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 transition duration-300"
+                            className="btn btn-sm border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                           >
                             Request
                           </button>
@@ -213,19 +213,19 @@ const ModalStockLow = ({ closeModal }) => {
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="input text-gray-600 bg-white p-4 border-gray-300 w-full focus:outline-none focus:ring-2 focus:ring-teal-600"
+                    className="input text-gray-600 bg-white p-4 border-gray-300 w-full focus:outline-none focus:ring-2 focus:ring-red-600"
                     min="1"
                   />
                   <div className="space-x-4 flex justify-end">
                     <button
                       onClick={handleRequest}
-                      className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+                      className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
                     >
                       Submit Request
                     </button>
                     <button
                       onClick={() => setShowQuantityModal(false)}
-                      className="btn border-none bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 transition duration-300 mt-4"
+                      className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600 mt-4"
                     >
                       Close
                     </button>
@@ -235,7 +235,7 @@ const ModalStockLow = ({ closeModal }) => {
             </AnimatePresence>
           )}
           <div className="flex justify-end">
-            <button onClick={closeModal} className="btn border-none bg-gray-500 text-white px-4 py-2 rounded mt-4 hover:bg-teal-600 transition duration-300">
+            <button onClick={closeModal} className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">
               Close
             </button>
           </div> 

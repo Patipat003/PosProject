@@ -364,7 +364,7 @@ const RequestInventory = () => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
       >
         Request Inventory
       </button>
@@ -405,8 +405,8 @@ const RequestInventory = () => {
                 <button
                   onClick={() => setActiveSection("products")}
                   className={`btn border-none ${
-                    activeSection === "products" ? "bg-teal-600" : "bg-teal-500"
-                  } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300`}
+                    activeSection === "products" ? "bg-red-900" : "bg-red-800"
+                  } text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300`}
                 >
                   Products
                 </button>
@@ -414,12 +414,12 @@ const RequestInventory = () => {
                 <button
                   onClick={() => setActiveSection("sending")}
                   className={`btn border-none ${
-                    activeSection === "sending" ? "bg-teal-600" : "bg-teal-500"
-                  } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 relative`}
+                    activeSection === "sending" ? "bg-red-900" : "bg-red-800"
+                  } text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 relative`}
                 >
                   Sending Shipment
                   {pendingSentRequestsCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
+                    <span className="absolute top-0 right-0 bg-red-800 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
                       {pendingSentRequestsCount}
                     </span>
                   )}
@@ -428,12 +428,12 @@ const RequestInventory = () => {
                 <button
                   onClick={() => setActiveSection("receiving")}
                   className={`btn border-none ${
-                    activeSection === "receiving" ? "bg-teal-600" : "bg-teal-500"
-                  } text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 relative`}
+                    activeSection === "receiving" ? "bg-red-900" : "bg-red-800"
+                  } text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 relative`}
                 >
                   Receiving Shipment
                   {pendingReceivedRequestsCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
+                    <span className="absolute top-0 right-0 bg-red-800 text-white text-xs rounded-full px-2 py-1 transform translate-x-1/2 -translate-y-1/2">
                       {pendingReceivedRequestsCount}
                     </span>
                   )}

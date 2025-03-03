@@ -137,7 +137,7 @@ const ProductMovementChart = () => {
             onClick={() => setTimeFrame(frame)}
             className={`px-4 py-2 rounded-md transition ${
               timeFrame === frame
-              ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`}
+              ? "btn bg-red-800 border-none hover:bg-red-800" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
           >
             {frame === "daily" ? "Daily" : frame === "weekly" ? "Weekly" : "Monthly"}
           </button>
@@ -172,11 +172,11 @@ const ProductMovementChart = () => {
 
         {/* ปุ่มเปลี่ยนหน้า */}
         <div className="flex justify-center mt-4 space-x-4">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300">Previous</button>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">Previous</button>
           <div className="flex items-center">
             Page {currentPage} of {totalPages}
           </div>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300">Next</button>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">Next</button>
         </div>
       </div>
     </div>

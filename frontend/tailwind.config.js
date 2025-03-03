@@ -1,3 +1,5 @@
+const { color } = require('framer-motion');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -11,22 +13,23 @@ module.exports = {
           "50%": { backgroundColor: "#f87171", opacity: "0.5" }, // สีแดงอ่อน
         },
       },
+      // colors : {
+      //   white: "#3D3D3DFF",
+      //   black: "#ffffff",
+      //   gray: {
+      //     100: "#3D3D3DFF",
+      //     200: "#edf2f7",
+      //     300: "#e2e8f0",
+      //     400: "#cbd5e0",
+      //     500: "#f7fafc",
+      //     600: "#f7fafc",
+      //     700: "#f7fafc",
+      //     800: "#f7fafc",
+      //     900: "#f7fafc",
+      //   },
+      // },  
       animation: {
         "pulse-blink": "pulse-blink 1.5s ease-in-out infinite",
-      },
-      colors: {
-        base: '#540606',
-        teal: {
-          500: '#540606',
-          600: '#420505', // เปลี่ยนสี #teal-600 เป็น #red-600
-          700: '#300404',
-        },
-        gray: {
-          400: '#1d0202',
-          500: '#540606',
-          600: '#420505', // เปลี่ยนสี #teal-600 เป็น #red-600
-          700: '#300404',
-        },
       },
       fontFamily: {
         sans: ["SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],

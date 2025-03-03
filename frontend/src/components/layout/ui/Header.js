@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiOutlineBell, HiBell, HiTruck } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiOutlineBell, HiBell, HiTruck, HiArrowsExpand } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwtEncode is imported for updating the token
 import ModalStockLow from "./ModalStockLow";
+import DarkModeToggle from "./DarkModeToggle";
 
 const Header = () => {
   const [branchName, setBranchName] = useState("");
@@ -19,11 +20,13 @@ const Header = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const navigate = useNavigate();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   const dropdownRef = useRef(null);  // Reference to the dropdown container
   const notificationDropdownRef = useRef(null);  // Reference to the notification dropdown container
+
 
   const getUserDataFromToken = useCallback(() => {
     const token = localStorage.getItem("authToken");
@@ -189,8 +192,18 @@ const Header = () => {
     }
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white shadow-md relative">
+    <header className="flex items-center justify-between px-6 py-4 bg-white text-white shadow-md relative">
       {/* โลโก้ อยู่ตรงกลาง */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Link to="/">
@@ -203,35 +216,43 @@ const Header = () => {
 
         {/* ชื่อสาขา */}
         <Link to="/sales">
-          <button className="btn border-red-600 boreder-2 bg-teal-600 rounded-lg text-white hover:bg-red-800">
+          <button className="btn border-red-600 bg-white rounded-lg text-red-600 hover:bg-red-800 hover:text-white hover:border-red-800">
              {branchName || "Loading branch..."}
           </button>
         </Link>
+
+        {/* ปุ่ม Fullscreen */}
+        <button onClick={toggleFullscreen} className="text-red-600 ml-4">
+          <HiArrowsExpand className="w-7 h-7" /> {isFullscreen  }
+        </button>
+
+        {/* ปุ่ม Toggle โหมดมืด/สว่าง */}
+        <DarkModeToggle />
 
 
         {(salesNotifications.length > 0 || lowStockProducts.length > 0) && (
           <div className="relative" ref={notificationDropdownRef}>
             <button
               onClick={handleNotificationClick}
-              className="px-4 py-2 text-white"
+              className="px-4 py-2 text-red-600"
             >
               <HiOutlineBell className="h-8 w-8" />
               {(salesNotifications.length > 0 || lowStockProducts.length > 0) && (
-                <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-2 py-1">
+                <span className="absolute top-0 right-0 bg-red-800 text-white rounded-full text-xs px-2 py-1">
                   {salesNotifications.length + lowStockProducts.length}
                 </span>
               )}
             </button>
 
             {notificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg py-2 text-black">
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg py-2 text-gray-600">
                 {salesNotifications.length > 0 && (
                   <div
                     onClick={() => handleNotificationItemClick("sales")}
                     className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
-                      <HiTruck className="text-teal-600 mr-2" />
+                      <HiTruck className="text-red-600 mr-2" />
                       <span>{salesNotifications.length} Sales Notifications</span>
                     </div>
                   </div>
@@ -242,7 +263,7 @@ const Header = () => {
                     className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
-                      <HiBell className="text-teal-600 mr-2" />
+                      <HiBell className="text-red-600 mr-2" />
                       <span>{lowStockProducts.length} Low Stock Products</span>
                     </div>
                   </div>
@@ -256,28 +277,28 @@ const Header = () => {
         <div className="relative ml-2" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center space-x-2 px-4 py-2 bg-teal-700 rounded-lg text-white"
+            className="flex items-center space-x-2 px-4 py-2 bg-red-800 rounded-lg text-white"
           >
             <HiUser />
             <HiChevronDown className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
           </button>
 
           {dropdownOpen && userData && (
-            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 text-black">
+            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 text-gray-600">
               <div className="px-4 py-2 text-sm flex items-center">
-                <HiUser className="text-teal-600 mr-2" />
+                <HiUser className="text-red-600 mr-2" />
                 {userData?.name || "Loading name..."}
               </div>
               <div className="px-4 py-2 text-sm flex items-center">
-                <HiMail className="text-teal-600 mr-2" />
+                <HiMail className="text-red-600 mr-2" />
                 {userData?.email || "Loading email..."}
               </div>
               <div className="px-4 py-2 text-sm flex items-center">
-                <HiUserGroup className="text-teal-600 mr-2" />
+                <HiUserGroup className="text-red-600 mr-2" />
                 {userData?.role || "Loading role..."}
               </div>
               <div className="px-4 py-2 text-sm flex items-center">
-                <HiOfficeBuilding className="text-teal-600 mr-2" />
+                <HiOfficeBuilding className="text-red-600 mr-2" />
                 {branchName || "Loading branch..."}
               </div>
               
@@ -307,7 +328,7 @@ const Header = () => {
             <h3 className="text-lg font-semibold">Select Branch</h3>
             <select
               onChange={(e) => handleBranchSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
             >
               <option value="">Please select a branch</option>
               {branches.map((branch) => (
@@ -319,7 +340,7 @@ const Header = () => {
             <div className="mt-4">
               <button
                 onClick={handleBranchConfirmation}
-                className="w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
+                className="w-full py-2 px-4 bg-red-800 text-white font-semibold rounded-md hover:bg-red-900"
               >
                 Confirm Selection
               </button>

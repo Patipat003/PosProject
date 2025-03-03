@@ -13,18 +13,18 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       value={query}
       onChange={(e) => onSearch(e.target.value)}
       placeholder="Search..."
-      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+      className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400"
     />
     {/* <button
       onClick={onSort}
-      className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+      className="btn border-none text-white bg-red-800 px-4 py-2 rounded hover:bg-red-900"
     >
       Sort by Total Price {sortOrder === "asc" ? "↑" : "↓"}
     </button> */}
     <select
       value={selectedEmployee}
       onChange={(e) => onEmployeeFilter(e.target.value)}
-      className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+      className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
     >
       <option value="">All Branches</option>
       {employees
@@ -228,7 +228,7 @@ const DetailReportPage = () => {
           src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
           style={{ height: "200px", width: "200px" }}
         />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        <span className="text-red-500 text-lg font-semibold">Loading...</span>
       </div>
     );
   }
@@ -236,7 +236,7 @@ const DetailReportPage = () => {
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Detail Report</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Detail Report</h1>
       <SearchBar
         query={searchQuery}
         onSearch={(q) => {
@@ -285,12 +285,12 @@ const DetailReportPage = () => {
       </div>
       {/* <button
         onClick={exportToPDF}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4"
         >
           Export to PDF
       </button> */}
       <CSVLink data={csvData} filename={`Sales_Report.csv`} 
-      className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4">
+      className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4">
         Export to CSV
       </CSVLink>
     </div>

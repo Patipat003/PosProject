@@ -87,7 +87,7 @@ const ProductForm = ({ onProductAdded }) => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="btn bg-teal-500 text-white px-6 py-3 border-none rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
       >
         + Add Product
       </button>
@@ -110,7 +110,7 @@ const ProductForm = ({ onProductAdded }) => {
               exit={{ y: -50, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">Add Product</h2>
+              <h2 className="text-2xl font-bold text-center text-red-600 mb-6">Add Product</h2>
 
               {/* พื้นที่ Drag & Drop */}
               <div
@@ -140,7 +140,7 @@ const ProductForm = ({ onProductAdded }) => {
                   <label className="block text-gray-700 font-medium mb-1">Image URL</label>
                   <input
                     type="text"
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     placeholder="Paste image URL here"
@@ -150,7 +150,7 @@ const ProductForm = ({ onProductAdded }) => {
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Category</label>
                   <select
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                   >
@@ -166,7 +166,7 @@ const ProductForm = ({ onProductAdded }) => {
                 <div className="col-span-2">
                   <label className="block text-gray-700 font-medium mb-1">Description</label>
                   <textarea
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
@@ -176,7 +176,7 @@ const ProductForm = ({ onProductAdded }) => {
                 <div className="col-span-2">
                   <button
                     type="submit"
-                    className="btn border-none w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
+                    className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   >
                     Add Product
                   </button>
@@ -202,7 +202,7 @@ const InputField = ({ label, value, onChange, type = "text" }) => (
     <label className="block text-gray-700 font-medium mb-1">{label}</label>
     <input
       type={type}
-      className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+      className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />

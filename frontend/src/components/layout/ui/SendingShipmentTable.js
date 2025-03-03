@@ -28,7 +28,7 @@ const SendingShipmentTable = ({
     <>
       {/* Sending Shipment Table */}
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-teal-600 mb-4">
+        <h3 className="text-xl font-semibold text-red-600 mb-4">
           Sending Shipment
         </h3>
         <table className="table-auto table-xs w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
@@ -119,10 +119,10 @@ const SendingShipmentTable = ({
         <button
           onClick={handlePreviousPageSent}
           disabled={currentSentPage === 1}
-          className={`btn border-none px-6 py-3 rounded transition duration-300 ${
+          className={`btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 ${
             currentSentPage === 1
               ? "bg-gray-300 cursor-not-allowed"
-              : "bg-teal-500 text-white hover:bg-teal-600"
+              : "bg-white text-red-600 hover:bg-red-600"
           }`}
         >
           Previous
@@ -135,10 +135,10 @@ const SendingShipmentTable = ({
         <button
           onClick={handleNextPageSent}
           disabled={currentSentPage === totalSentPages}
-          className={`btn border-none px-6 py-3 rounded transition duration-300 ${
+          className={`btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 ${
             currentSentPage === totalSentPages
               ? "bg-gray-300 cursor-not-allowed"
-              : "bg-teal-500 text-white hover:bg-teal-600"
+              : "bg-white text-red-600 hover:bg-red-600"
           }`}
         >
           Next

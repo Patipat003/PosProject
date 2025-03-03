@@ -56,7 +56,7 @@ const RequestShipment = ({ selectedBranchId }) => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4"
       >
         Request Shipment
       </button>

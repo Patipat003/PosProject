@@ -78,7 +78,7 @@ const ProductDetailModal = ({ product, onClose }) => {
 
             {/* 🔹 รายละเอียดสินค้า */}
             <div className="w-full md:w-2/3 p-4">
-              <h2 className="text-3xl font-bold text-teal-600 mb-4">{product.productname}</h2>
+              <h2 className="text-3xl font-bold text-red-600 mb-4">{product.productname}</h2>
               <table className="w-full text-left border-collapse">
                 <tbody>
                   <tr>

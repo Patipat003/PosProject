@@ -156,7 +156,7 @@ const ReportsEmployeePage = () => {
             src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
             style={{ height: "200px", width: "200px" }}
           />
-          <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+          <span className="text-red-500 text-lg font-semibold">Loading...</span>
         </div>
       );
     }
@@ -173,7 +173,7 @@ const ReportsEmployeePage = () => {
   return (
     <div className="p-4 bg-white">
       <ToastContainer />
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Employee Report</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Employee Report</h1>
       <div className="flex justify-between mb-4">
         <ExportButtons
           filteredTables={filteredEmployees.map(employee => ({
@@ -194,7 +194,7 @@ const ReportsEmployeePage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search by Name or Email"
-            className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
           />
 
           {searchQuery && (
@@ -211,7 +211,7 @@ const ReportsEmployeePage = () => {
         <select
           value={selectedRole}
           onChange={handleRoleSort}
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="">All Roles</option>
           <option value="Manager">Manager</option>
@@ -219,7 +219,7 @@ const ReportsEmployeePage = () => {
           <option value="Audit">Audit</option>
         </select>
 
-        <button onClick={handleDateSortChange} className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
+        <button onClick={handleDateSortChange} className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">
           Sort by Date
         </button>
       </div>
@@ -257,7 +257,7 @@ const ReportsEmployeePage = () => {
         <button
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage === 1}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Previous
         </button>
@@ -267,7 +267,7 @@ const ReportsEmployeePage = () => {
         <button
           onClick={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Next
         </button>

@@ -184,7 +184,7 @@ const ReportsPage = () => {
           src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
           style={{ height: "200px", width: "200px" }}
         />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        <span className="text-red-500 text-lg font-semibold">Loading...</span>
       </div>
     );
   }
@@ -195,30 +195,30 @@ const ReportsPage = () => {
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales Reports</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Sales Reports</h1>
 
       <div className="mb-4 flex gap-4">
         <button
           onClick={() => setFilterType("day")}
-          className={`p-2 rounded-md ${filterType === "day" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+          className={`p-2 rounded-md ${filterType === "day" ? "bg-red-800 text-white" : "bg-gray-200"}`}
         >
           Day
         </button>
         <button
           onClick={() => setFilterType("month")}
-          className={`p-2 rounded-md ${filterType === "month" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+          className={`p-2 rounded-md ${filterType === "month" ? "bg-red-800 text-white" : "bg-gray-200"}`}
         >
           Month
         </button>
         <button
           onClick={() => setFilterType("year")}
-          className={`p-2 rounded-md ${filterType === "year" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+          className={`p-2 rounded-md ${filterType === "year" ? "bg-red-800 text-white" : "bg-gray-200"}`}
         >
           Year
         </button>
         <button
           onClick={() => setFilterType("time")}
-          className={`p-2 rounded-md ${filterType === "time" ? "bg-teal-500 text-white" : "bg-gray-200"}`}
+          className={`p-2 rounded-md ${filterType === "time" ? "bg-red-800 text-white" : "bg-gray-200"}`}
         >
           Time
         </button>
@@ -230,12 +230,12 @@ const ReportsPage = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by Date, Branch, Amount, or Items Sold"
-          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-red-500"
         />
         <select
           value={selectedEmployee} // Use the selectedEmployee state
           onChange={(e) => setSelectedEmployee(e.target.value)} // Update the state on change
-          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+          className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
         >
           <option value="">All Branches</option>
           {branches.map((branch) => (
@@ -248,13 +248,13 @@ const ReportsPage = () => {
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}
           placeholderText="Select Date"
-          className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-400 text-lg flex items-center"
+          className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400 text-lg flex items-center"
           dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
           showMonthYearPicker={filterType === "month"}
           showYearPicker={filterType === "year"}
           todayButton="Today"
           isClearable
-          clearButtonClassName="absolute right-2 top-2 bg-teal-400 text-white rounded-full p-1"
+          clearButtonClassName="absolute right-2 top-2 bg-red-400 text-white rounded-full p-1"
           style={{ position: "relative" }}
         />
       </div>
@@ -291,7 +291,7 @@ const ReportsPage = () => {
       <CSVLink
         data={generateCSVData()}
         filename={"Sales_Report.csv"}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4"
       >
         Export to CSV
       </CSVLink>

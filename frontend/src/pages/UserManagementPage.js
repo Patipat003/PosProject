@@ -346,7 +346,7 @@ const UserManagementPage = () => {
             src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
             style={{ height: "200px", width: "200px" }}
           />
-          <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+          <span className="text-red-500 text-lg font-semibold">Loading...</span>
         </div>
       );
     }
@@ -361,13 +361,13 @@ const UserManagementPage = () => {
     }
 
   return (
-    <div className="p-4 bg-white">
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
       <ToastContainer />
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">User Management</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">User Management</h1>
       <div className="flex justify-between mb-4">
         <button
           onClick={() => setShowAddModal(true)}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
         >
           + Add Employee
         </button>
@@ -390,7 +390,7 @@ const UserManagementPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search by Name or Email"
-            className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
           />
 
           {searchQuery && (
@@ -407,7 +407,7 @@ const UserManagementPage = () => {
           <select
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
-            className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             <option value="">All Branch</option> {/* เพิ่มตัวเลือกนี้ */}
             {branches.map((branch) => (
@@ -421,7 +421,7 @@ const UserManagementPage = () => {
         <select
           value={selectedRole}
           onChange={handleRoleSort}
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="">All Roles</option>
           <option value="Manager">Manager</option>
@@ -429,7 +429,7 @@ const UserManagementPage = () => {
           <option value="Audit">Audit</option>
         </select>
 
-        <button onClick={handleDateSortChange} className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600">
+        <button onClick={handleDateSortChange} className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">
           Sort by Date
         </button>
       </div>
@@ -461,7 +461,7 @@ const UserManagementPage = () => {
             <td className="border px-6 py-3 flex justify-center items-center space-x-2">
               {(userRole === "Super Admin") && (
                 <button
-                  className="cursor-pointer text-teal-500 text-2xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                  className="cursor-pointer text-red-500 text-2xl hover:text-red-600 transition-all duration-200 ease-in-out"
                   onClick={() => {
                     setemployeeid(employee.employeeid);
                     setRoleToUpdate(employee.role);
@@ -472,7 +472,7 @@ const UserManagementPage = () => {
                 </button>
               )}
               <button
-                className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                className="text-red-500 text-xl hover:text-red-600 transition-all duration-200 ease-in-out"
                 onClick={() => {
                   setemployeeid(employee.employeeid);
                   setShowModal(true);
@@ -482,7 +482,7 @@ const UserManagementPage = () => {
               </button>
               {(userRole === "Super Admin") && (
                 <button
-                  className="text-teal-500 text-xl hover:text-teal-600 transition-all duration-200 ease-in-out"
+                  className="text-red-500 text-xl hover:text-red-600 transition-all duration-200 ease-in-out"
                   onClick={() => handleDeleteEmployee(employee.employeeid)}
                 >
                   <HiOutlineTrash className="text-xl" />
@@ -500,7 +500,7 @@ const UserManagementPage = () => {
         <button
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage === 1}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Previous
         </button>
@@ -510,7 +510,7 @@ const UserManagementPage = () => {
         <button
           onClick={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Next
         </button>
@@ -538,26 +538,26 @@ const UserManagementPage = () => {
                 value={currentEmployee.name}
                 onChange={(e) => setCurrentEmployee({ ...currentEmployee, name: e.target.value })}
                 placeholder="Name"
-                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <input
                 type="email"
                 value={currentEmployee.email}
                 onChange={(e) => setCurrentEmployee({ ...currentEmployee, email: e.target.value })}
                 placeholder="Email"
-                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <input
                 type="password"
                 value={currentEmployee.newPassword}
                 onChange={(e) => setCurrentEmployee({ ...currentEmployee, newPassword: e.target.value })}
                 placeholder="New Password (optional)"
-                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={handleUpdateProfile}
-                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                  className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 >
                   Update
                 </button>
@@ -566,7 +566,7 @@ const UserManagementPage = () => {
                     setShowModal(false);
                     setCurrentEmployee({ name: "", email: "", newPassword: "" }); // รีเซ็ตข้อมูล
                   }}
-                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                  className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600"
                 >
                   Cancel
                 </button>
@@ -600,26 +600,26 @@ const UserManagementPage = () => {
                   value={newEmployee.name}
                   onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
                   placeholder="Name"
-                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                 />
                 <input
                   type="email"
                   value={newEmployee.email}
                   onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
                   placeholder="Email"
-                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                 />
                 <input
                   type="password"
                   value={newEmployee.password}
                   onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
                   placeholder="Password"
-                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  className="text-gray-600 border bg-white border-gray-300 px-6 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                 />
                 <select
                   value={newEmployee.role}
                   onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                  className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                 >
                   <option value="" disabled>
                     Select Role
@@ -632,7 +632,7 @@ const UserManagementPage = () => {
                   <select
                     value={newEmployee.branchid}
                     onChange={(e) => setNewEmployee({ ...newEmployee, branchid: e.target.value })}
-                    className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                    className="select bg-white text-gray-600 border border-gray-300 w-full py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                   >
                     <option value="">Select Branch</option>
                     {branches.map((branch) => (
@@ -653,13 +653,13 @@ const UserManagementPage = () => {
                 <div className="flex space-x-4 justify-end">
                   <button
                     onClick={handleAddEmployee}
-                    className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                    className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   >
                     Submit
                   </button>
                   <button
                     onClick={() => setShowAddModal(false)}
-                    className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                    className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600"
                   >
                     Cancel
                   </button>
@@ -692,7 +692,7 @@ const UserManagementPage = () => {
               <select
                 value={roleToUpdate}
                 onChange={(e) => setRoleToUpdate(e.target.value)}
-                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="" disabled>Select Role</option>
                 <option value="Manager">Manager</option>
@@ -702,13 +702,13 @@ const UserManagementPage = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={handleRoleChange}
-                  className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                  className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 >
                   Update
                 </button>
                 <button
                   onClick={() => setShowRoleModal(false)}
-                  className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                  className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600"
                 >
                   Cancel
                 </button>

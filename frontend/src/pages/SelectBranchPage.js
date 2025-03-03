@@ -103,7 +103,7 @@ const SelectBranchPage = () => {
 
         <select
           onChange={handleBranchSelect}
-          className="w-full bg-white text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="w-full bg-white text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
         >
           <option value="">Select Branch</option>
           {branches.length > 0 ? (
@@ -123,13 +123,13 @@ const SelectBranchPage = () => {
           placeholder="Confirm password"
           value={password}
           onChange={handlePasswordChange}
-          className="w-full bg-white text-gray-600 px-3 py-2 mt-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="w-full bg-white text-gray-600 px-3 py-2 mt-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
         />
 
         <div className="mt-4">
           <button
             onClick={handleBranchConfirmation}
-            className="btn border-none w-full py-2 px-4 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600"
+            className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Confirm Selection
           </button>

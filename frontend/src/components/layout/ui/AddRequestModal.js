@@ -22,7 +22,7 @@ const AddRequestModal = ({
             From Branch ({branchName})
             </label>
             <select
-            className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             value={newRequest.tobranchid}
             disabled
             >
@@ -35,7 +35,7 @@ const AddRequestModal = ({
             To Branch
             </label>
             <select
-            className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             value={newRequest.frombranchid}
             onChange={(e) =>
                 setNewRequest({ ...newRequest, frombranchid: e.target.value })
@@ -59,7 +59,7 @@ const AddRequestModal = ({
               Product
             </label>
             <select
-              className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
               value={newRequest.productid}
               onChange={(e) =>
                 setNewRequest({ ...newRequest, productid: e.target.value })
@@ -94,7 +94,7 @@ const AddRequestModal = ({
             </label>
             <input
             type="number"
-            className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             value={newRequest.quantity}
             onChange={(e) =>
                 setNewRequest({
@@ -108,7 +108,7 @@ const AddRequestModal = ({
         </div>
 
         <button
-        className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         onClick={handleAddRequest}
         >
         Add Request

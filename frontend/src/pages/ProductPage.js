@@ -208,7 +208,7 @@ const ProductPage = () => {
           src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
           style={{ height: "200px", width: "200px" }}
         />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        <span className="text-red-500 text-lg font-semibold">Loading...</span>
       </div>
     );
   }
@@ -260,16 +260,16 @@ const ProductPage = () => {
   };
   
   return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Product Management</h1>
-      <p className="text-black mb-4">Manage your Product here.</p>
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Product Management</h1>
+      <p className="text-gray-600 mb-4">Manage your Product here.</p>
 
       {/* Category Dropdown */}
       <div className="mb-4">
         <select
           value={selectedCategory}
           onChange={handleCategoryChange}
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="">All Categories</option>
           {categories.map((category) => (
@@ -288,7 +288,7 @@ const ProductPage = () => {
             value={searchQuery}
             onChange={handleSearch}
             placeholder="Search by Product Code / Product Name"
-            className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full items-center focus:outline-none focus:ring-2 focus:ring-red-500"
           />
           
           {searchQuery && (
@@ -340,7 +340,7 @@ const ProductPage = () => {
 
       {/* Product Table */}
       <div className="min-w-full">
-        <h2 className="text-2xl font-bold text-teal-600 my-4">Product Table</h2>
+        <h2 className="text-2xl font-bold text-red-600 my-4">Product Table</h2>
         <div className="flex space-x-4 mb-4">
         {(userRole === "Super Admin") && (
           <>
@@ -348,7 +348,7 @@ const ProductPage = () => {
             {/* Category */}
             <button
               onClick={() => setIsCategoryModalOpen(true)}
-              className="btn bg-teal-500 text-white px-6 py-3 border-none rounded hover:bg-teal-600 transition duration-300 mt-4"
+              className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
             >
               + Add Category
             </button>
@@ -356,7 +356,7 @@ const ProductPage = () => {
         )}
           <button
             onClick={exportToCSV}
-            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
           >
             Export CSV
           </button>
@@ -412,7 +412,7 @@ const ProductPage = () => {
                           />
                           <button
                             onClick={() => handleDeleteProduct(product.productid)} // เพิ่มการเรียกใช้งาน handleDeleteProduct
-                            className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                            className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                           >
                             <FaTrash className="mr-1" />Delete
                           </button>
@@ -439,7 +439,7 @@ const ProductPage = () => {
           <button
             onClick={handlePreviousPageProduct}
             disabled={currentProductPage === 1}
-            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Previous
           </button>
@@ -449,7 +449,7 @@ const ProductPage = () => {
           <button
             onClick={handleNextPageProduct}
             disabled={currentProductPage === totalProductPages}
-            className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Next
           </button>

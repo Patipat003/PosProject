@@ -109,8 +109,8 @@ const EmployeeTransferPage = () => {
   };
 
   return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Employee Branch Transfer</h1>
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Employee Branch Transfer</h1>
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,7 +121,7 @@ const EmployeeTransferPage = () => {
                 name="currentBranch"
                 value={formData.currentBranch}
                 onChange={handleBranchChange}
-                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select Branch</option>
                 {branches.map((branch) => (
@@ -139,7 +139,7 @@ const EmployeeTransferPage = () => {
               name="id"
               value={formData.id}
               onChange={handleInputChange}
-              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="">Select Employee</option>
               {formData.currentBranch && 
@@ -159,7 +159,7 @@ const EmployeeTransferPage = () => {
                 type="text"
                 value={getBranchName(formData.currentBranch)}
                 readOnly
-                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
           )}
@@ -170,7 +170,7 @@ const EmployeeTransferPage = () => {
               name="newBranch"
               value={formData.newBranch}
               onChange={handleInputChange}
-              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="">Select New Branch</option>
               {branches.map((branch) => (
@@ -188,7 +188,7 @@ const EmployeeTransferPage = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="px-4 py-2 text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
@@ -199,11 +199,11 @@ const EmployeeTransferPage = () => {
               name="time"
               value={formData.time}
               onChange={handleInputChange}
-              className="px-4 py-2 text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
-          <button type="submit" className="btn border-none bg-teal-500 text-white font-semibold rounded-lg shadow-md hover:bg-teal-600 col-span-2">
+          <button type="submit" className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 col-span-2">
             Submit Transfer
           </button>
         </form>

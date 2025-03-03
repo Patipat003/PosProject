@@ -263,9 +263,9 @@ const SalesHistoryPage = () => {
   };
 
   return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Sales History</h1>
-      <p className="text-black mb-4">View your Sales History here.</p>
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Sales History</h1>
+      <p className="text-gray-600 mb-4">View your Sales History here.</p>
 
       <div className="flex items-center space-x-4 mb-4">
         <input
@@ -273,12 +273,12 @@ const SalesHistoryPage = () => {
           value={searchTerm}
           onChange={handleSearch}
           placeholder="🔍 Search by Receipt Number"
-          className="border bg-white border-gray-300 px-6 w-3/4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="border bg-white border-gray-300 px-6 w-3/4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
         />
         <select
           value={selectedEmployee}
           onChange={handleEmployeeFilter}
-          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="select bg-white text-gray-600 select-bordered border border-gray-300 w-full max-w-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="">Filter by Employee Name</option>
           {employees.map((employee) => (
@@ -293,18 +293,18 @@ const SalesHistoryPage = () => {
             type="date"
             value={selectedDate}
             onChange={handleDateFilter}
-            className="btn btn-none border-none bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="btn btn-none border-none bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500"
           />
           <button
             onClick={handleSort}
-            className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Sort by Date {sortOrder === "asc" ? "↑" : "↓"}
           </button>
 
           <button
             onClick={exportToCSV}
-            className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Export CSV
           </button>
@@ -334,7 +334,7 @@ const SalesHistoryPage = () => {
               <td className="border border-gray-300 px-4 py-2">{sale.createdat}</td>
               <td className="px-4 py-2 flex items-center justify-center space-x-4">
                 <button 
-                  className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
+                  className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                   onClick={() => openModal(sale.saleid, sale.createdat)}
                 >
                   <FaReceipt /> Receipt
@@ -342,7 +342,7 @@ const SalesHistoryPage = () => {
                 {(userRole === "Manager" || userRole === "Super Admin") && (
                   <button
                     onClick={() => handleDelete(sale.saleid)}
-                    className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                    className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                   >
                     <FaTrash /> Delete
                   </button>
@@ -359,7 +359,7 @@ const SalesHistoryPage = () => {
             key={index}
             className={`px-3 py-1 rounded ${
               currentPage === index + 1
-                ? "bg-teal-500 text-white"
+                ? "bg-red-800 text-white"
                 : "bg-gray-200 text-gray-700"
             }`}
             onClick={() => handlePageChange(index + 1)}
@@ -381,13 +381,13 @@ const SalesHistoryPage = () => {
             {/* ปุ่มสำหรับพิมพ์ใบเสร็จ */}
             <div className="flex justify-end space-x-2 mt-4">
               <button
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={handlePrint}
               >
                 <FaPrint className="mr-1" /> Print Receipt
               </button>
               <button
-                className="btn bg-gray-500 text-white border-none hover:bg-gray-600 rounded"
+                className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600"
                 onClick={() => setModalData(null)}
               >
                 Close

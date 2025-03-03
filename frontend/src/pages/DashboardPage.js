@@ -227,7 +227,7 @@ const DashboardPage = () => {
           src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json"
           style={{ height: "200px", width: "200px" }}
         />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        <span className="text-red-500 text-lg font-semibold">Loading...</span>
       </div>
     );
   }
@@ -327,15 +327,15 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="p-4 min-h-screen">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Dashboard</h1>
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6 min-h-screen">
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Dashboard</h1>
       <div className="flex items-center justify-between mb-6">
-        <p className="text-black mb-4">View Overall Dashboard here.</p>
+        <p className="text-gray-600 mb-4">View Overall Dashboard here.</p>
         {/* แสดงปุ่ม View All เฉพาะ Super Admin */}
         {userRole === "Super Admin" && (
           <button
             onClick={handleViewAllClick}
-            className="btn btn-outline border-2 border-teal-600 bg-white text-teal-600 p-2 rounded fixed top-20 right-2 z-5"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg fixed top-20 right-2 z-5 mt-2 hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
           </button>
@@ -345,20 +345,20 @@ const DashboardPage = () => {
       <div className="bg-gray-100 p-6 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
-            <HiOutlineCurrencyDollar className="text-teal-500 text-6xl" />
+            <HiOutlineCurrencyDollar className="text-red-500 text-6xl" />
             <div className="text-right">
             <h2 className="font-semibold mb-4">Total Sales (THB)</h2>
-              <div className="text-2xl font-bold text-teal-500">
+              <div className="text-2xl font-bold text-red-500">
                 ฿{keyMetrics[0]?.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
           </div>
 
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
-            <HiOutlineShoppingCart className="text-teal-500 text-6xl" />
+            <HiOutlineShoppingCart className="text-red-500 text-6xl" />
             <div className="text-right">
               <h2 className="font-semibold mb-4">Total Sales (Units)</h2>
-              <div className="text-2xl font-bold text-teal-500">
+              <div className="text-2xl font-bold text-red-500">
                 {keyMetrics[1]?.value.toLocaleString()} Units
               </div>
             </div>
@@ -382,7 +382,7 @@ const DashboardPage = () => {
           {topProducts.map((product, index) => (
             <div key={index} className="relative border-2 border-gray-300 p-4 rounded-lg shadow-sm">
               {/* แสดงตัวเลขอันดับ */}
-              <span className="absolute top-2 left-2 bg-teal-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="absolute top-2 left-2 bg-red-800 text-white text-xs font-bold px-2 py-1 rounded-full">
                 {index + 1}
               </span>
               <img
@@ -390,7 +390,7 @@ const DashboardPage = () => {
                 alt={product.productname}
                 className="w-full h-32 object-contain rounded-md mb-2"
               />
-              <h3 className="font-bold text-teal-600">{product.productname}</h3>
+              <h3 className="font-bold text-red-600">{product.productname}</h3>
               <p className="text-sm text-gray-500">Sold: {product.quantity} Units</p>
             </div>
           ))}
@@ -404,7 +404,7 @@ const DashboardPage = () => {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="btn border-none bg-teal-500 text-white p-2 rounded mt-4"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             View Sales Products
           </button>
@@ -423,19 +423,19 @@ const DashboardPage = () => {
             <div className="flex space-x-4">
               <button
                 onClick={() => setTimeRange("day")}
-                className={`btn ${timeRange === "day" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "day" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
               >
                 Day
               </button>
               <button
                 onClick={() => setTimeRange("month")}
-                className={`btn ${timeRange === "month" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "month" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
               >
                 Month
               </button>
               <button
                 onClick={() => setTimeRange("year")}
-                className={`btn ${timeRange === "year" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "year" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
               >
                 Year
               </button>

@@ -223,7 +223,7 @@ const RequestShipment = ({ selectedBranchId }) => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
       >
         Request Shipment
       </button>
@@ -257,13 +257,13 @@ const RequestShipment = ({ selectedBranchId }) => {
                     <input
                       type="text"
                       placeholder="🔍 Search by Product Code"
-                      className="w-1/3 p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-1/3 p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     <select
-                      className="w-full p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                       value={selectedProduct}
                       onChange={(e) => setSelectedProduct(e.target.value)}
                     >
@@ -278,14 +278,14 @@ const RequestShipment = ({ selectedBranchId }) => {
                     <input
                       type="number"
                       min="1"
-                      className="w-1/6 p-3 border text-black text-center border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-1/6 p-3 border text-gray-600 text-center border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                       value={quantity}
                       onChange={(e) => setQuantity(Number(e.target.value))}
                     />
 
                     <button
                       onClick={handleAddItem}
-                      className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                      className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                     >
                       Add
                     </button>
@@ -321,7 +321,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                             <td className="px-4 py-2 flex items-center justify-center space-x-4">
                               <button
                                 onClick={() => handleRemoveItem(item.productid)}
-                                className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                                className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                                 >
                                   <FaTrash /> Delete
                               </button>
@@ -335,14 +335,14 @@ const RequestShipment = ({ selectedBranchId }) => {
                   <div className="flex justify-end items-center mt-6">
                     <div className="flex gap-3">
                       <button
-                        className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                         onClick={handleSubmit}
                       >
                         Submit Request
                       </button>
                       <button
                         onClick={() => setShipmentItems([])}
-                        className="btn border-none bg-red-500 text-white font-medium py-3 px-6 rounded hover:bg-red-800 transition duration-300"
+                        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                       >
                         <FaTrash />
                       Clear All
@@ -365,15 +365,15 @@ const RequestShipment = ({ selectedBranchId }) => {
                 <tbody>
                   {currentShipments.map((shipment) => (
                     <tr key={shipment.shipmentid} className="hover:bg-gray-100">
-                      <td className="border py-2 px-4 border-gray-300 text-black">{shipment.shipmentnumber}</td>
-                      <td className="border py-4 px-4 flex justify-center">{renderStatusIcon(shipment.status)}</td>
-                      <td className="border py-2 px-4 border-gray-300 text-black">
+                      <td className="border px-4 border-gray-300 text-gray-600">{shipment.shipmentnumber}</td>
+                      <td className="border flex justify-center items-center">{renderStatusIcon(shipment.status)}</td>
+                      <td className="border px-4 border-gray-300 text-gray-600">
                         {new Date(shipment.updatedat).toISOString().slice(0, 16).replace("T", " ")}
                       </td>
-                      <td className="border px-4 py-2 flex items-center justify-center space-x-4">
+                      <td className="border flex items-center justify-center space-x-4">
                         <button
                           onClick={() => handleViewItems(shipment)}
-                          className="btn btn-xs w-20 bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center"
+                          className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                           >
                             <FaEye /> View
                         </button>
@@ -381,7 +381,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                         {(userRole === "Manager" || userRole === "Super Admin") && (
                           <button
                               onClick={() => handleDeleteShipment(shipment.shipmentid)}
-                              className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                              className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                             >
                               <FaTrash /> Delete
                           </button>
@@ -395,7 +395,7 @@ const RequestShipment = ({ selectedBranchId }) => {
               {/* Pagination Controls */}
               <div className="flex justify-center mt-4 space-x-4">
                 <button
-                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(currentPage - 1)}
                 >
@@ -405,7 +405,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                 <div className="flex items-center">Page {currentPage} of {Math.ceil(shipments.length / itemsPerPage)}</div>
 
                 <button
-                  className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                  className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   disabled={currentPage === Math.ceil(shipments.length / itemsPerPage)}
                   onClick={() => setCurrentPage(currentPage + 1)}
                 >
@@ -460,11 +460,11 @@ const RequestShipment = ({ selectedBranchId }) => {
                         )}
                       </td>
                       {/* รหัสสินค้า */}
-                      <td className="border py-2 px-4 border-gray-300 text-black">{product?.productcode || "N/A"}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-gray-600">{product?.productcode || "N/A"}</td>
                       {/* ชื่อสินค้า */}
-                      <td className="border py-2 px-4 border-gray-300 text-black">{product?.productname || "Unknown"}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-gray-600">{product?.productname || "Unknown"}</td>
                       {/* จำนวนสินค้า */}
-                      <td className="border py-2 px-4 border-gray-300 text-black">{item.quantity}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-gray-600">{item.quantity}</td>
                     </tr>
                   );
                 })}
@@ -474,7 +474,7 @@ const RequestShipment = ({ selectedBranchId }) => {
             {/* ปุ่มปิด */}
             <div className="flex justify-end">
               <button
-                className="btn border-none bg-teal-500 text-white font-medium px-6 py-3 mt-6 rounded-md hover:bg-teal-600 transition duration-300"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() => setIsItemsModalOpen(false)}
               >
                 Close

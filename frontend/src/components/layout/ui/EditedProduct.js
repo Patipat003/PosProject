@@ -10,7 +10,7 @@ const InputField = ({ label, value, onChange, type = "text" }) => (
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+      className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
     />
   </div>
 );
@@ -125,7 +125,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
     <div>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="btn btn-xs bg-teal-500 text-white border-none hover:bg-teal-600 rounded flex items-center w-20"
+        className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center w-20"
       >
         <FaPencilAlt />Edit
       </button>
@@ -146,7 +146,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
               exit={{ y: -50, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold text-center text-teal-600 mb-6">
+              <h2 className="text-2xl font-bold text-center text-red-600 mb-6">
                 Edit Product
               </h2>
 
@@ -190,7 +190,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                       type="text"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full p-2 mt-2 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-teal-500"
+                      className="w-full p-2 mt-2 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-red-500"
                       placeholder="Paste image URL here..."
                     />
 
@@ -203,7 +203,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Category</label>
                   <select
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                   >
@@ -219,7 +219,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <div className="col-span-2">
                   <label className="block text-gray-700 font-medium mb-1">Description</label>
                   <textarea
-                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
@@ -229,7 +229,7 @@ const EditedProduct = ({ productId, onProductUpdated }) => {
                 <div className="col-span-2">
                   <button
                     type="submit"
-                    className="w-full bg-teal-500 text-white font-medium py-3 rounded-lg hover:bg-teal-600 transition duration-300"
+                    className="w-full btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   >
                     Update Product
                   </button>

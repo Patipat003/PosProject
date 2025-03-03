@@ -161,7 +161,7 @@ const BranchViewModal = ({ branch, onClose }) => {
               <FaTimes size={20} />
             </button>
 
-            <h2 className="text-2xl font-bold text-teal-500 mb-6">
+            <h2 className="text-2xl font-bold text-red-500 mb-6">
               📍 {branch?.bname || "N/A"} ({branch.location})
             </h2>
 
@@ -184,7 +184,7 @@ const BranchViewModal = ({ branch, onClose }) => {
 
             {/* ✅ Employee List as Table */}
             <div className="mb-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-6">👥 Employee List</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-6">👥 Employee List</h3>
               <table className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
                 <thead className="bg-gray-100 text-gray-600">
                   <tr>
@@ -206,7 +206,7 @@ const BranchViewModal = ({ branch, onClose }) => {
             {/* ✅ Pagination Controls for Employees */}
             <div className="flex justify-center mt-4 space-x-4">
               <button
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() => setCurrentPageEmployees((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPageEmployees === 1}
               >
@@ -214,7 +214,7 @@ const BranchViewModal = ({ branch, onClose }) => {
               </button>
               <div className="flex items-center">Page {currentPageEmployees}</div>
               <button
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-30"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() => setCurrentPageEmployees((prev) => (indexOfLastEmployee < employees.length ? prev + 1 : prev))}
                 disabled={indexOfLastEmployee >= employees.length}
               >
@@ -223,26 +223,26 @@ const BranchViewModal = ({ branch, onClose }) => {
             </div>
 
             {/* 🔹 ปุ่มเลือกช่วงเวลา */}
-            <h3 className="text-xl font-semibold text-teal-600 mb-6">📦 Sales Graph</h3>
+            <h3 className="text-xl font-semibold text-red-600 mb-6">📦 Sales Graph</h3>
             <div className="flex justify-between items-center mb-4">
               
             <div>
-              <button className={`mr-2 px-4 py-2 ${chartView === "daily" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`} onClick={() => setChartView("daily")}>
+              <button className={`mr-2 px-4 py-2 ${chartView === "daily" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`} onClick={() => setChartView("daily")}>
                 Daily
               </button>
-              <button className={`mr-2 px-4 py-2 ${chartView === "weekly" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`} onClick={() => setChartView("weekly")}>
+              <button className={`mr-2 px-4 py-2 ${chartView === "weekly" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`} onClick={() => setChartView("weekly")}>
                 Weekly
               </button>
-              <button className={`mr-2 px-4 py-2 ${chartView === "monthly" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`} onClick={() => setChartView("monthly")}>
+              <button className={`mr-2 px-4 py-2 ${chartView === "monthly" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`} onClick={() => setChartView("monthly")}>
                 Monthly
               </button>
-              <button className={`px-4 py-2 ${chartView === "yearly" ? "btn bg-teal-500 border-none hover:bg-teal-600" : "btn bg-gray-400 border-none hover:bg-teal-600 hover:border-none"} text-white`} onClick={() => setChartView("yearly")}>
+              <button className={`px-4 py-2 ${chartView === "yearly" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`} onClick={() => setChartView("yearly")}>
                 Yearly
               </button>
             </div>
 
             {/* 🔹 Dropdown เลือกสินค้าที่ต้องการดูแนวโน้ม */}
-            <select className="p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" value={selectedProductId || ""} onChange={(e) => setSelectedProductId(e.target.value)}>
+            <select className="p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500" value={selectedProductId || ""} onChange={(e) => setSelectedProductId(e.target.value)}>
               <option value="">All Products</option>
                 {Object.keys(products).map((id) => (
                   <option key={id} value={id}>
@@ -267,7 +267,7 @@ const BranchViewModal = ({ branch, onClose }) => {
 
             {/* ✅ รายการสินค้าและสต็อก */}
             <div className="mt-6">
-              <h3 className="text-xl font-semibold text-teal-600 mb-6">📦 Inventory</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-6">📦 Inventory</h3>
               <table className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
                 <thead className="bg-gray-100 text-gray-600">
                   <tr>
@@ -291,7 +291,7 @@ const BranchViewModal = ({ branch, onClose }) => {
 
                     return (
                       <tr key={item.inventoryid} className="hover:bg-gray-100">
-                        <td className="border py-2 px-4 border-gray-300 text-black">{product.productname || "Unknown"}</td>
+                        <td className="border py-2 px-4 border-gray-300 text-gray-600">{product.productname || "Unknown"}</td>
                         <td
                           className={`border py-2 px-4 border-gray-300 font-bold ${
                             item.quantity < 100 ? "text-red-500" :
@@ -301,12 +301,12 @@ const BranchViewModal = ({ branch, onClose }) => {
                         >
                           {item.quantity}
                         </td>
-                        <td className="border py-2 px-4 border-gray-300 text-black">{soldQuantity}</td>
-                        <td className="border py-2 px-4 border-gray-300 text-black">{product.price || "Unknown"}</td>
-                        <td className="border py-2 px-4 border-gray-300 text-black">{totalRevenue.toLocaleString()}</td>
+                        <td className="border py-2 px-4 border-gray-300 text-gray-600">{soldQuantity}</td>
+                        <td className="border py-2 px-4 border-gray-300 text-gray-600">{product.price || "Unknown"}</td>
+                        <td className="border py-2 px-4 border-gray-300 text-gray-600">{totalRevenue.toLocaleString()}</td>
                         <td className="border border-gray-300 text-center justify-center items-center">
                           <button onClick={() => setSelectedProduct(products[item.productid])}>
-                            <HiOutlineEye className="text-teal-500 hover:text-teal-700 cursor-pointer h-6 w-6" />
+                            <HiOutlineEye className="text-red-500 hover:text-red-700 cursor-pointer h-6 w-6" />
                           </button>
                         </td>
                       </tr>
@@ -319,7 +319,7 @@ const BranchViewModal = ({ branch, onClose }) => {
             {/* ✅ Pagination Controls for Inventory */}
             <div className="flex justify-center mt-4 space-x-4">
               <button
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() => setCurrentPageInventory((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPageInventory === 1}
               >
@@ -327,7 +327,7 @@ const BranchViewModal = ({ branch, onClose }) => {
               </button>
               <div className="flex items-center">Page {currentPageInventory}</div>
               <button
-                className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() => setCurrentPageInventory((prev) => (indexOfLastInventory < inventory.length ? prev + 1 : prev))}
                 disabled={indexOfLastInventory >= inventory.length}
               >

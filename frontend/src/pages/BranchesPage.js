@@ -184,12 +184,12 @@ const BranchesPage = () => {
   }, [isAddModalOpen, isEditModalOpen]);
   
   return (
-    <div className="p-4 bg-white min-h-screen">
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6 min-h-screen">
       <ToastContainer position="top-right" autoClose={2000} />
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-teal-600">Branch Management</h1>
-        <button onClick={() => setIsAddModalOpen(true)} className="btn bg-teal-500 text-white">
+        <h1 className="text-3xl font-bold text-red-600">Branch Management</h1>
+        <button onClick={() => setIsAddModalOpen(true)} className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">
           <FiPlus size={18} /> Add Branch
         </button>
       </div>
@@ -205,7 +205,7 @@ const BranchesPage = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="🔍 Search branch..."
-        className="border bg-white border-gray-300 p-3 pr-10 mb-4 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
+        className="border bg-white border-gray-300 p-3 pr-10 mb-4 text-gray-600 rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-red-500"
       />
 
       {/* ✅ Branch Grid Layout */}
@@ -217,7 +217,7 @@ const BranchesPage = () => {
 
             return (
               <div key={branch.branchid} className="border p-4 rounded-lg shadow-lg bg-white">
-                <p className="text-teal-700 font-semibold">{branch.bname}</p>
+                <p className="text-red-700 font-semibold">{branch.bname}</p>
                 <p className="text-gray-600">📍 Location: {branch.location}</p>
                 <p className="text-sm text-gray-400">
                   📅 Created: {moment(branch.createdat).format("DD/MM/YYYY")}
@@ -283,7 +283,7 @@ const BranchesPage = () => {
                   : setEditData({ ...editData, bname: e.target.value })
               }
               placeholder="Branch Name"
-              className="border bg-white border-gray-300 p-3 mb-3 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="border bg-white border-gray-300 p-3 mb-3 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-500"
             />
 
             <input
@@ -296,7 +296,7 @@ const BranchesPage = () => {
                   : setEditData({ ...editData, location: e.target.value })
               }
               placeholder="Branch Location (Address)"
-              className="border bg-white border-gray-300 p-3 mb-3 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="border bg-white border-gray-300 p-3 mb-3 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-500"
             />
 
             {/* Render the map only when modal is open */}
@@ -325,7 +325,7 @@ const BranchesPage = () => {
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={isAddModalOpen ? addBranch : updateBranch}
-                className="btn bg-teal-500 text-white border-none hover:bg-teal-600 rounded"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
               >
                 Save
               </button>
@@ -334,7 +334,7 @@ const BranchesPage = () => {
                   setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
                 }}
-                className="btn bg-red-500 text-white border-none hover:bg-red-600 rounded"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
               >
                 Cancel
               </button>

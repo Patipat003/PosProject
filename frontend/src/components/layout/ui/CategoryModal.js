@@ -90,7 +90,7 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
               exit={{ y: -50, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-3xl font-bold text-center text-teal-600 mb-6">Manage Categories</h2>
+              <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Manage Categories</h2>
 
               {/* ตาราง Category */}
               <div className="overflow-y-auto max-h-96 mb-6">
@@ -115,7 +115,7 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
                           <td className="px-4 py-2 text-center flex justify-center items-center">
                             <button
                               onClick={() => handleDeleteCategory(category.categoryid)}
-                              className="btn btn-xs bg-red-500 text-white border-none hover:bg-red-800 rounded flex items-center"
+                              className="btn btn-xs border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 flex items-center"
                             >
                               <FaTrash /> Delete
                             </button>
@@ -140,11 +140,11 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
                     placeholder="Enter Category Name"
-                    className="w-full pl-6 p-3 border text-black border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-6 p-3 border text-gray-600 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                   <button
                     onClick={handleAddCategory}
-                    className="btn border-none bg-teal-500 text-white font-medium py-3 px-6 rounded hover:bg-teal-600 transition duration-300"
+                    className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
                   >
                     Add
                   </button>

@@ -163,7 +163,7 @@ const InventoryPage = () => {
           src="https://assets3.lottiefiles.com/packages/lf20_z4cshyhf.json" // ตัวอย่าง: "POS Loading"
           style={{ height: "200px", width: "200px" }}
         />
-        <span className="text-teal-500 text-lg font-semibold">Loading...</span>
+        <span className="text-red-500 text-lg font-semibold">Loading...</span>
       </div>
     );
   }
@@ -245,9 +245,9 @@ const InventoryPage = () => {
   };
 
   return (
-    <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-teal-600 mb-6">Inventory</h1>
-      <p className="text-black mb-4">Manage your Inventory here.</p>
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Inventory</h1>
+      <p className="text-gray-600 mb-4">Manage your Inventory here.</p>
 
       <div className="flex space-x-4 mb-6">
         {(userRole === "Audit" || userRole === "Manager" || userRole === "Super Admin") && (
@@ -258,7 +258,7 @@ const InventoryPage = () => {
         )}
         <button
           onClick={exportToCSV}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
         >
           Export CSV
         </button>
@@ -267,7 +267,7 @@ const InventoryPage = () => {
       <div className="my-4 flex flex-wrap items-center gap-4">
         {/* Search Bar */}
         <div className="flex items-center space-x-4 flex-grow">
-          <label htmlFor="searchInput" className="text-black font-semibold whitespace-nowrap">
+          <label htmlFor="searchInput" className="text-gray-600 font-semibold whitespace-nowrap">
             Search by Product Code
           </label>
           <div className="relative flex-grow">
@@ -277,7 +277,7 @@ const InventoryPage = () => {
               value={searchQuery}
               onChange={handleSearch}
               placeholder="Search by product code"
-              className="border bg-white border-gray-300 p-3 pr-10 text-black rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             {searchQuery && (
               <button
@@ -292,24 +292,24 @@ const InventoryPage = () => {
 
         {/* Date Range Picker */}
         <div className="flex items-center space-x-2">
-          <label htmlFor="startDate" className="text-black font-semibold">From</label>
+          <label htmlFor="startDate" className="text-gray-600 font-semibold">From</label>
           <DatePicker
             id="startDate"
             selected={startDate}
             onChange={(date) => setStartDate(date)}
             dateFormat="dd/MM/yyyy"
             placeholderText="Start Date"
-            className="border bg-white border-gray-300 p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="border bg-white border-gray-300 p-3 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
           />
 
-          <label htmlFor="endDate" className="text-black font-semibold">To</label>
+          <label htmlFor="endDate" className="text-gray-600 font-semibold">To</label>
           <DatePicker
             id="endDate"
             selected={endDate}
             onChange={(date) => setEndDate(date)}
             dateFormat="dd/MM/yyyy"
             placeholderText="End Date"
-            className="border bg-white border-gray-300 p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="border bg-white border-gray-300 p-3 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
           />
 
           {/* Clear Button */}
@@ -318,7 +318,7 @@ const InventoryPage = () => {
               setStartDate(null);
               setEndDate(null);
             }}
-            className="bg-red-500 text-white font-medium px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             Clear
           </button>
@@ -340,12 +340,12 @@ const InventoryPage = () => {
         {groupedInventory && Object.keys(groupedInventory).map((branchName) => (
           <div key={branchName} className="mb-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-teal-600 mb-4">{branchName}</h2>
+              <h2 className="text-2xl font-semibold text-red-600 mb-4">{branchName}</h2>
 
               {/* Sort by Quantity */}
               <button
                 onClick={sortByQuantity}
-                className="btn border-none text-white bg-teal-500 px-4 py-2 rounded hover:bg-teal-600 mb-4"
+                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mb-4"
               >
                 Sort by Quantity {sortDirection === "asc" ? "↑" : "↓"}
               </button>
@@ -370,8 +370,8 @@ const InventoryPage = () => {
                   return (
                     <tr key={item.productid} className="hover:bg-gray-100">
                       <td className="border border-gray-300 text-center">{rowIndex}</td>
-                      <td className="border py-2 px-4 border-gray-300 text-black">{item.productcode}</td>
-                      <td className="border py-2 px-4 border-gray-300 text-black">{item.productname}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-gray-600">{item.productcode}</td>
+                      <td className="border py-2 px-4 border-gray-300 text-gray-600">{item.productname}</td>
                       <td
                         className={`border py-2 px-4 border-gray-300 font-bold ${
                           item.quantity < 100 ? "text-red-500" :
@@ -381,14 +381,14 @@ const InventoryPage = () => {
                       >
                         {item.quantity}
                       </td>
-                      <td className="border border-gray-300 text-black">{formatDate(item.updatedat)}</td>
+                      <td className="border border-gray-300 text-gray-600">{formatDate(item.updatedat)}</td>
                       {(userRole === "Manager" || userRole === "Super Admin") && (
                         <td className="border border-gray-300 text-center justify-center items-center">
                           <button
                             onClick={() => handleViewDetails(item)}
                             className="hover:border-b-2 border-gray-400 transition duration-30"
                           >
-                            <HiOutlineEye className="text-teal-500 h-6 w-6" />
+                            <HiOutlineEye className="text-red-500 h-6 w-6" />
                           </button>
                         </td>
                       )}
@@ -406,7 +406,7 @@ const InventoryPage = () => {
         <button
           onClick={handlePreviousPageProduct}
           disabled={currentProductPage === 1}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Previous
         </button>
@@ -416,7 +416,7 @@ const InventoryPage = () => {
         <button
           onClick={handleNextPageProduct}
           disabled={currentProductPage === totalProductPages}
-          className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300"
+          className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
         >
           Next
         </button>

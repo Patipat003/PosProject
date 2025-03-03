@@ -71,7 +71,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600"
+                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
               />
             </div>
           </div>
@@ -95,7 +95,7 @@ const LoginPage = () => {
           <div>
             <button
               type="submit"
-              className="btn w-full py-2 px-4 border-none bg-teal-500 text-white font-semibold rounded-md shadow-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-opacity-50"
+              className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
             >
               Sign in
             </button>

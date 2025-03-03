@@ -12,7 +12,7 @@ const ExportButtons = ({ filteredTables, columns, filename = "file.pdf" }) => {
       <CSVLink
         data={filteredTables}
         filename={filename.replace(".pdf", ".csv")} // Dynamically set the CSV filename
-        className="btn border-none bg-teal-500 text-white px-6 py-3 rounded hover:bg-teal-600 transition duration-300 mt-4"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
       >
         Export to CSV
       </CSVLink>
