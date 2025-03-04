@@ -335,7 +335,7 @@ const DashboardPage = () => {
         {userRole === "Super Admin" && (
           <button
             onClick={handleViewAllClick}
-            className="btn border-red-600 bg-white text-red-600 rounded-lg fixed top-20 right-2 z-5 mt-2 hover:bg-red-600 hover:text-white hover:border-red-600"
+            className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
           >
             {selectedBranch === "all" ? "View My Branch" : "View All Branches"}
           </button>

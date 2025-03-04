@@ -171,7 +171,7 @@ const BranchViewModal = ({ branch, onClose }) => {
               {latitude && longitude ? (
                 <div className="mt-4 h-96 w-full rounded-lg shadow-md overflow-hidden">
                   <MapContainer center={[latitude, longitude]} zoom={13} className="h-full w-full">
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <TileLayer url="http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png" />
                     <Marker position={[latitude, longitude]} icon={customIcon}>
                       <Popup>{branch.bname}</Popup>
                     </Marker>

@@ -60,13 +60,6 @@ const BranchMap = ({ branches, onBranchClick }) => {
         <LayersControl.BaseLayer name="Moon">
           <TileLayer url="https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png" />
         </LayersControl.BaseLayer>  
-        
-
-        <LayersControl.Overlay checked name="OpenRailwayMap">
-          <TileLayer url="https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png" />
-        </LayersControl.Overlay>
-
-        
           
       </LayersControl>
 

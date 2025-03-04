@@ -233,7 +233,7 @@ const BranchesPage = () => {
                     zoomControl={false}
                     style={{ zIndex: 0 }} // ✅ ตั้งค่า z-index ต่ำ
                   >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                     <TileLayer url="http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png" />
                     <Marker position={[lat, lng]} icon={customIcon} />
                   </MapContainer>
                 </div>
@@ -307,7 +307,8 @@ const BranchesPage = () => {
                 className="h-72 w-full"
                 scrollWheelZoom={true}
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                
+                <TileLayer url="http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png" />
                 <MapClickHandler setLocation={isAddModalOpen ? setNewBranch : setEditData} />
 
                 {((isAddModalOpen && newBranch.googleLocation) || (!isAddModalOpen && editData.googleLocation)) && (

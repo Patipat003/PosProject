@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiOutlineBell, HiBell, HiTruck, HiArrowsExpand } from "react-icons/hi";
+import { HiChevronDown, HiUser, HiMail, HiLogout, HiUserGroup, HiOfficeBuilding, HiOutlineBell, HiExclamation, HiTruck, HiArrowsExpand } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -263,7 +263,7 @@ const Header = () => {
                     className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
-                      <HiBell className="text-red-600 mr-2" />
+                      <HiExclamation className="text-red-600 mr-2" />
                       <span>{lowStockProducts.length} Low Stock Products</span>
                     </div>
                   </div>
