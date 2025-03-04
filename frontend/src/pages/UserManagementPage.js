@@ -451,7 +451,7 @@ const UserManagementPage = () => {
            const rowIndex = (currentPage - 1) * itemsPerPage + index + 1; // Calculate row index
            return (
           <tr
-            key={employee.employeeid} className="hover:bg-gray-100">
+            key={employee.employeeid} className="hover:bg-gray-100 text-gray-600">
             <td className="border border-gray-300 text-center">{rowIndex}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.email}</td>
             <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
@@ -520,7 +520,7 @@ const UserManagementPage = () => {
       <AnimatePresence>
         {showModal && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -580,7 +580,7 @@ const UserManagementPage = () => {
         {/* Add Employee Modal */}
         {showAddModal && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -674,7 +674,7 @@ const UserManagementPage = () => {
         {/* Role Update Modal */}
         {showRoleModal && (
            <motion.div
-           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+           className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50"
            initial={{ opacity: 0 }}
            animate={{ opacity: 1 }}
            exit={{ opacity: 0 }}

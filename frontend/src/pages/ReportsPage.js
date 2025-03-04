@@ -275,7 +275,7 @@ const ReportsPage = () => {
               {filteredSales[dateKey].map((branchId) => {
                 const { totalAmount, count } = groupedSales[dateKey][branchId];
                 return (
-                  <tr key={branchId} className="hover:bg-gray-100">
+                  <tr key={branchId} className="hover:bg-gray-100 text-gray-600">
                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
                     <td className="border border-gray-300 px-4 py-2">{dateKey}</td>
                     <td className="border border-gray-300 px-4 py-2">{getBranchName(branchId)}</td>

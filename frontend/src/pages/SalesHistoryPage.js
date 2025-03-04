@@ -325,7 +325,7 @@ const SalesHistoryPage = () => {
         </thead>
         <tbody>
           {paginatedSales.map((sale) => (
-            <tr key={sale.saleid} className="hover:bg-gray-100">
+            <tr key={sale.saleid} className="hover:bg-gray-100 text-gray-600">
               <td className="border border-gray-300 px-4 py-2 text-center">{sale.index}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
               <td className="border border-gray-300 px-4 py-2">{sale.employeename}</td>
@@ -371,7 +371,7 @@ const SalesHistoryPage = () => {
       
       {/* ส่วนของ Modal */}
       {modalData && (
-        <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+        <div className="fixed inset-0 z-50 bg-gray-900 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow-lg max-w-screen-sm">
             <div id="print-area">
               {/* Use ReactPrinter to display receipt content */}

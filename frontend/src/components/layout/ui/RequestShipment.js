@@ -235,7 +235,7 @@ const RequestShipment = ({ selectedBranchId }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-center"
             onClick={() => setIsModalOpen(false)} // ✅ ปิด modal เมื่อคลิกนอก modal
           >
             <motion.div
@@ -246,7 +246,7 @@ const RequestShipment = ({ selectedBranchId }) => {
               className="bg-white p-8 rounded-lg shadow-lg max-w-7xl w-full relative z-60 overflow-y-auto max-h-screen mt-10"
               onClick={(e) => e.stopPropagation()} // ✅ ป้องกัน modal ปิดเมื่อคลิกด้านใน
             >
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              <h3 className="text-xl font-semibold text-gray-600 mb-4">
                 Request Shipment from Warehouse
               </h3>
               {(userRole === "Manager"|| userRole === "Super Admin") && (
@@ -304,7 +304,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                       {shipmentItems.map((item) => {
                         const product = products.find((p) => p.productid === item.productid);
                         return (
-                          <tr key={item.productid} className="bg-gray-80 ">
+                          <tr key={item.productid} className="bg-gray-80 text-gray-600">
                             <td className="border px-4 py-2">{product?.productcode || "Unknown"}</td>
                             <td className="border px-4 py-2">{product?.productname || "Unknown"}</td>
                             <td className="border px-4 py-2 text-center">
@@ -424,7 +424,7 @@ const RequestShipment = ({ selectedBranchId }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-center"
         >
           <motion.div
             initial={{ scale: 0.8 }}

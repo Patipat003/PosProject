@@ -12,7 +12,7 @@ const AddRequestModal = ({
 }) => {
   return (
     <div className="mb-8">
-    <h3 className="text-xl font-semibold text-gray-800 mb-4">
+    <h3 className="text-xl font-semibold text-gray-600 mb-4">
         Add New Request
     </h3>
     <form>

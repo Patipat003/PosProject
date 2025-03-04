@@ -376,7 +376,7 @@ const RequestInventory = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-center"
             onClick={() => setIsModalOpen(false)}
           >
             <motion.div

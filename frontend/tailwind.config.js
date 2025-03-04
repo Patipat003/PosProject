@@ -1,9 +1,8 @@
-const { color } = require('framer-motion');
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class", // ✅ ใช้ class="dark" เพื่อควบคุมโหมดมืด
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // ปรับตามโครงสร้างโปรเจกต์ของคุณ
+    "./src/**/*.{js,jsx,ts,tsx}", // ✅ ปรับตามโครงสร้างโปรเจกต์
   ],
   theme: {
     extend: {
@@ -13,32 +12,30 @@ module.exports = {
           "50%": { backgroundColor: "#f87171", opacity: "0.5" }, // สีแดงอ่อน
         },
       },
-      // colors : {
-      //   white: "#3D3D3DFF",
-      //   black: "#ffffff",
-      //   gray: {
-      //     100: "#3D3D3DFF",
-      //     200: "#edf2f7",
-      //     300: "#e2e8f0",
-      //     400: "#cbd5e0",
-      //     500: "#f7fafc",
-      //     600: "#f7fafc",
-      //     700: "#f7fafc",
-      //     800: "#f7fafc",
-      //     900: "#f7fafc",
-      //   },
-      // },  
+      colors: {
+        
+        white: "var(--color-white)",
+        black: "var(--color-black)",
+        gray: {
+          100: "var(--color-gray-100)",
+          200: "var(--color-gray-200)",
+          300: "var(--color-gray-300)",
+          400: "var(--color-gray-400)",
+          500: "var(--color-gray-500)",
+          600: "var(--color-gray-600)",
+          700: "var(--color-gray-700)",
+        },
+      },
       animation: {
         "pulse-blink": "pulse-blink 1.5s ease-in-out infinite",
       },
       fontFamily: {
         sans: ["SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
       },
-      
       typography: {
         DEFAULT: {
           css: {
-            fontFamily: "Inter, sans-serif", // ใช้กับ prose (บทความ)
+            fontFamily: "Inter, sans-serif",
           },
         },
       },
@@ -48,5 +45,4 @@ module.exports = {
     require('daisyui'),
     require('@tailwindcss/typography'),
   ],
-}
-
+};

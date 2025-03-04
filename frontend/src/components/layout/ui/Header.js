@@ -323,7 +323,7 @@ const Header = () => {
       </div>
 
       {isBranchModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg">
             <h3 className="text-lg font-semibold">Select Branch</h3>
             <select

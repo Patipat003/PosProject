@@ -389,7 +389,7 @@ const ProductPage = () => {
                     : true
                 )                
                 .map((product) => (
-                  <tr key={product.productid} className="hover:bg-gray-100">
+                  <tr key={product.productid} className="hover:bg-gray-100 text-gray-600">
                     {/* <td className="border border-gray-300 px-4 py-2">{index + 1}</td> */}
                     <td className="border border-gray-300 px-4 py-2">{product.productcode}</td>
                     <td className="border border-gray-300 px-4 py-2">

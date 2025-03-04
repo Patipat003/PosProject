@@ -496,7 +496,7 @@ const DashboardPage = () => {
               </thead>
               <tbody>
                 {saleRecents.map((sale, index) => (
-                  <tr key={index} className="hover:bg-gray-100">
+                  <tr key={index} className="hover:bg-gray-100 text-gray-600">
                     <td className="border border-gray-300 px-4 py-2">{sale.receiptnumber}</td>
                     <td className="border border-gray-300 px-4 py-2">
                       {branches.find(branch => branch.branchid === sale.branchid)?.bname}

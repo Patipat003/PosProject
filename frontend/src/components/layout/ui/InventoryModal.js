@@ -42,7 +42,7 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50">
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative">
         {/* แสดงชื่อสินค้า */}
         <h2 className="text-2xl font-bold mb-4 text-center text-red-600">

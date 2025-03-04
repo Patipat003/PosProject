@@ -77,7 +77,7 @@ const CategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex justify-center items-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

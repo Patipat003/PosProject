@@ -256,7 +256,7 @@ const BranchesPage = () => {
 
       {(isAddModalOpen || isEditModalOpen) && (
         <motion.div
-          className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center"
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
           style={{ zIndex: 50 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -334,7 +334,7 @@ const BranchesPage = () => {
                   setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
                 }}
-                className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
+                className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600"
               >
                 Cancel
               </button>

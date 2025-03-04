@@ -270,7 +270,7 @@ const DetailReportPage = () => {
                 return branches.find((branch) => branch.id === branchId)?.name || "Unknown";
               }).join(", ");
               return (
-                <tr key={index} className="hover:bg-gray-100">
+                <tr key={index} className="hover:bg-gray-100 text-gray-600">
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">{branchNames}</td>
                   <td className="border px-4 py-2">{item.productName || "Unknown"}</td>
