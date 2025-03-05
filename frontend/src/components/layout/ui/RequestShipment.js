@@ -304,7 +304,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                       {shipmentItems.map((item) => {
                         const product = products.find((p) => p.productid === item.productid);
                         return (
-                          <tr key={item.productid} className="bg-gray-80 text-gray-600">
+                          <tr key={item.productid} className="bg-gray-80 text-gray-600 border-2">
                             <td className="border px-4 py-2">{product?.productcode || "Unknown"}</td>
                             <td className="border px-4 py-2">{product?.productname || "Unknown"}</td>
                             <td className="border px-4 py-2 text-center">
@@ -364,7 +364,7 @@ const RequestShipment = ({ selectedBranchId }) => {
                 </thead>
                 <tbody>
                   {currentShipments.map((shipment) => (
-                    <tr key={shipment.shipmentid} className="hover:bg-gray-100">
+                    <tr key={shipment.shipmentid} className="hover:bg-gray-100 border-2">
                       <td className="border px-4 border-gray-300 text-gray-600">{shipment.shipmentnumber}</td>
                       <td className="border flex justify-center items-center">{renderStatusIcon(shipment.status)}</td>
                       <td className="border px-4 border-gray-300 text-gray-600">

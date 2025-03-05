@@ -70,7 +70,7 @@ const ReceivingShipmentTable = ({
                 };
 
                 return (
-                    <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-100 text-gray-600">
+                    <tr key={request.requestid} className="bg-gray-80 hover:bg-gray-100 text-gray-600 border-2">
                       <td className="border px-4 py-2">
                           {fromBranch ? fromBranch.bname : "Warehouse"}
                       </td>

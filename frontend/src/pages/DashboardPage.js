@@ -343,7 +343,7 @@ const DashboardPage = () => {
         )}
       </div>
       
-      <div className="bg-gray-100 p-6 rounded-lg">
+      <div className="bg-gray-200 p-6 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-gray-600">
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between">
             <HiOutlineCurrencyDollar className="text-red-500 text-6xl" />

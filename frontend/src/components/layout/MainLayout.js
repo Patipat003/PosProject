@@ -127,7 +127,7 @@ const MainLayout = ({ children }) => {
         <Header />
       </div>
 
-      <div className="flex flex-1 pt-6">
+      <div className="flex flex-1 pt-6 bg-gray-200">
         {/* Sidebar */}
         <aside
           className={`fixed top-16 left-0 w-64 bg-white shadow-md h-full overflow-y-auto transition-transform duration-300 ${
@@ -181,7 +181,7 @@ const MainLayout = ({ children }) => {
       {/* Main Content */}
       <main
         onClick={() => isSidebarOpen && setIsSidebarOpen(false)} 
-        className={`flex-1 p-6 bg-gray-100 transition-all duration-300 ${
+        className={`flex-1 p-6 bg-gray-200 transition-all duration-300 ${
          isSidebarOpen ? "ml-64 pt-16" : "ml-0 pt-16"
         }`}
       >

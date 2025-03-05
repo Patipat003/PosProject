@@ -39,7 +39,7 @@ const ProductsTable = ({
               const rowIndex = (currentProductPage - 1) * itemsPerPage + index + 1; // Calculate row index
 
               return (
-                <tr key={item.inventoryid} className="hover:bg-gray-100 text-gray-600">
+                <tr key={item.inventoryid} className="hover:bg-gray-100 text-gray-600 border-2">
                   <td className="text-center">{rowIndex}</td>
                   <td className="border px-4 py-2">
                     {product ? product.productname : "-"}

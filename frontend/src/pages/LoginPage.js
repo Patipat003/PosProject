@@ -87,7 +87,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="block w-full px-3 py-2 bg-white text-base text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
+                className="block w-full px-3 py-2 bg-white text-base text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
               />
             </div>
           </div>

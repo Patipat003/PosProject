@@ -208,7 +208,11 @@ const Header = () => {
       {/* โลโก้ อยู่ตรงกลาง */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <Link to="/">
-          <img src="/image/x10logo.png" alt="x10" className="h-10 w-auto" />
+          <img
+            src="/image/x10logo.png"
+            alt="x10"
+            className="h-10 w-auto hidden md:block"  // ซ่อนในขนาดหน้าจอเล็กๆ
+          />
         </Link>
       </div>
 
