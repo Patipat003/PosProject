@@ -10,6 +10,9 @@ const ProductsTable = ({
   totalProductPages,
 }) => {
   const [itemsPerPage] = useState(10);
+  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
+  const warningMin = process.env.REACT_APP_WARNING_MIN;
+  const warningMax = process.env.REACT_APP_WARNING_MAX;
 
   return (
     <>
@@ -46,9 +49,9 @@ const ProductsTable = ({
                   </td>
                   <td
                     className={`border ${
-                      item.quantity < 100
+                      item.quantity < lowStockThreshold
                         ? "text-red-500"
-                        : item.quantity >= 90 && item.quantity <= 110
+                        : item.quantity >= warningMin && item.quantity <= warningMax
                         ? "text-yellow-500"
                         : "text-green-500"
                     }`}

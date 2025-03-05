@@ -2,6 +2,8 @@ import React from "react";
 import { Bar } from "react-chartjs-2";
 import Chart from "chart.js/auto";
 
+const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
+
 const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBranchId }) => {
   if (!selectedInventory) return null;
 
@@ -20,10 +22,10 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
         label: "Quantity",
         data: branchData.map((item) => item.quantity),
         backgroundColor: branchData.map((item) =>
-          item.quantity < 100 ? "rgba(255, 99, 132, 0.6)" : "rgba(75, 192, 192, 0.6)"
+          item.quantity < lowStockThreshold ? "rgba(255, 99, 132, 0.6)" : "rgba(75, 192, 192, 0.6)"
         ),
         borderColor: branchData.map((item) =>
-          item.quantity < 100 ? "rgba(255, 99, 132, 1)" : "rgba(75, 192, 192, 1)"
+          item.quantity < lowStockThreshold ? "rgba(255, 99, 132, 1)" : "rgba(75, 192, 192, 1)"
         ),
         borderWidth: 1,
       },
@@ -68,7 +70,7 @@ const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBra
               </span>
               <span
                 className={`${
-                  item.quantity < 100 ? "text-red-500" : "text-green-600"
+                  item.quantity < lowStockThreshold ? "text-red-500" : "text-green-600"
                 }`}
               >
                 {item.quantity} pieces

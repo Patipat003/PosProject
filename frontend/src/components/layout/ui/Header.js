@@ -23,6 +23,7 @@ const Header = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
+  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
 
   const dropdownRef = useRef(null);  // Reference to the dropdown container
   const notificationDropdownRef = useRef(null);  // Reference to the notification dropdown container
@@ -97,7 +98,7 @@ const Header = () => {
         headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" }
       });
       const inventory = response.data.Data;
-      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < 100);
+      const lowStockItems = inventory.filter(item => item.branchid === branchid && item.quantity < lowStockThreshold);
       setLowStockProducts(lowStockItems);
     } catch (err) {
       console.error("Error fetching inventory:", err);
@@ -274,7 +275,7 @@ const Header = () => {
         )}
 
         {/* Dropdown ของ User */}
-        <div className="relative ml-2" ref={dropdownRef}>
+        <div className="relative ml-4" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center space-x-2 px-4 py-2 bg-red-800 rounded-lg text-white"

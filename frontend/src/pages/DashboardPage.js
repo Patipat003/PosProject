@@ -24,6 +24,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
+const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
 
 // Utility function to format date
 const formatDate = (dateString) => {
@@ -116,7 +117,7 @@ const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => 
     };
   });
 
-  const lowStock = inventory.filter(item => item.quantity < 100 && (selectedBranch === "all" || item.branchid === branchid));
+  const lowStock = inventory.filter(item => item.quantity < lowStockThreshold && (selectedBranch === "all" || item.branchid === branchid));
 
   const saleRecentsData = selectedBranch === "all"
     ? salesData

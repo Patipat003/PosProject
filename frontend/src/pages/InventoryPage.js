@@ -36,6 +36,9 @@ const InventoryPage = () => {
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
+  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
+  const warningMin = process.env.REACT_APP_WARNING_MIN;
+  const warningMax = process.env.REACT_APP_WARNING_MAX;
 
   // Function to fetch inventory data
   const fetchInventory = async () => {
@@ -374,8 +377,8 @@ const InventoryPage = () => {
                       <td className="border py-2 px-4 border-gray-300 text-gray-600">{item.productname}</td>
                       <td
                         className={`border py-2 px-4 border-gray-300 font-bold ${
-                          item.quantity < 100 ? "text-red-500" :
-                          item.quantity >= 90 && item.quantity <= 110 ? "text-yellow-500" :
+                          item.quantity < lowStockThreshold ? "text-red-500" :
+                          item.quantity >= warningMin && item.quantity <= warningMax ? "text-yellow-500" :
                           "text-green-500"
                         }`}
                       >

@@ -14,6 +14,7 @@ const ModalStockLow = ({ closeModal }) => {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
+  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
 
   const getBranchIdFromToken = () => {
     const token = localStorage.getItem("authToken");
@@ -92,7 +93,7 @@ const ModalStockLow = ({ closeModal }) => {
         const stock = inventory.find(
           (item) => item.productid === product.productid && item.branchid === branchId
         );
-        return stock && stock.quantity < 100; 
+        return stock && stock.quantity < lowStockThreshold; 
       });
       setFilteredProducts(filtered);
     }
@@ -136,7 +137,7 @@ const ModalStockLow = ({ closeModal }) => {
           </h2>
 
           <p className="text-gray-500 mb-6">
-            - Auto Request will be sent to the branch for with more than 100 stock.
+            - Auto Request will be sent to the branch for with more than {lowStockThreshold} stock.
           </p>
 
           {filteredProducts.length === 0 ? (
