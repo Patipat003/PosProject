@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify"; 
 import { AnimatePresence, motion } from "framer-motion"; 
 import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
+import { HiBuilding } from "react-icons/hi"; // Import ไอคอน HiBuilding
 
 const ModalStockLow = ({ closeModal }) => {
   const [products, setProducts] = useState([]);
@@ -82,6 +83,42 @@ const ModalStockLow = ({ closeModal }) => {
         }
       } catch (error) {
         toast.error("Error sending request: " + error.message);
+      }
+    } else {
+      toast.error("Invalid product or quantity. Please check your input.");
+    }
+  };
+
+  const handleCreateShipment = async () => {
+    if (selectedProduct && quantity > 0) {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+  
+      const shipmentData = {
+        branchid: branchId, // The branch ID from the token
+        items: [
+          {
+            productid: selectedProduct.productid,
+            quantity: parseInt(quantity, 10),
+          },
+        ],
+      };
+  
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/shipments`,
+          shipmentData,
+          { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
+        );
+  
+        if (response.status === 200) {
+          toast.success("Shipment created successfully!");
+          closeModal();
+        } else {
+          toast.error("Failed to create shipment. Please try again.");
+        }
+      } catch (error) {
+        toast.error("Error creating shipment: " + error.message);
       }
     } else {
       toast.error("Invalid product or quantity. Please check your input.");
@@ -223,24 +260,25 @@ const ModalStockLow = ({ closeModal }) => {
                       onClick={handleRequest}
                       className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
                     >
-                      Submit Request
+                      Submit Request To Branch
+                    </button>
+                    <button
+                      onClick={handleCreateShipment}
+                      className="btn border-blue-600 bg-white text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 mt-4"
+                    >
+                      Create Shipment Request To Warehouse
                     </button>
                     <button
                       onClick={() => setShowQuantityModal(false)}
                       className="btn border-gray-600 bg-white text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white hover:border-gray-600 mt-4"
                     >
-                      Close
+                      Cancel
                     </button>
                   </div>
                 </motion.div>
               </motion.div>
             </AnimatePresence>
           )}
-          <div className="flex justify-end">
-            <button onClick={closeModal} className="btn w-full border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600">
-              Close
-            </button>
-          </div> 
         </motion.div>
       </motion.div>
     </AnimatePresence>
