@@ -1,10 +1,12 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
 import Chart from "chart.js/auto";
-
-const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const InventoryModal = ({ selectedInventory, branches, handleCloseModal, userBranchId }) => {
+  
+  const { lowStockThreshold } = useStockThreshold();
+  
   if (!selectedInventory) return null;
 
   // ดึงข้อมูลสินค้าที่เกี่ยวข้อง

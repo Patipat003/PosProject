@@ -6,6 +6,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwtEncode is imported for updating the token
 import ModalStockLow from "./ModalStockLow";
 import DarkModeToggle from "./DarkModeToggle";
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const Header = () => {
   const [branchName, setBranchName] = useState("");
@@ -21,10 +22,9 @@ const Header = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const navigate = useNavigate();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { lowStockThreshold } = useStockThreshold();
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
-  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
-
   const dropdownRef = useRef(null);  // Reference to the dropdown container
   const notificationDropdownRef = useRef(null);  // Reference to the notification dropdown container
 

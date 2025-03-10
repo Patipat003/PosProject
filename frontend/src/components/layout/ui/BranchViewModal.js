@@ -9,6 +9,7 @@ import moment from "moment"; // ✅ Import Moment.js
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const BranchViewModal = ({ branch, onClose }) => {
   const [salesData, setSalesData] = useState([]);
@@ -28,9 +29,7 @@ const BranchViewModal = ({ branch, onClose }) => {
   const config = { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } };
   
   const API_BASE_URL = process.env.REACT_APP_API_URL;
-  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
-  const warningMin = process.env.REACT_APP_WARNING_MIN;
-  const warningMax = process.env.REACT_APP_WARNING_MAX;
+  const { lowStockThreshold, warningMin, warningMax } = useStockThreshold();
 
   useEffect(() => {
     const fetchDetails = async () => {

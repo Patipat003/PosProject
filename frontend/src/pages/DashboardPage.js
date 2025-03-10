@@ -18,13 +18,13 @@ import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Im
 import { HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineCube } from 'react-icons/hi'; // Heroicons
 import moment from "moment";
 import ProductMovementChart from "../components/layout/ui/ProductMovementChart";
+import { useStockThreshold } from "../Contexts/StockThresholdContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const POLLING_INTERVAL = 5000; // Polling interval in milliseconds (5 seconds)
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
-const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
 
 // Utility function to format date
 const formatDate = (dateString) => {
@@ -58,100 +58,7 @@ const calculateSalesByTime = (salesData, range) => {
     time,
     sales,
   }));
-};
-
-// Utility function to fetch data
-const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => {
-  const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
-  const endpoints = [
-    "saleitems", "sales", "products", "branches", "inventory", "receipts", "employees"
-  ];
-  const responses = await Promise.all(endpoints.map(endpoint => 
-    axios.get(`${API_BASE_URL}/${endpoint}`, config)
-  ));
-  const [saleItemsData, salesData, productsData, branchesData, inventory, receiptsData, employeesData] = 
-    responses.map(res => res.data.Data);
-
-  const filteredSales = selectedBranch === "all"
-    ? salesData
-    : salesData.filter(sale => sale.branchid === branchid);
-
-  const saleItemsForBranch = saleItemsData.filter(saleItem =>
-    filteredSales.some(sale => sale.saleid === saleItem.saleid)
-  );
-
-  const totalQuantity = saleItemsForBranch.reduce((sum, item) => sum + item.quantity, 0);
-  const totalSales = filteredSales.reduce((sum, sale) => sum + sale.totalamount, 0);
-
-  const productSales = saleItemsForBranch.reduce((acc, saleItem) => {
-    const { productid, quantity } = saleItem;
-    acc[productid] = acc[productid] ? { ...acc[productid], quantity: acc[productid].quantity + quantity } : { quantity, productid };
-    return acc;
-  }, {});
-
-  const topSellingProducts = Object.values(productSales)
-    .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 5)
-    .map(item => {
-      const product = productsData.find(p => p.productid === item.productid);
-      return {
-        ...item,
-        productname: product ? product.productname : "Unknown",
-        imageurl: product ? product.imageurl : "",
-      };
-    });
-
-  const branchSales = salesData.reduce((acc, sale) => {
-    const branch = acc.find((b) => b.branchid === sale.branchid);
-    if (branch) branch.sales += sale.totalamount;
-    else acc.push({ branchid: sale.branchid, sales: sale.totalamount });
-    return acc;
-  }, []);
-
-  const salesWithBranchNames = branchesData.map((branch) => {
-    const sale = branchSales.find((b) => b.branchid === branch.branchid);
-    return {
-      branchid: branch.branchid,
-      bname: branch.bname,
-      sales: sale ? sale.sales : 0,
-    };
-  });
-
-  const lowStock = inventory.filter(item => item.quantity < lowStockThreshold && (selectedBranch === "all" || item.branchid === branchid));
-
-  const saleRecentsData = selectedBranch === "all"
-    ? salesData
-    : salesData.filter(sale => sale.branchid === branchid);
-
-  const saleRecentsWithDetails = saleRecentsData.map(sale => {
-    const receipt = receiptsData.find(receipt => receipt.saleid === sale.saleid);
-    const employee = employeesData.find(employee => employee.employeeid === sale.employeeid);
-    return {
-      ...sale,
-      receiptnumber: receipt ? receipt.receiptnumber : "N/A",
-      employeename: employee ? employee.name : "Unknown",
-    };
-  });
-
-  const sortedSaleRecents = saleRecentsWithDetails
-    .sort((a, b) => new Date(b.createdat) - new Date(a.createdat))
-    .slice(0, 10);
-
-  const salesByTime = calculateSalesByTime(filteredSales, timeRange);  
-  
-
-  return {
-    branchesData,
-    salesWithBranchNames,
-    topSellingProducts,
-    inventory,
-    totalSales,
-    totalQuantity,
-    lowStock,
-    sortedSaleRecents,
-    salesByTime,
-  };
-};
+};  
 
 const DashboardPage = () => {
   const [salesSummary, setSalesSummary] = useState([]);
@@ -168,6 +75,7 @@ const DashboardPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [salesByTime, setSalesByTime] = useState([]);
   const [timeRange, setTimeRange] = useState("day"); // ค่าเริ่มต้นเป็น "day"
+  const { lowStockThreshold } = useStockThreshold();
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -210,6 +118,97 @@ const DashboardPage = () => {
     return () => clearInterval(intervalId);
   }, [selectedBranch, timeRange]);  // TimeRange added here to trigger updates when it changes  
   
+  const fetchData = async (token, selectedBranch, branchid, timeRange = "day") => {
+    const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
+    const endpoints = [
+      "saleitems", "sales", "products", "branches", "inventory", "receipts", "employees"
+    ];
+    const responses = await Promise.all(endpoints.map(endpoint => 
+      axios.get(`${API_BASE_URL}/${endpoint}`, config)
+    ));
+    const [saleItemsData, salesData, productsData, branchesData, inventory, receiptsData, employeesData] = 
+      responses.map(res => res.data.Data);
+  
+    const filteredSales = selectedBranch === "all"
+      ? salesData
+      : salesData.filter(sale => sale.branchid === branchid);
+  
+    const saleItemsForBranch = saleItemsData.filter(saleItem =>
+      filteredSales.some(sale => sale.saleid === saleItem.saleid)
+    );
+  
+    const totalQuantity = saleItemsForBranch.reduce((sum, item) => sum + item.quantity, 0);
+    const totalSales = filteredSales.reduce((sum, sale) => sum + sale.totalamount, 0);
+  
+    const productSales = saleItemsForBranch.reduce((acc, saleItem) => {
+      const { productid, quantity } = saleItem;
+      acc[productid] = acc[productid] ? { ...acc[productid], quantity: acc[productid].quantity + quantity } : { quantity, productid };
+      return acc;
+    }, {});
+  
+    const topSellingProducts = Object.values(productSales)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5)
+      .map(item => {
+        const product = productsData.find(p => p.productid === item.productid);
+        return {
+          ...item,
+          productname: product ? product.productname : "Unknown",
+          imageurl: product ? product.imageurl : "",
+        };
+      });
+  
+    const branchSales = salesData.reduce((acc, sale) => {
+      const branch = acc.find((b) => b.branchid === sale.branchid);
+      if (branch) branch.sales += sale.totalamount;
+      else acc.push({ branchid: sale.branchid, sales: sale.totalamount });
+      return acc;
+    }, []);
+  
+    const salesWithBranchNames = branchesData.map((branch) => {
+      const sale = branchSales.find((b) => b.branchid === branch.branchid);
+      return {
+        branchid: branch.branchid,
+        bname: branch.bname,
+        sales: sale ? sale.sales : 0,
+      };
+    });
+    
+    const lowStock = inventory.filter(item => item.quantity < lowStockThreshold && (selectedBranch === "all" || item.branchid === branchid));
+  
+    const saleRecentsData = selectedBranch === "all"
+      ? salesData
+      : salesData.filter(sale => sale.branchid === branchid);
+  
+    const saleRecentsWithDetails = saleRecentsData.map(sale => {
+      const receipt = receiptsData.find(receipt => receipt.saleid === sale.saleid);
+      const employee = employeesData.find(employee => employee.employeeid === sale.employeeid);
+      return {
+        ...sale,
+        receiptnumber: receipt ? receipt.receiptnumber : "N/A",
+        employeename: employee ? employee.name : "Unknown",
+      };
+    });
+  
+    const sortedSaleRecents = saleRecentsWithDetails
+      .sort((a, b) => new Date(b.createdat) - new Date(a.createdat))
+      .slice(0, 10);
+  
+    const salesByTime = calculateSalesByTime(filteredSales, timeRange);  
+    
+  
+    return {
+      branchesData,
+      salesWithBranchNames,
+      topSellingProducts,
+      inventory,
+      totalSales,
+      totalQuantity,
+      lowStock,
+      sortedSaleRecents,
+      salesByTime,
+    };
+  };
 
   const handleCloseModal = () => setShowModal(false);
 

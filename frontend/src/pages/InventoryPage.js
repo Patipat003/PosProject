@@ -10,6 +10,7 @@ import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // ใช้สำหรับ DatePicker
 import InventoryModal from "../components/layout/ui/InventoryModal";
+import { useStockThreshold } from "../Contexts/StockThresholdContext";
 
 const formatDate = (dateString) => {
   const utcDate = toZonedTime(dateString, "UTC"); // แปลงเป็น UTC
@@ -36,9 +37,7 @@ const InventoryPage = () => {
   const [currentProductPage, setCurrentProductPage] = useState(1);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
-  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
-  const warningMin = process.env.REACT_APP_WARNING_MIN;
-  const warningMax = process.env.REACT_APP_WARNING_MAX;
+  const { lowStockThreshold, warningMin, warningMax } = useStockThreshold();
 
   // Function to fetch inventory data
   const fetchInventory = async () => {

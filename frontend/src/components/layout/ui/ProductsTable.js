@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const ProductsTable = ({
   currentProductRequests = [],
@@ -10,9 +11,7 @@ const ProductsTable = ({
   totalProductPages,
 }) => {
   const [itemsPerPage] = useState(10);
-  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
-  const warningMin = process.env.REACT_APP_WARNING_MIN;
-  const warningMax = process.env.REACT_APP_WARNING_MAX;
+  const { lowStockThreshold, warningMin, warningMax } = useStockThreshold();
 
   return (
     <>

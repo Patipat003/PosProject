@@ -3,6 +3,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify"; 
 import { AnimatePresence, motion } from "framer-motion"; 
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const ModalStockLow = ({ closeModal }) => {
   const [products, setProducts] = useState([]);
@@ -12,9 +13,9 @@ const ModalStockLow = ({ closeModal }) => {
   const [quantity, setQuantity] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const { lowStockThreshold } = useStockThreshold();
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
-  const lowStockThreshold = process.env.REACT_APP_LOW_STOCK_THRESHOLD;
 
   const getBranchIdFromToken = () => {
     const token = localStorage.getItem("authToken");
