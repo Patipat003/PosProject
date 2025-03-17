@@ -174,10 +174,6 @@ const ModalStockLow = ({ closeModal }) => {
             Low Stock Products
           </h2>
 
-          <p className="text-gray-500 mb-6">
-            - Auto Request will be sent to the branch for with more than {lowStockThreshold} stock.
-          </p>
-
           {filteredProducts.length === 0 ? (
             <p className="text-gray-500">No products with low stock in your branch.</p>
           ) : (
@@ -260,13 +256,13 @@ const ModalStockLow = ({ closeModal }) => {
                       onClick={handleRequest}
                       className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4"
                     >
-                      Submit Request To Branch
+                      Branch Request
                     </button>
                     <button
                       onClick={handleCreateShipment}
                       className="btn border-blue-600 bg-white text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 mt-4"
                     >
-                      Create Shipment Request To Warehouse
+                      Warehouse Request
                     </button>
                     <button
                       onClick={() => setShowQuantityModal(false)}
