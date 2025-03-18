@@ -197,40 +197,73 @@ const ReportsPage = () => {
     <div className="p-6 bg-white shadow-lg rounded-lg">
       <h1 className="text-3xl font-bold text-red-600 mb-6">Sales Reports</h1>
 
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 flex gap-2">
         <button
           onClick={() => setFilterType("day")}
-          className={`p-2 rounded-md ${filterType === "day" ? "bg-red-800 text-white" : "bg-gray-200"}`}
+          className={`btn p-2 rounded-md text-red-500 w-16 ${
+            filterType === "day"
+              ? "bg-red-800 border-none text-white hover:bg-red-900"
+              : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+          }`}
         >
           Day
         </button>
+        
         <button
-          onClick={() => setFilterType("month")}
-          className={`p-2 rounded-md ${filterType === "month" ? "bg-red-800 text-white" : "bg-gray-200"}`}
-        >
-          Month
-        </button>
-        <button
-          onClick={() => setFilterType("year")}
-          className={`p-2 rounded-md ${filterType === "year" ? "bg-red-800 text-white" : "bg-gray-200"}`}
-        >
-          Year
-        </button>
-        <button
-          onClick={() => setFilterType("time")}
-          className={`p-2 rounded-md ${filterType === "time" ? "bg-red-800 text-white" : "bg-gray-200"}`}
-        >
-          Time
-        </button>
+        onClick={() => setFilterType("month")}
+        className={`btn p-2 rounded-md text-red-500 w-16 ${
+          filterType === "month"
+            ? "bg-red-800 border-none text-white hover:bg-red-900"
+            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+        }`}
+      >
+        Month
+      </button>
+
+      <button
+        onClick={() => setFilterType("year")}
+        className={`btn p-2 rounded-md text-red-500 w-16 ${
+          filterType === "year"
+            ? "bg-red-800 border-none text-white hover:bg-red-900"
+            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+        }`}
+      >
+        Year
+      </button>
+
+      <button
+        onClick={() => setFilterType("time")}
+        className={`btn p-2 rounded-md text-red-500 w-16 ${
+          filterType === "time"
+            ? "bg-red-800 border-none text-white hover:bg-red-900"
+            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+        }`}
+      >
+        Time
+      </button>
+
       </div>
 
-      <div className="mb-6 flex gap-4 items-center">
+      <div className="mb-6 flex gap-4 items-center text-gray-600">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by Date, Branch, Amount, or Items Sold"
+          placeholder="🔍 Search by Date, Branch, Amount, or Items Sold"
           className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full min-w-[200px] focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          placeholderText="Select Date"
+          className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center"
+          dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
+          showMonthYearPicker={filterType === "month"}
+          showYearPicker={filterType === "year"}
+          todayButton="Today"
+          isClearable
+          clearButtonClassName="absolute right-2 top-2 bg-red-400 text-white rounded-full p-1"
+          style={{ position: "relative" }}
         />
         <select
           value={selectedEmployee} // Use the selectedEmployee state
@@ -244,19 +277,6 @@ const ReportsPage = () => {
             </option>
           ))}
         </select>
-        <DatePicker
-          selected={selectedDate}
-          onChange={(date) => setSelectedDate(date)}
-          placeholderText="Select Date"
-          className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400 text-lg flex items-center"
-          dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
-          showMonthYearPicker={filterType === "month"}
-          showYearPicker={filterType === "year"}
-          todayButton="Today"
-          isClearable
-          clearButtonClassName="absolute right-2 top-2 bg-red-400 text-white rounded-full p-1"
-          style={{ position: "relative" }}
-        />
       </div>
       
       <table className="table-auto table-xs min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
@@ -291,7 +311,7 @@ const ReportsPage = () => {
       <CSVLink
         data={generateCSVData()}
         filename={"Sales_Report.csv"}
-        className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4"
+        className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600"
       >
         Export to CSV
       </CSVLink>

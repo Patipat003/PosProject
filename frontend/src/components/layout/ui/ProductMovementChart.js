@@ -137,7 +137,7 @@ const ProductMovementChart = () => {
             onClick={() => setTimeFrame(frame)}
             className={`px-4 py-2 rounded-md transition ${
               timeFrame === frame
-              ? "btn bg-red-800 border-none hover:bg-red-800" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
+              ? "btn text-white bg-red-800 border-none hover:bg-red-900" : "btn bg-white border-red-500 text-red-500 hover:bg-red-800 hover:border-none hover:text-white"}`}
           >
             {frame === "daily" ? "Daily" : frame === "weekly" ? "Weekly" : "Monthly"}
           </button>

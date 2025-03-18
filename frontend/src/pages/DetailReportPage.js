@@ -253,8 +253,8 @@ const DetailReportPage = () => {
         sortOrder={sortOrder}
       />
       <div className="overflow-x-auto mt-4">
-        <table id="table-report" className="table-auto min-w-full border-collapse border-4 border-gray-300 mb-4 text-gray-800">
-          <thead className="bg-gray-100 text-gray-600">
+        <table id="table-report" className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
+          <thead className="bg-gray-100 text-gray-600 text-sm">
             <tr>
               <th className="border px-4 py-2">No.</th>
               <th className="border px-4 py-2">Branch Name</th>
@@ -290,7 +290,7 @@ const DetailReportPage = () => {
           Export to PDF
       </button> */}
       <CSVLink data={csvData} filename={`Sales_Report.csv`} 
-      className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4">
+      className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4">
         Export to CSV
       </CSVLink>
     </div>

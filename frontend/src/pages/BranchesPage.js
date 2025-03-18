@@ -233,7 +233,7 @@ const BranchesPage = () => {
                     zoomControl={false}
                     style={{ zIndex: 0 }} // ✅ ตั้งค่า z-index ต่ำ
                   >
-                     <TileLayer url="http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png" />
+                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <Marker position={[lat, lng]} icon={customIcon} />
                   </MapContainer>
                 </div>

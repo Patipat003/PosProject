@@ -423,19 +423,19 @@ const DashboardPage = () => {
             <div className="flex space-x-4">
               <button
                 onClick={() => setTimeRange("day")}
-                className={`btn ${timeRange === "day" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "day" ? "btn text-white bg-red-800 border-none hover:bg-red-900" : "btn bg-white border-red-500 text-red-500 hover:bg-red-800 hover:border-none hover:text-white"}`}
               >
                 Day
               </button>
               <button
                 onClick={() => setTimeRange("month")}
-                className={`btn ${timeRange === "month" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "month" ? "btn text-white bg-red-800 border-none hover:bg-red-900" : "btn bg-white border-red-500 text-red-500 hover:bg-red-800 hover:border-none hover:text-white"}`}
               >
                 Month
               </button>
               <button
                 onClick={() => setTimeRange("year")}
-                className={`btn ${timeRange === "year" ? "btn bg-red-800 border-none hover:bg-red-900" : "btn bg-gray-800 border-none hover:bg-red-800 hover:border-none"} text-white`}
+                className={`btn ${timeRange === "year" ? "btn text-white bg-red-800 border-none hover:bg-red-900" : "btn bg-white border-red-500 text-red-500 hover:bg-red-800 hover:border-none hover:text-white"}`}
               >
                 Year
               </button>
