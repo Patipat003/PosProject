@@ -8,7 +8,6 @@ import autoTable from "jspdf-autotable";
 import { CSVLink } from "react-csv";
 import { Player } from "@lottiefiles/react-lottie-player";
 
-
 const formatDate = (dateString, type) => {
   const date = new Date(dateString);
   if (isNaN(date)) {
@@ -18,15 +17,15 @@ const formatDate = (dateString, type) => {
 
   switch (type) {
     case "day":
-      return format(date, "dd MMMM yyyy");
+      return format(date, "d/MM/yyyy");
     case "month":
-      return format(date, "MMMM yyyy");
+      return format(date, "MM/yyyy");
     case "year":
       return format(date, "yyyy");
     case "time":
       return format(date, "HH:mm:ss");
     default:
-      return format(date, "MMMM yyyy");
+      return format(date, "MM/yyyy");
   }
 };
 
@@ -39,13 +38,20 @@ const ReportsPage = () => {
   const [filterType, setFilterType] = useState("month");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState(""); // Declare the selectedEmployee state
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
 
   const fetchSalesData = async () => {
     try {
       const token = localStorage.getItem("authToken");
+      const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode token
+      const userBranch = decodedToken.branchid; // Extract branchid from token
+      const userRole = decodedToken.role; // Extract role from token
+
+      setIsSuperAdmin(userRole === "super admin");
+
       const config = {
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -58,12 +64,8 @@ const ReportsPage = () => {
 
       setSalesData(salesResponse.data.Data);
       setBranches(branchResponse.data.Data);
-      console.log(salesResponse.data.Data);
-      console.log(branchResponse.data.Data);
-      setLoading(false);
-
-      const userBranch = getUserBranch(); // Get user branch id from token
       setSelectedEmployee(userBranch); // Set the selectedEmployee to user's branch id
+      setLoading(false);
     } catch (err) {
       setError("Failed to load sales data");
       setLoading(false);
@@ -77,12 +79,6 @@ const ReportsPage = () => {
   const getBranchName = (branchId) => {
     const branch = branches.find((b) => b.branchid === branchId);
     return branch ? branch.bname : "Unknown Branch";
-  };
-
-  const getUserBranch = () => {
-    const token = localStorage.getItem("authToken");
-    const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode token
-    return decodedToken.branchid; // Extract branchid from token
   };
 
   const groupedSales = salesData.reduce((groups, item) => {
@@ -111,7 +107,7 @@ const ReportsPage = () => {
       return (
         (selectedEmployee === "" || selectedEmployee === branchId) && // Check if branch matches the selectedEmployee
         (!selectedDate ||
-          dateKey === format(selectedDate, filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy")) &&
+          dateKey === format(selectedDate, filterType === "day" ? "d/MM/yyyy" : "MM/yyyy")) &&
         (searchQuery === "" ||
           dateKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
           branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,7 +191,7 @@ const ReportsPage = () => {
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-3xl font-bold text-red-600 mb-6">Sales Reports</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Branch Sales Reports</h1>
 
       <div className="mb-4 flex gap-2">
         <button
@@ -210,38 +206,37 @@ const ReportsPage = () => {
         </button>
         
         <button
-        onClick={() => setFilterType("month")}
-        className={`btn p-2 rounded-md text-red-500 w-16 ${
-          filterType === "month"
-            ? "bg-red-800 border-none text-white hover:bg-red-900"
-            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
-        }`}
-      >
-        Month
-      </button>
+          onClick={() => setFilterType("month")}
+          className={`btn p-2 rounded-md text-red-500 w-16 ${
+            filterType === "month"
+              ? "bg-red-800 border-none text-white hover:bg-red-900"
+              : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+          }`}
+        >
+          Month
+        </button>
 
-      <button
-        onClick={() => setFilterType("year")}
-        className={`btn p-2 rounded-md text-red-500 w-16 ${
-          filterType === "year"
-            ? "bg-red-800 border-none text-white hover:bg-red-900"
-            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
-        }`}
-      >
-        Year
-      </button>
+        <button
+          onClick={() => setFilterType("year")}
+          className={`btn p-2 rounded-md text-red-500 w-16 ${
+            filterType === "year"
+              ? "bg-red-800 border-none text-white hover:bg-red-900"
+              : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+          }`}
+        >
+          Year
+        </button>
 
-      <button
-        onClick={() => setFilterType("time")}
-        className={`btn p-2 rounded-md text-red-500 w-16 ${
-          filterType === "time"
-            ? "bg-red-800 border-none text-white hover:bg-red-900"
-            : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
-        }`}
-      >
-        Time
-      </button>
-
+        <button
+          onClick={() => setFilterType("time")}
+          className={`btn p-2 rounded-md text-red-500 w-16 ${
+            filterType === "time"
+              ? "bg-red-800 border-none text-white hover:bg-red-900"
+              : "bg-white border-red-500 hover:bg-red-800 hover:text-white hover:border-none"
+          }`}
+        >
+          Time
+        </button>
       </div>
 
       <div className="mb-6 flex gap-4 items-center text-gray-600">
@@ -257,7 +252,7 @@ const ReportsPage = () => {
           onChange={(date) => setSelectedDate(date)}
           placeholderText="Select Date"
           className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center"
-          dateFormat={filterType === "day" ? "dd MMMM yyyy" : "MMMM yyyy"}
+          dateFormat={filterType === "day" ? "d/MM/yyyy" : "MM/yyyy"}
           showMonthYearPicker={filterType === "month"}
           showYearPicker={filterType === "year"}
           todayButton="Today"
@@ -266,16 +261,25 @@ const ReportsPage = () => {
           style={{ position: "relative" }}
         />
         <select
-          value={selectedEmployee} // Use the selectedEmployee state
-          onChange={(e) => setSelectedEmployee(e.target.value)} // Update the state on change
+          value={selectedEmployee}
+          onChange={(e) => setSelectedEmployee(e.target.value)}
           className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+          disabled={!isSuperAdmin} // Disable dropdown if not super admin
         >
-          <option value="">All Branches</option>
-          {branches.map((branch) => (
-            <option key={branch.branchid} value={branch.branchid}>
-              {branch.bname}
+          {isSuperAdmin ? (
+            <>
+              <option value="">All Branches</option>
+              {branches.map((branch) => (
+                <option key={branch.branchid} value={branch.branchid}>
+                  {branch.bname}
+                </option>
+              ))}
+            </>
+          ) : (
+            <option value={selectedEmployee}>
+              {getBranchName(selectedEmployee)}
             </option>
-          ))}
+          )}
         </select>
       </div>
       
@@ -299,7 +303,7 @@ const ReportsPage = () => {
                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
                     <td className="border border-gray-300 px-4 py-2">{dateKey}</td>
                     <td className="border border-gray-300 px-4 py-2">{getBranchName(branchId)}</td>
-                    <td className="border border-gray-300 px-4 py-2">${totalAmount.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-4 py-2">{totalAmount.toFixed(2)}</td>
                     <td className="border border-gray-300 px-4 py-2">{count}</td>
                   </tr>
                 );

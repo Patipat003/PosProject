@@ -6,7 +6,7 @@ import autoTable from "jspdf-autotable";
 import { CSVLink } from "react-csv";
 import { Player } from "@lottiefiles/react-lottie-player";
 
-const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmployee, onSort, sortOrder }) => (
+const SearchBar = ({ query, onSearch, branches, onBranchFilter, selectedBranch, isSuperAdmin }) => (
   <div className="flex space-x-4 items-center">
     <input
       type="text"
@@ -15,25 +15,26 @@ const SearchBar = ({ query, onSearch, employees, onEmployeeFilter, selectedEmplo
       placeholder="Search..."
       className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-400"
     />
-    {/* <button
-      onClick={onSort}
-      className="btn border-none text-white bg-red-800 px-4 py-2 rounded hover:bg-red-900"
-    >
-      Sort by Total Price {sortOrder === "asc" ? "↑" : "↓"}
-    </button> */}
     <select
-      value={selectedEmployee}
-      onChange={(e) => onEmployeeFilter(e.target.value)}
+      value={selectedBranch}
+      onChange={(e) => onBranchFilter(e.target.value)}
       className="border bg-white border-gray-300 p-3 pr-10 text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+      disabled={!isSuperAdmin} // Disable dropdown if not super admin
     >
-      <option value="">All Branches</option>
-      {employees
-        .filter((branch) => branch.id === selectedEmployee || selectedEmployee === "")
-        .map((branch) => (
-          <option key={branch.id} value={branch.id}>
-            {branch.name}
-          </option>
-        ))}
+      {isSuperAdmin ? (
+        <>
+          <option value="">All Branches</option>
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}
+            </option>
+          ))}
+        </>
+      ) : (
+        <option value={selectedBranch}>
+          {branches.find((branch) => branch.id === selectedBranch)?.name || "Unknown Branch"}
+        </option>
+      )}
     </select>
   </div>
 );
@@ -45,10 +46,11 @@ const DetailReportPage = () => {
   const [branches, setBranches] = useState([]);
   const [filteredSaleItems, setFilteredSaleItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -57,14 +59,16 @@ const DetailReportPage = () => {
       const token = localStorage.getItem("authToken");
       const decodedToken = jwtDecode(token);
       const userBranchId = decodedToken.branchid;
+      const userRole = decodedToken.role;
+
+      setIsSuperAdmin(userRole === "super admin");
 
       const config = { headers: { Authorization: `Bearer ${token}`,"ngrok-skip-browser-warning": "true" } };
 
-      const [saleItemsResponse, productsResponse, salesResponse, employeesResponse, branchesResponse] = await Promise.all([
+      const [saleItemsResponse, productsResponse, salesResponse, branchesResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/saleitems`, config),
         axios.get(`${API_BASE_URL}/products`, config),
         axios.get(`${API_BASE_URL}/sales`, config),
-        axios.get(`${API_BASE_URL}/employees`, config),
         axios.get(`${API_BASE_URL}/branches`, config),
       ]);
 
@@ -88,7 +92,7 @@ const DetailReportPage = () => {
       setProducts(productMap);
       setBranchIds(saleToBranchMap);
       setBranches(branchList);
-      setSelectedEmployee(userBranchId);
+      setSelectedBranch(userBranchId);
       setLoading(false);
     } catch (err) {
       setError("Failed to load data");
@@ -146,7 +150,7 @@ const DetailReportPage = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    const branchName = getBranchName(selectedEmployee);
+    const branchName = getBranchName(selectedBranch);
   
     doc.text(`Sales Report - ${branchName}`, 14, 15);
   
@@ -154,7 +158,7 @@ const DetailReportPage = () => {
     const tableRows = [];
   
     // กรองข้อมูลให้เฉพาะของสาขาที่ล็อกอิน
-    const branchFilteredItems = filteredSaleItems.filter((item) => branchIds[item.saleid] === selectedEmployee);
+    const branchFilteredItems = filteredSaleItems.filter((item) => branchIds[item.saleid] === selectedBranch);
   
     // จัดกลุ่มข้อมูลตามสินค้าในสาขาของผู้ใช้
     const groupedItems = branchFilteredItems.reduce((acc, item) => {
@@ -201,11 +205,9 @@ const DetailReportPage = () => {
     return branches.find((branch) => branch.id === branchId)?.name || "Unknown Branch";
   };
   
-  
-  
   // Filter sale items based on selected branch or user's branch
-  const filteredItems = selectedEmployee
-    ? saleItems.filter((item) => branchIds[item.saleid] === selectedEmployee)
+  const filteredItems = selectedBranch
+    ? saleItems.filter((item) => branchIds[item.saleid] === selectedBranch)
     : saleItems;
 
   const groupedItems = groupByProduct(filteredItems);
@@ -236,21 +238,20 @@ const DetailReportPage = () => {
 
   return (
     <div className="p-4 bg-white">
-      <h1 className="text-3xl font-bold text-red-600 mb-6">Detail Report</h1>
+      <h1 className="text-3xl font-bold text-red-600 mb-6">Product Sales Report</h1>
       <SearchBar
         query={searchQuery}
         onSearch={(q) => {
           setSearchQuery(q);
-          filterSaleItems(q, selectedEmployee);
+          filterSaleItems(q, selectedBranch);
         }}
-        employees={branches}
-        onEmployeeFilter={(id) => {
-          setSelectedEmployee(id);
+        branches={branches}
+        onBranchFilter={(id) => {
+          setSelectedBranch(id);
           filterSaleItems(searchQuery, id);
         }}
-        selectedEmployee={selectedEmployee}
-        onSort={handleSort}
-        sortOrder={sortOrder}
+        selectedBranch={selectedBranch}
+        isSuperAdmin={isSuperAdmin}
       />
       <div className="overflow-x-auto mt-4">
         <table id="table-report" className="table-auto table-xs min-w-full border-4 border-gray-300 mb-4 text-gray-800">
@@ -283,12 +284,6 @@ const DetailReportPage = () => {
           </tbody>
         </table>
       </div>
-      {/* <button
-        onClick={exportToPDF}
-        className="btn border-none bg-red-800 text-white px-6 py-3 rounded hover:bg-red-900 transition duration-300 mt-4"
-        >
-          Export to PDF
-      </button> */}
       <CSVLink data={csvData} filename={`Sales_Report.csv`} 
       className="btn border-red-600 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 mt-4">
         Export to CSV
