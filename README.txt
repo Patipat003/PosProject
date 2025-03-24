@@ -36,7 +36,7 @@ Simple Retail POS is designed for retail environments with multiple branches and
 🛠️ Technical Stack  
 
 Frontend:  
-- HTML, CSS, JavaScript  
+- HTML, CSS, Tailwind, JavaScript  
 - Frameworks: React
 
 Backend: 
@@ -46,7 +46,7 @@ Database:
 - PostgreSQL
 
 Reporting Tools: 
-- CSV, Chart.jsfor data visualization.  
+- CSV, Chart.js for data visualization.  
 
 Deployment:
 - Containerization with Docker.  
