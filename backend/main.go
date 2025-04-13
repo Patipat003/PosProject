@@ -19,7 +19,8 @@ import (
 
 // ประกาศตัวแปร global สำหรับฐานข้อมูล PosDB และ WarehouseDB
 var posDB *gorm.DB
-var warehouseDB *gorm.DB
+
+// var warehouseDB *gorm.DB
 
 // ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล
 func connectDB(host string, port int, user string, password string, dbname string) (*gorm.DB, error) {
@@ -33,6 +34,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
+	fmt.Println("JWT_SECRET =", os.Getenv("JWT_SECRET"))
 
 	// การตั้งค่าฐานข้อมูล PosDB
 	posHost := os.Getenv("POS_DB_HOST")
@@ -41,12 +43,12 @@ func main() {
 	posPassword := os.Getenv("POS_DB_PASSWORD")
 	posDBName := os.Getenv("POS_DB_NAME")
 
-	// การตั้งค่าฐานข้อมูล WarehouseDB
-	warehouseHost := os.Getenv("WAREHOUSE_DB_HOST")
-	warehousePort, _ := strconv.Atoi(os.Getenv("WAREHOUSE_DB_PORT"))
-	warehouseUser := os.Getenv("WAREHOUSE_DB_USER")
-	warehousePassword := os.Getenv("WAREHOUSE_DB_PASSWORD")
-	warehouseDBName := os.Getenv("WAREHOUSE_DB_NAME")
+	// // การตั้งค่าฐานข้อมูล WarehouseDB
+	// warehouseHost := os.Getenv("WAREHOUSE_DB_HOST")
+	// warehousePort, _ := strconv.Atoi(os.Getenv("WAREHOUSE_DB_PORT"))
+	// warehouseUser := os.Getenv("WAREHOUSE_DB_USER")
+	// warehousePassword := os.Getenv("WAREHOUSE_DB_PASSWORD")
+	// warehouseDBName := os.Getenv("WAREHOUSE_DB_NAME")
 
 	// เชื่อมต่อกับฐานข้อมูล PosDB
 	posDB, err = connectDB(posHost, posPort, posUser, posPassword, posDBName)
@@ -55,12 +57,12 @@ func main() {
 	}
 	log.Println("Connected to PosDB")
 
-	// เชื่อมต่อกับฐานข้อมูล WarehouseDB
-	warehouseDB, err = connectDB(warehouseHost, warehousePort, warehouseUser, warehousePassword, warehouseDBName)
-	if err != nil {
-		log.Fatalf("Failed to connect to WarehouseDB: %v", err)
-	}
-	log.Println("Connected to WarehouseDB")
+	// // เชื่อมต่อกับฐานข้อมูล WarehouseDB
+	// warehouseDB, err = connectDB(warehouseHost, warehousePort, warehouseUser, warehousePassword, warehouseDBName)
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to WarehouseDB: %v", err)
+	// }
+	// log.Println("Connected to WarehouseDB")
 
 	// ทำการ AutoMigrate โมเดลสำหรับ PosDB
 	err = posDB.AutoMigrate(
@@ -93,19 +95,19 @@ func main() {
 		AllowCredentials: true,                                                                      // อนุญาตการใช้ credentials เช่น cookies, authorization headers
 	}))
 
-	app.Get("/warehouse", func(c *fiber.Ctx) error {
-		var branches []Models.Branches
-		// ดึงข้อมูลจาก WarehouseDB โดยใช้ warehouseDB
-		if err := warehouseDB.Find(&branches).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"message": "Failed to fetch branches from WarehouseDB",
-				"error":   err.Error(),
-			})
-		}
+	// app.Get("/warehouse", func(c *fiber.Ctx) error {
+	// 	var branches []Models.Branches
+	// 	// ดึงข้อมูลจาก WarehouseDB โดยใช้ warehouseDB
+	// 	if err := warehouseDB.Find(&branches).Error; err != nil {
+	// 		return c.Status(500).JSON(fiber.Map{
+	// 			"message": "Failed to fetch branches from WarehouseDB",
+	// 			"error":   err.Error(),
+	// 		})
+	// 	}
 
-		// ส่งข้อมูลกลับไปยัง frontend
-		return c.JSON(branches)
-	})
+	// 	// ส่งข้อมูลกลับไปยัง frontend
+	// 	return c.JSON(branches)
+	// })
 
 	// กำหนด routes สำหรับการจัดการต่างๆ
 	app.Post("/login", Database.LoginHandler(posDB)) // route สำหรับ login
