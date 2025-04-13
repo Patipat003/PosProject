@@ -24,7 +24,7 @@ var posDB *gorm.DB
 
 // ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล
 func connectDB(host string, port int, user string, password string, dbname string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
 

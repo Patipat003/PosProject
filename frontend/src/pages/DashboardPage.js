@@ -417,7 +417,7 @@
           />
 
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6 text-gray-600">
-            <h2 className="font-semibold mb-4">Sales Over Time</h2>
+            <h2 className="font-semibold mb-4">Sales Over Time (THB)</h2>
             <div className="flex justify-between items-center mb-4">
               {/* Time Range Buttons */}
               <div className="flex space-x-4">
