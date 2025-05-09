@@ -48,7 +48,4 @@ Database:
 Reporting Tools: 
 - CSV, Chart.js for data visualization.  
 
-Deployment:
-- Containerization with Docker.  
-
 ---------------------------------------------------------------------------------------------------------------------------
