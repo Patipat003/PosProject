@@ -8,23 +8,21 @@ import (
 
 	"github.com/posproject/Database"
 	"github.com/posproject/Middleware"
-	"github.com/posproject/Models"
+	"github.com/posproject/Migrations"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors" // ใช้ CORS middleware
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-// ประกาศตัวแปร global สำหรับฐานข้อมูล PosDB และ WarehouseDB
 var posDB *gorm.DB
-
-// var warehouseDB *gorm.DB
 
 // ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล
 func connectDB(host string, port int, user string, password string, dbname string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
 
@@ -43,13 +41,6 @@ func main() {
 	posPassword := os.Getenv("POS_DB_PASSWORD")
 	posDBName := os.Getenv("POS_DB_NAME")
 
-	// // การตั้งค่าฐานข้อมูล WarehouseDB
-	// warehouseHost := os.Getenv("WAREHOUSE_DB_HOST")
-	// warehousePort, _ := strconv.Atoi(os.Getenv("WAREHOUSE_DB_PORT"))
-	// warehouseUser := os.Getenv("WAREHOUSE_DB_USER")
-	// warehousePassword := os.Getenv("WAREHOUSE_DB_PASSWORD")
-	// warehouseDBName := os.Getenv("WAREHOUSE_DB_NAME")
-
 	// เชื่อมต่อกับฐานข้อมูล PosDB
 	posDB, err = connectDB(posHost, posPort, posUser, posPassword, posDBName)
 	if err != nil {
@@ -57,31 +48,9 @@ func main() {
 	}
 	log.Println("Connected to PosDB")
 
-	// // เชื่อมต่อกับฐานข้อมูล WarehouseDB
-	// warehouseDB, err = connectDB(warehouseHost, warehousePort, warehouseUser, warehousePassword, warehouseDBName)
-	// if err != nil {
-	// 	log.Fatalf("Failed to connect to WarehouseDB: %v", err)
-	// }
-	// log.Println("Connected to WarehouseDB")
-
-	// ทำการ AutoMigrate โมเดลสำหรับ PosDB
-	err = posDB.AutoMigrate(
-		&Models.Employees{},
-		&Models.Branches{},
-		&Models.Product{},
-		&Models.Inventory{},
-		&Models.Sales{},
-		&Models.SaleItems{},
-		&Models.Receipts{},
-		&Models.ReceiptItems{},
-		&Models.Requests{},
-		&Models.Category{},
-		&Models.Shipments{},
-		&Models.ShipmentItems{},
-	)
-
-	if err != nil {
-		log.Fatalf("AutoMigrate failed for PosDB: %v", err)
+	// ทำการ Migration
+	if err := Migrations.Migrate(posDB); err != nil {
+		log.Fatalf("Migration failed: %v", err)
 	}
 
 	// สร้าง Fiber app
@@ -94,20 +63,6 @@ func main() {
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, ngrok-skip-browser-warning", // อนุญาต headers
 		AllowCredentials: true,                                                                      // อนุญาตการใช้ credentials เช่น cookies, authorization headers
 	}))
-
-	// app.Get("/warehouse", func(c *fiber.Ctx) error {
-	// 	var branches []Models.Branches
-	// 	// ดึงข้อมูลจาก WarehouseDB โดยใช้ warehouseDB
-	// 	if err := warehouseDB.Find(&branches).Error; err != nil {
-	// 		return c.Status(500).JSON(fiber.Map{
-	// 			"message": "Failed to fetch branches from WarehouseDB",
-	// 			"error":   err.Error(),
-	// 		})
-	// 	}
-
-	// 	// ส่งข้อมูลกลับไปยัง frontend
-	// 	return c.JSON(branches)
-	// })
 
 	// กำหนด routes สำหรับการจัดการต่างๆ
 	app.Post("/login", Database.LoginHandler(posDB)) // route สำหรับ login
@@ -128,6 +83,6 @@ func main() {
 	Database.ShipmentRoutes(app, posDB)
 	Database.CategoryRoutes(app, posDB)
 
-	// เริ่มต้นเซิร์ฟเวอร์ที่พอร์ต 5050
+	// เริ่มแอปพลิเคชัน
 	log.Fatal(app.Listen(":6060"))
 }

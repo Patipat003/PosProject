@@ -27,7 +27,6 @@ func AddBranches(db *gorm.DB, c *fiber.Ctx) error {
 	req.BranchID = uuid.New().String()
 	req.CreatedAt = time.Now()
 
-	// ตรวจสอบว่ามี GoogleLocation หรือไม่
 	if req.GoogleLocation == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Google Location (Latitude, Longitude) is required",
