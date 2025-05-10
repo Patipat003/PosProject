@@ -321,7 +321,7 @@ const SalesPage = () => {
           </div>
  
           {/* รายการสินค้า */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-1/2 overflow-y-auto mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded h-3/2 overflow-y-auto mb-6">
             {selectedBranch ? (
               filterInventoryByProduct().map((product) => {
                 const stock =
