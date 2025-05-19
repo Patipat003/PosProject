@@ -1,5 +1,5 @@
-  import React, { useEffect, useState } from "react";
-  import { Pie, Bar, Line } from "react-chartjs-2";
+  import { useEffect, useState } from "react";
+  import { Pie } from "react-chartjs-2";
   import ApexCharts from "react-apexcharts";
   import {
     Chart as ChartJS,
@@ -14,11 +14,11 @@
   import { toZonedTime, format } from 'date-fns-tz';
   import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
   import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
-  import SoldProductsModal from "../components/layout/ui/SoldProductsModal"; // Import the SoldProductsModal component
+  import SoldProductsModal from "../components/modal/SoldProductsModal"; // Import the SoldProductsModal component
   import { HiOutlineCurrencyDollar, HiOutlineShoppingCart, HiOutlineCube } from 'react-icons/hi'; // Heroicons
   import moment from "moment";
-  import ProductMovementChart from "../components/layout/ui/ProductMovementChart";
-  import { useStockThreshold } from "../Contexts/StockThresholdContext";
+  import ProductMovementChart from "../components/ProductMovementChart";
+  import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
   ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -287,18 +287,6 @@
       },
     };
 
-
-    const barData = {
-      labels: keyMetrics.map((metric) => metric.label),
-      datasets: [
-        {
-          label: "Metrics",
-          data: keyMetrics.map((metric) => metric.value),
-          backgroundColor: "#420505",
-        },
-      ],
-    };
-
     const topProductsData = {
       labels: topProducts.map((product) => product.productname),
       datasets: [
@@ -321,7 +309,6 @@
     
       const salesGraphSeries = [{ name: "Sales", data: salesByTime.map(data => data.sales) }];
     
-
     const handleViewAllClick = () => {
       setSelectedBranch(prevState => (prevState === "all" ? userBranchId : "all"));
     };

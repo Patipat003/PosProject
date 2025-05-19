@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
-import ExportButtons from "../components/layout/ui/ExportButtons";
+import ExportButtons from "../../../components/ui/ExportButtons";
 import { toZonedTime, format } from 'date-fns-tz';
 import { AiOutlineExclamationCircle } from "react-icons/ai"; 
 import { Player } from "@lottiefiles/react-lottie-player"; 
@@ -237,16 +237,16 @@ const ReportsEmployeePage = () => {
         <tbody>
         {currentEmployees.map((employee, index) => {
            const rowIndex = (currentPage - 1) * itemsPerPage + index + 1; // Calculate row index
-           return (
-          <tr
-            key={employee.employeeid} className="hover:bg-gray-100 text-gray-600">
-            <td className="border border-gray-300 text-center">{rowIndex}</td>
+          return (
+            <tr
+              key={employee.employeeid} className="hover:bg-gray-100 text-gray-600">
+              <td className="border border-gray-300 text-center">{rowIndex}</td>
 
-            <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
-            <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
-            <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
-            <td className="border border-gray-300 px-4 py-2">{employee.totalamount.toLocaleString()}</td>
-          </tr>
+              <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
+              <td className="border border-gray-300 px-4 py-2">{employee.role}</td>
+              <td className="border border-gray-300 px-4 py-2">{getBranchName(employee.branchid)}</td>
+              <td className="border border-gray-300 px-4 py-2">{employee.totalamount.toLocaleString()}</td>
+            </tr>
           );
         })}
         </tbody>

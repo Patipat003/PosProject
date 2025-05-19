@@ -5,7 +5,7 @@ import { FaReceipt, FaPrint, FaTrash } from "react-icons/fa"; // Import receipt 
 import { jwtDecode } from "jwt-decode";
 import { jsPDF } from 'jspdf';// Import ReactPrinter component
 import html2canvas from 'html2canvas-pro';
-import ReceiptPrinter from "../components/layout/ui/ReceiptPrinter";
+import ReceiptPrinter from "../components/ReceiptPrinter";
 
 const SalesHistoryPage = () => {
   const [sales, setSales] = useState([]);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaTrashAlt } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
-import PaymentModal from "../components/layout/ui/PaymentModal";
+import PaymentModal from "../components/modal/PaymentModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from "framer-motion"; 

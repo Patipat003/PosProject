@@ -4,12 +4,12 @@ import { FaTimes } from "react-icons/fa";
 import {HiOutlineEye} from "react-icons/hi";
 import { motion, AnimatePresence } from "framer-motion";
 import Chart from "react-apexcharts";
-import ProductDetailModal from "./ProductDetailModal";
+import ProductDetailModal from "../../../products/components/modal/ProductDetailModal";
 import moment from "moment"; // ✅ Import Moment.js
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
+import { useStockThreshold } from "../../../../Contexts/StockThresholdContext";
 
 const BranchViewModal = ({ branch, onClose }) => {
   const [salesData, setSalesData] = useState([]);

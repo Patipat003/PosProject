@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Ensure jwtEncode is imported for updating the token
-import ModalStockLow from "./ModalStockLow";
-import DarkModeToggle from "./DarkModeToggle";
-import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
+import StockLowModal from "../modal/StockLowModal";
+import DarkModeToggle from "../ui/DarkModeToggle";
+import { useStockThreshold } from "../../Contexts/StockThresholdContext";
 
 const Header = () => {
   const [branchName, setBranchName] = useState("");
@@ -355,7 +355,7 @@ const Header = () => {
       )}
       
       {isModalOpen && (
-        <ModalStockLow 
+        <StockLowModal
           products={lowStockProducts} 
           closeModal={() => setIsModalOpen(false)} 
         />

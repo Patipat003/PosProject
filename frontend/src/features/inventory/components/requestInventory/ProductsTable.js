@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
+import { useStockThreshold } from "../../../../Contexts/StockThresholdContext";
 
 const ProductsTable = ({
   currentProductRequests = [],

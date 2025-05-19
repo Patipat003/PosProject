@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import RequestInventory from "../components/layout/ui/RequestInventory";
-import RequestShipment from "../components/layout/ui/RequestShipment";
+import RequestInventory from "../components/requestInventory/RequestInventory";
+import RequestShipment from "../components/requestShipment/RequestShipment";
 import { toZonedTime, format } from 'date-fns-tz';
 import { HiOutlineEye } from "react-icons/hi";
 import { AiOutlineExclamationCircle } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // ใช้สำหรับ DatePicker
-import InventoryModal from "../components/layout/ui/InventoryModal";
-import { useStockThreshold } from "../Contexts/StockThresholdContext";
+import InventoryModal from "../components/modal/InventoryModal";
+import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
 
 const formatDate = (dateString) => {
   const utcDate = toZonedTime(dateString, "UTC"); // แปลงเป็น UTC

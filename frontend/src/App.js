@@ -1,25 +1,31 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './index.css';
-import MainLayout from "./components/layout/MainLayout";
-import DashboardPage from "./pages/DashboardPage";
-import SalesPage from "./pages/SalesPage";
-import SalesHistoryPage from "./pages/SalesHistoryPage";
-import ProductPage from "./pages/ProductPage";
-import ReportsPage from "./pages/ReportsPage";
-import UserManagementPage from "./pages/UserManagementPage";
-import DetailReportPage from "./pages/DetailReportPage";
-import EmployeeTransferPage from "./pages/EmployeeTransferPage";
-import InventoryPage from "./pages/InventoryPage";
-import LoginPage from "./pages/LoginPage";
-import { AuthProvider } from "./Contexts/AuthContext";
-import ProtectedRoute from "./components/routes/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
-import SelectBranchPage from "./pages/SelectBranchPage";
-import BranchesPage from "./pages/BranchesPage";
-import ReportsEmployeePage from "./pages/ReportsEmployeePage";
+import MainLayout from "./components/layout/MainLayout";
+
+// feature pages
+import DashboardPage from "./features/dashboard/pages/DashboardPage"; // dashboard
+import SalesPage from "./features/sales/pages/SalesPage"; // sales
+import SalesHistoryPage from "./features/sales/pages/SalesHistoryPage"; // sales history
+import ProductPage from "./features/products/pages/ProductPage"; // product
+import InventoryPage from "./features/inventory/pages/InventoryPage"; // inventory
+import ReportsPage from "./features/reports/pages/ReportsPage"; // reports
+import ReportsEmployeePage from "./features/reports/pages/ReportsEmployeePage"; // employee reports
+import DetailReportPage from "./features/reports/pages/DetailReportPage";  // detail report
+import UserManagementPage from "./features/users/pages/UserManagementPage"; // user management
+import EmployeeTransferPage from "./features/users/pages/EmployeeTransferPage"; // employee transfer
+import BranchesPage from "./features/branches/pages/BranchesPage"; // branches management
+
+// main pages
+import LoginPage from "./features/login/pages/LoginPage";
+import SelectBranchPage from "./features/login/pages/SelectBranchPage";
+
+// context
+import { AuthProvider } from "./Contexts/AuthContext";
 import { StockThresholdProvider } from "./Contexts/StockThresholdContext";
 
+// routes
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
   return (
@@ -33,7 +39,7 @@ function App() {
             <Route 
               path="/select-branch"
               element={
-                <ProtectedRoute allowedRoles={['Super Admin']}> {/* Define allowed roles */}
+                <ProtectedRoute allowedRoles={['Super Admin']}> 
                   <SelectBranchPage />
                 </ProtectedRoute>
               }

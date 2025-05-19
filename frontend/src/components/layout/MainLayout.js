@@ -13,7 +13,7 @@ import {
 } from "react-icons/hi";
 import { HiMiniSquare3Stack3D, HiMiniUserGroup  } from "react-icons/hi2";
 import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
-import Header from "./ui/Header";
+import Header from "./Header";
 
 // SidebarDropdown Component
 const SidebarDropdown = ({ label, children, icon }) => {

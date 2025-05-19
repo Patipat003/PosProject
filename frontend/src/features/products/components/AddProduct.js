@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const IMG_BB_API_KEY = "e71bdf3bd6dc220c4ddaf2fd9d9db287";
 
-const ProductForm = ({ onProductAdded }) => {
+const AddProduct = ({ onProductAdded }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
@@ -209,4 +209,4 @@ const InputField = ({ label, value, onChange, type = "text" }) => (
   </div>
 );
 
-export default ProductForm;
+export default AddProduct;

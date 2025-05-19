@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
-import ProductForm from "../components/layout/ui/ProductForm";
-import EditedProduct from "../components/layout/ui/EditedProduct";
+import AddProduct from "../components/AddProduct";
+import EditedProduct from "../components/EditedProduct";
 import { toZonedTime, format } from 'date-fns-tz';
 import { FaTrash } from "react-icons/fa";
 import { AiOutlineExclamationCircle   } from "react-icons/ai"; // Error Icon
 import { Player } from "@lottiefiles/react-lottie-player"; // Lottie Player
-import CategoryModal from "../components/layout/ui/CategoryModal";
-import ProductDetailModal from "../components/layout/ui/ProductDetailModal";
+import CategoryModal from "../components/modal/CategoryModal";
+import ProductDetailModal from "../components/modal/ProductDetailModal";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A"; // ตรวจสอบค่าว่าง
@@ -344,7 +344,7 @@ const ProductPage = () => {
         <div className="flex space-x-4 mb-4">
         {(userRole === "Super Admin") && (
           <>
-            <ProductForm onProductAdded={handleProductAdded} />
+            <AddProduct onProductAdded={handleProductAdded} />
             {/* Category */}
             <button
               onClick={() => setIsCategoryModalOpen(true)}

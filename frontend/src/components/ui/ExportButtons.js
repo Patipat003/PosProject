@@ -1,4 +1,3 @@
-import React from "react";
 import { CSVLink } from "react-csv";
 
 const ExportButtons = ({ filteredTables, columns, filename = "file.pdf" }) => {

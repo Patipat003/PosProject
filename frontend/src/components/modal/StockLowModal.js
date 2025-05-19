@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify"; 
 import { AnimatePresence, motion } from "framer-motion"; 
-import { useStockThreshold } from "../../../Contexts/StockThresholdContext";
-import { HiBuilding } from "react-icons/hi"; // Import ไอคอน HiBuilding
+import { useStockThreshold } from "../../Contexts/StockThresholdContext";
 
-const ModalStockLow = ({ closeModal }) => {
+const StockLowModal = ({ closeModal }) => {
   const [products, setProducts] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -281,4 +280,4 @@ const ModalStockLow = ({ closeModal }) => {
   );
 };
 
-export default ModalStockLow;
+export default StockLowModal;

@@ -5,11 +5,11 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 import moment from "moment";
-import BranchViewModal from "../components/layout/ui/BranchViewModal";
+import BranchViewModal from "../components/modal/BranchViewModal";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import BranchMap from "../components/layout/ui/BranchMap";
+import BranchMap from "../components/BranchMap";
 
 const BranchesPage = () => {
   const [branches, setBranches] = useState([]);

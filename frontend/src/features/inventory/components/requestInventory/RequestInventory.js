@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AnimatePresence, motion } from "framer-motion";
 import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
-import AddRequestModal from "./AddRequestModal";
+import AddRequestModal from "../modal/AddRequestModal";
 import SendingShipmentTable from "./SendingShipmentTable";
 import ReceivingShipmentTable from "./ReceivingShipmentTable";
 import ProductsTable from "./ProductsTable";

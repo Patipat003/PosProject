@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import PromptPayQRCode from "./PromptPayQRCode";
+import PromptPayQRCode from "../PromptPayQRCode";
 import { FaCreditCard, FaCashRegister, FaMobileAlt, FaUser, FaStore } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
